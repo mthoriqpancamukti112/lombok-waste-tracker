@@ -1,0 +1,28 @@
+export const landingDict = {
+    id: {
+        title: "Peta Pemantauan Sampah",
+        searchPlaceholder: "Cari Lokasi...",
+        mapTheme: "Ubah Tema Peta",
+        changeLang: "Change to English",
+        reportList: "Daftar Laporan",
+        quickReport: "Lapor Cepat",
+        login: "Masuk",
+        dashboard: "Dasbor",
+        recentReportsTitle: "Laporan Terbaru",
+        noReports: "Belum ada laporan tumpukan sampah saat ini.",
+        reportedBy: "Dilaporkan oleh",
+    },
+    en: {
+        title: "Waste Monitoring Map",
+        searchPlaceholder: "Search Location...",
+        mapTheme: "Toggle Map Theme",
+        changeLang: "Ganti ke Bahasa Indonesia",
+        reportList: "Report List",
+        quickReport: "Quick Report",
+        login: "Sign In",
+        dashboard: "Dashboard",
+        recentReportsTitle: "Recent Reports",
+        noReports: "No garbage accumulation reports at the moment.",
+        reportedBy: "Reported by",
+    },
+};

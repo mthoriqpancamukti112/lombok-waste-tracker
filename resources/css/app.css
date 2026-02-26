@@ -1,0 +1,30 @@
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body,
+html {
+    font-family: "Google Sans", ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.mapboxgl-popup,
+.mapboxgl-popup-content,
+.mapboxgl-ctrl {
+    font-family: "Google Sans", ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.mapboxgl-popup-content {
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+.mapboxgl-ctrl-logo {
+    display: none !important;
+}
+
+.mapboxgl-ctrl-attrib {
+    display: none !important;
+}
