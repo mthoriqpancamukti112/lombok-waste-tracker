@@ -1,9 +1,8 @@
 import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import TextInput from "@/Components/TextInput";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { FormEventHandler } from "react";
+import { FormEventHandler, useState } from "react";
+import { User, Mail, Lock, Eye, EyeOff } from "@mynaui/icons-react";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -13,9 +12,10 @@ export default function Register() {
         password_confirmation: "",
     });
 
+    const [showPassword, setShowPassword] = useState(false);
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-
         post(route("register"), {
             onFinish: () => reset("password", "password_confirmation"),
         });
@@ -25,168 +25,134 @@ export default function Register() {
         <GuestLayout>
             <Head title="Daftar Akun" />
 
-            {/* Header Pendaftaran */}
-            <div className="mb-8 text-center">
-                <h2 className="text-2xl font-extrabold text-slate-800">
-                    Buat Akun Warga
-                </h2>
-                <p className="text-sm text-slate-500 mt-2">
-                    Mari bergabung untuk memantau dan menjaga kebersihan
-                    lingkungan bersama.
-                </p>
-            </div>
-
-            <form onSubmit={submit} className="space-y-5">
-                {/* 1. Input Nama Lengkap */}
-                <div>
-                    <InputLabel
-                        htmlFor="name"
-                        value="Nama Lengkap"
-                        className="font-bold text-slate-700 ml-1 mb-1.5"
-                    />
-
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="block w-full border-gray-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] rounded-xl shadow-sm transition-colors py-2.5 px-4 bg-gray-50/50"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData("name", e.target.value)}
-                        placeholder="Masukkan nama lengkap Anda"
-                        required
-                    />
-
-                    <InputError message={errors.name} className="mt-2 ml-1" />
+            <div className="pt-10 px-8 pb-10">
+                <div className="mb-8">
+                    <h2 className="text-2xl font-black text-slate-900">
+                        Gabung Bersama Kami
+                    </h2>
+                    <p className="text-sm text-slate-400 mt-1 font-medium">
+                        Buat akun untuk mulai berkontribusi dalam menjaga Lombok.
+                    </p>
                 </div>
 
-                {/* 2. Input Email */}
-                <div>
-                    <InputLabel
-                        htmlFor="email"
-                        value="Alamat Email"
-                        className="font-bold text-slate-700 ml-1 mb-1.5"
-                    />
+                <form onSubmit={submit} className="space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-black text-slate-400 ml-1">NAMA LENGKAP</label>
+                        <div className="relative group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors">
+                                <User className="w-4 h-4" />
+                            </div>
+                            <input
+                                type="text"
+                                value={data.name}
+                                onChange={e => setData("name", e.target.value)}
+                                placeholder="Nama Lengkap Anda"
+                                className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                required
+                            />
+                        </div>
+                        <InputError message={errors.name} />
+                    </div>
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="block w-full border-gray-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] rounded-xl shadow-sm transition-colors py-2.5 px-4 bg-gray-50/50"
-                        autoComplete="username"
-                        onChange={(e) => setData("email", e.target.value)}
-                        placeholder="contoh@email.com"
-                        required
-                    />
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-black text-slate-400 ml-1">EMAIL</label>
+                        <div className="relative group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors">
+                                <Mail className="w-4 h-4" />
+                            </div>
+                            <input
+                                type="email"
+                                value={data.email}
+                                onChange={e => setData("email", e.target.value)}
+                                placeholder="your@email.com"
+                                className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                required
+                            />
+                        </div>
+                        <InputError message={errors.email} />
+                    </div>
 
-                    <InputError message={errors.email} className="mt-2 ml-1" />
-                </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-black text-slate-400 ml-1">KATA SANDI</label>
+                            <div className="relative group">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={data.password}
+                                    onChange={e => setData("password", e.target.value)}
+                                    placeholder="••••••••"
+                                    className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 px-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-black text-slate-400 ml-1">KONFIRMASI</label>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={data.password_confirmation}
+                                onChange={e => setData("password_confirmation", e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 px-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <InputError message={errors.password} />
 
-                {/* 3. Input Password */}
-                <div>
-                    <InputLabel
-                        htmlFor="password"
-                        value="Kata Sandi"
-                        className="font-bold text-slate-700 ml-1 mb-1.5"
-                    />
+                    <div className="flex justify-end px-1">
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="text-[11px] font-black text-slate-400 hover:text-slate-600 transition-colors uppercase"
+                        >
+                            {showPassword ? "Sembunyikan Sandi" : "Lihat Sandi"}
+                        </button>
+                    </div>
 
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="block w-full border-gray-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] rounded-xl shadow-sm transition-colors py-2.5 px-4 bg-gray-50/50"
-                        autoComplete="new-password"
-                        onChange={(e) => setData("password", e.target.value)}
-                        placeholder="Minimal 8 karakter"
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password}
-                        className="mt-2 ml-1"
-                    />
-                </div>
-
-                {/* 4. Konfirmasi Password */}
-                <div>
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Konfirmasi Kata Sandi"
-                        className="font-bold text-slate-700 ml-1 mb-1.5"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="block w-full border-gray-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] rounded-xl shadow-sm transition-colors py-2.5 px-4 bg-gray-50/50"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData("password_confirmation", e.target.value)
-                        }
-                        placeholder="Ulangi kata sandi"
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2 ml-1"
-                    />
-                </div>
-
-                {/* 5. Tombol Register */}
-                <div className="mt-8 pt-2">
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-black text-slate-900 bg-[#a7e94a] hover:bg-[#92ce40] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a7e94a] disabled:opacity-50 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                        className="w-full bg-[#a7e94a] text-white py-4 rounded-2xl text-[13px] font-black shadow-lg shadow-[#a7e94a]/20 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 mt-4 h-[52px] flex items-center justify-center"
                     >
-                        {processing ? (
-                            <span className="flex items-center gap-2">
-                                <svg
-                                    className="animate-spin h-4 w-4 text-slate-900"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                </svg>
-                                Mendaftarkan...
-                            </span>
-                        ) : (
-                            "Daftar Sekarang"
-                        )}
+                        {processing ? "MEMPROSES..." : "DAFTAR SEKARANG"}
                     </button>
+                </form>
+
+                <div className="relative my-8">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-100" />
+                    </div>
+                    <div className="relative flex justify-center text-[10px] font-black text-slate-300 bg-white px-4 tracking-widest uppercase">
+                        Atau Menggunakan
+                    </div>
                 </div>
 
-                {/* Info Tambahan untuk Login */}
-                <div className="text-center mt-6">
-                    <p className="text-sm text-slate-500">
+                <a
+                    href={route("google.redirect")}
+                    className="w-full flex items-center justify-center gap-3 bg-white border border-slate-100 py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:bg-slate-50 transition-all active:scale-[0.98]"
+                >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.26.81-.58z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335" />
+                    </svg>
+                    <span className="text-sm font-bold text-slate-700">Daftar dengan Google</span>
+                </a>
+
+                <div className="text-center mt-10">
+                    <p className="text-xs text-slate-400 font-medium">
                         Sudah memiliki akun?{" "}
                         <Link
                             href={route("login")}
-                            className="font-bold text-[#a7e94a] hover:text-[#92ce40] hover:underline transition-colors"
+                            className="font-black text-[#a7e94a] hover:text-[#92ce40] transition-colors"
                         >
-                            Masuk di sini
+                            MASUK DI SINI
                         </Link>
                     </p>
                 </div>
-            </form>
+            </div>
         </GuestLayout>
     );
 }
