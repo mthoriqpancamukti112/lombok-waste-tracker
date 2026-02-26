@@ -13,29 +13,26 @@ use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
 {
-    // Mengarahkan user ke halaman login Google
     public function redirect()
     {
         return Socialite::driver('google')->redirect();
     }
 
-    // Menangani kembalian data dari Google
     public function callback(Request $request)
     {
         try {
             $googleUser = Socialite::driver('google')->user();
 
-            // Cek apakah email sudah terdaftar sebelumnya (baik via manual maupun Google)
-            $user = User::where('email', $googleUser->getEmail())->first();
+            $user = User::where('google_id', $googleUser->getId())
+                ->orWhere('email', $googleUser->getEmail())
+                ->first();
 
             if ($user) {
-                // Jika user sudah ada, update google_id & avatar (kalau sebelumnya daftar manual)
                 $user->update([
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
                 ]);
             } else {
-                // Jika user belum ada, BUAT USER BARU
                 $user = User::create([
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
@@ -52,16 +49,13 @@ class GoogleAuthController extends Controller
                 ]);
             }
 
-            // Login-kan user tersebut
-            Auth::login($user);
+            Auth::login($user, true);
 
-            // Regenerate session untuk keamanan
             $request->session()->regenerate();
 
-            return redirect()->intended(route('dashboard.warga', absolute: false));
+            return redirect('/');
         } catch (\Exception $e) {
-            // Jika batal login atau error, kembalikan ke halaman login dengan pesan
-            return redirect()->route('login')->with('error', 'Gagal login menggunakan Google.');
+            return redirect('/login')->with('error', 'Gagal login dengan Google. Silakan coba lagi.');
         }
     }
 }

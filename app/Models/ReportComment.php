@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReportComment extends Model
 {
@@ -13,19 +15,17 @@ class ReportComment extends Model
         'body',
     ];
 
-    // Relasi ke Report
-    public function report()
+    public function report(): BelongsTo
     {
         return $this->belongsTo(Report::class);
     }
 
-    // Relasi ke User
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function replies()
+    public function replies(): HasMany
     {
         return $this->hasMany(ReportComment::class, 'parent_id')->with('user:id,name,role')->oldest();
     }

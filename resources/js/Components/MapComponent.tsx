@@ -1,15 +1,13 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useRef, forwardRef, useImperativeHandle } from "react";
 import Map, {
     Marker,
     Popup,
-    GeolocateControl,
     Source,
     Layer,
-    MapRef,
+    GeolocateControl,
 } from "react-map-gl/mapbox";
-import type { LayerProps } from "react-map-gl/mapbox";
+import type { LayerProps, MapRef, GeolocateControlRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { ShieldCheck } from "@mynaui/icons-react";
 
 interface Report {
     id: number;
@@ -17,363 +15,395 @@ interface Report {
     longitude: string;
     description: string;
     status: string;
+    severity_level?: string;
+    waste_type?: string;
+    address?: string;
     photo_path: string;
-    user: {
-        name: string;
-        warga?: {
-            is_terverifikasi: boolean;
-        };
-    };
+    user: { id: number; name: string; avatar?: string | null };
+    likes_count: number;
+    comments_count: number;
     created_at: string;
 }
 
 interface DangerZone {
     id: number;
     name: string;
-    severity: string;
+    description?: string;
     type: string;
-    coordinates: any;
+    severity: string;
+    coordinates?: number[][];
+    center_lat?: number;
+    center_lng?: number;
+    radius_meters?: number;
+}
+
+interface WasteDensityZone {
+    id: number;
+    name: string;
+    coordinates?: number[][];
+    density_level: string;
+    kelurahan?: string;
+    kecamatan?: string;
+    report_count: number;
 }
 
 interface MapProps {
     reports: Report[];
+    dangerZones: DangerZone[];
+    wasteDensityZones: WasteDensityZone[];
     isDarkMode: boolean;
-    userLocation?: { lat: number; lng: number } | null;
-    dangerZones?: DangerZone[];
 }
 
-export default function MapComponent({
-    reports,
-    isDarkMode,
-    userLocation,
-    dangerZones = [],
-}: MapProps) {
-    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-    const mapRef = useRef<MapRef>(null);
+export interface MapHandle {
+    centerOnUser: () => void;
+}
 
-    const lombokCenter = {
-        longitude: 116.1165, // Diubah ke Mataram agar fokus
-        latitude: -8.5833,
-        zoom: 12,
-    };
+const severityColor: Record<string, string> = {
+    low: '#facc15',
+    medium: '#f97316',
+    high: '#ef4444',
+    critical: '#7f1d1d',
+};
 
-    useEffect(() => {
-        if (userLocation && mapRef.current) {
-            mapRef.current.flyTo({
-                center: [userLocation.lng, userLocation.lat],
-                zoom: 14,
-                duration: 2000,
-            });
-        }
-    }, [userLocation]);
+const densityColor: Record<string, string> = {
+    very_low: 'rgba(167,233,74,0.15)',
+    low: 'rgba(167,233,74,0.30)',
+    medium: 'rgba(251,191,36,0.40)',
+    high: 'rgba(249,115,22,0.45)',
+    very_high: 'rgba(239,68,68,0.50)',
+};
 
-    // Data Laporan Warga (Heatmap)
-    const geojsonData = useMemo(() => {
-        return {
+const densityBorder: Record<string, string> = {
+    very_low: 'rgba(167,233,74,0.5)',
+    low: 'rgba(167,233,74,0.7)',
+    medium: 'rgba(251,191,36,0.8)',
+    high: 'rgba(249,115,22,0.9)',
+    very_high: 'rgba(239,68,68,1)',
+};
+
+const MapComponent = forwardRef<MapHandle, MapProps>(
+    function MapComponent({ reports, dangerZones, wasteDensityZones, isDarkMode }, ref) {
+        const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+        const mapRef = useRef<MapRef>(null);
+        const geolocateRef = useRef<GeolocateControlRef>(null);
+
+        const lombokCenter = { longitude: 116.3167, latitude: -8.5833, zoom: 10 };
+
+        useImperativeHandle(ref, () => ({
+            centerOnUser: () => { geolocateRef.current?.trigger(); },
+        }));
+
+        // ── Report heatmap GeoJSON ──
+        const reportsGeoJson = useMemo(() => ({
             type: "FeatureCollection" as const,
-            features: reports.map((report) => ({
+            features: reports.map(r => ({
                 type: "Feature" as const,
-                properties: {
-                    id: report.id,
-                    mag: 100,
-                },
+                properties: { id: r.id, mag: 100 },
                 geometry: {
                     type: "Point" as const,
-                    coordinates: [
-                        parseFloat(report.longitude),
-                        parseFloat(report.latitude),
-                    ],
+                    coordinates: [parseFloat(r.longitude), parseFloat(r.latitude)],
                 },
             })),
-        };
-    }, [reports]);
+        }), [reports]);
 
-    // Data Zona Rawan (Polygon Mapbox Draw)
-    const dangerZoneGeojson = useMemo(() => {
-        return {
+        // ── Danger Zones GeoJSON (polygons or circles) ──
+        const dangerGeoJson = useMemo(() => ({
             type: "FeatureCollection" as const,
-            features: dangerZones.map((zone) => ({
-                type: "Feature" as const,
-                properties: {
-                    id: zone.id,
-                    name: zone.name,
-                    severity: zone.severity,
-                    type: zone.type,
-                },
-                geometry: {
-                    type: "Polygon" as const,
-                    coordinates: zone.coordinates,
-                },
-            })),
+            features: dangerZones
+                .filter(z => z.coordinates && z.coordinates.length >= 3)
+                .map(z => ({
+                    type: "Feature" as const,
+                    properties: { severity: z.severity, name: z.name },
+                    geometry: {
+                        type: "Polygon" as const,
+                        coordinates: [z.coordinates!],
+                    },
+                })),
+        }), [dangerZones]);
+
+        // ── Waste Density GeoJSON (polygons) ──
+        const densityGeoJson = useMemo(() => ({
+            type: "FeatureCollection" as const,
+            features: wasteDensityZones
+                .filter(z => z.coordinates && z.coordinates.length >= 3)
+                .map(z => ({
+                    type: "Feature" as const,
+                    properties: { density_level: z.density_level, name: z.name },
+                    geometry: {
+                        type: "Polygon" as const,
+                        coordinates: [z.coordinates!],
+                    },
+                })),
+        }), [wasteDensityZones]);
+
+        const heatmapLayer: LayerProps = {
+            id: "reports-heat",
+            type: "heatmap",
+            source: "reports-data",
+            maxzoom: 15,
+            paint: {
+                "heatmap-weight": ["interpolate", ["linear"], ["get", "mag"], 0, 0, 1, 1],
+                "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 9, 3],
+                "heatmap-color": [
+                    "interpolate", ["linear"], ["heatmap-density"],
+                    0, "rgba(33,102,172,0)",
+                    0.2, "rgb(103,169,207)",
+                    0.4, "rgb(209,229,240)",
+                    0.6, "rgb(253,219,199)",
+                    0.8, "rgb(239,138,98)",
+                    1, "rgb(178,24,43)",
+                ],
+                "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 2, 9, 20],
+                "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 14, 0],
+            },
         };
-    }, [dangerZones]);
 
-    // Styling Heatmap Laporan
-    const heatmapLayer: LayerProps = {
-        id: "reports-heat",
-        type: "heatmap",
-        source: "reports-data",
-        maxzoom: 15,
-        paint: {
-            "heatmap-weight": [
-                "interpolate",
-                ["linear"],
-                ["get", "mag"],
-                0,
-                0,
-                1,
-                1,
-            ],
-            "heatmap-intensity": [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                0,
-                1,
-                9,
-                3,
-            ],
-            "heatmap-color": [
-                "interpolate",
-                ["linear"],
-                ["heatmap-density"],
-                0,
-                "rgba(33,102,172,0)",
-                0.2,
-                "rgb(103,169,207)",
-                0.4,
-                "rgb(167, 233, 74)",
-                0.7,
-                "rgb(239,138,98)",
-                1,
-                "rgb(178,24,43)",
-            ],
-            "heatmap-radius": [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                0,
-                15,
-                9,
-                40,
-            ],
-            "heatmap-opacity": [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                7,
-                1,
-                14,
-                0,
-            ],
-        },
-    };
+        const pointLayer: LayerProps = {
+            id: "reports-point",
+            type: "circle",
+            source: "reports-data",
+            minzoom: 7,
+            paint: {
+                "circle-radius": [
+                    "interpolate", ["linear"], ["zoom"],
+                    7, ["interpolate", ["linear"], ["get", "mag"], 1, 1, 6, 4],
+                    16, ["interpolate", ["linear"], ["get", "mag"], 1, 5, 6, 50],
+                ],
+                "circle-color": [
+                    "interpolate", ["linear"], ["get", "mag"],
+                    1, "rgba(33,102,172,0)",
+                    2, "rgb(103,169,207)",
+                    3, "rgb(253,219,199)",
+                    4, "rgb(239,138,98)",
+                    5, "rgb(178,24,43)",
+                    6, "rgb(178,24,43)",
+                ],
+                "circle-stroke-color": "white",
+                "circle-stroke-width": 1,
+                "circle-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 8, 1],
+            },
+        };
 
-    // Styling Zona Rawan - Area Dalam (Fill)
-    const dangerZoneFillLayer: LayerProps = {
-        id: "danger-zone-fill",
-        type: "fill",
-        source: "danger-zone-data",
-        paint: {
-            "fill-color": [
-                "match",
-                ["get", "severity"],
-                "critical",
-                "#ef4444", // Merah
-                "high",
-                "#f97316", // Oranye
-                "medium",
-                "#eab308", // Kuning
-                "low",
-                "#22c55e", // Hijau
-                "#94a3b8", // Abu-abu default
-            ],
-            "fill-opacity": isDarkMode ? 0.25 : 0.35, // Agak transparan agar peta di bawahnya tetap terlihat
-        },
-    };
+        const dangerFillLayer: LayerProps = {
+            id: "danger-fill",
+            type: "fill",
+            source: "danger-data",
+            paint: {
+                "fill-color": [
+                    "match", ["get", "severity"],
+                    "low", "rgba(250,204,21,0.15)",
+                    "medium", "rgba(249,115,22,0.20)",
+                    "high", "rgba(239,68,68,0.25)",
+                    "critical", "rgba(127,29,29,0.30)",
+                    "rgba(239,68,68,0.20)",
+                ],
+                "fill-opacity": 0.8,
+            },
+        };
 
-    // Styling Zona Rawan - Garis Luar (Outline)
-    const dangerZoneLineLayer: LayerProps = {
-        id: "danger-zone-line",
-        type: "line",
-        source: "danger-zone-data",
-        paint: {
-            "line-color": [
-                "match",
-                ["get", "severity"],
-                "critical",
-                "#b91c1c",
-                "high",
-                "#c2410c",
-                "medium",
-                "#a16207",
-                "low",
-                "#15803d",
-                "#475569",
-            ],
-            "line-width": 2,
-            "line-dasharray": [2, 2], // Garis putus-putus
-        },
-    };
+        const dangerLineLayer: LayerProps = {
+            id: "danger-line",
+            type: "line",
+            source: "danger-data",
+            paint: {
+                "line-color": [
+                    "match", ["get", "severity"],
+                    "low", "#facc15",
+                    "medium", "#f97316",
+                    "high", "#ef4444",
+                    "critical", "#7f1d1d",
+                    "#ef4444",
+                ],
+                "line-width": 2,
+                "line-dasharray": [2, 2],
+            },
+        };
 
-    return (
-        <Map
-            ref={mapRef}
-            initialViewState={lombokCenter}
-            style={{ width: "100%", height: "100%" }}
-            mapStyle={
-                isDarkMode
-                    ? "mapbox://styles/mapbox/dark-v11"
-                    : "mapbox://styles/mapbox/streets-v12"
-            }
-            mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
-        >
-            {/* SUMBER DATA 1: ZONA RAWAN (Digambar duluan agar ada di layer bawah) */}
-            <Source
-                id="danger-zone-data"
-                type="geojson"
-                data={dangerZoneGeojson}
+        const densityFillLayer: LayerProps = {
+            id: "density-fill",
+            type: "fill",
+            source: "density-data",
+            paint: {
+                "fill-color": [
+                    "match", ["get", "density_level"],
+                    "very_low", "rgba(167,233,74,0.15)",
+                    "low", "rgba(167,233,74,0.25)",
+                    "medium", "rgba(251,191,36,0.35)",
+                    "high", "rgba(249,115,22,0.40)",
+                    "very_high", "rgba(239,68,68,0.45)",
+                    "rgba(167,233,74,0.15)",
+                ],
+                "fill-opacity": 0.85,
+            },
+        };
+
+        const densityLineLayer: LayerProps = {
+            id: "density-line",
+            type: "line",
+            source: "density-data",
+            paint: {
+                "line-color": [
+                    "match", ["get", "density_level"],
+                    "very_low", "rgba(167,233,74,0.5)",
+                    "low", "rgba(167,233,74,0.7)",
+                    "medium", "rgba(251,191,36,0.8)",
+                    "high", "rgba(249,115,22,0.9)",
+                    "very_high", "rgba(239,68,68,1)",
+                    "rgba(167,233,74,0.5)",
+                ],
+                "line-width": 1.5,
+            },
+        };
+
+        const statusColor = (status: string) => {
+            if (status === "menunggu") return { ping: "bg-red-500", dot: "bg-red-600" };
+            if (status === "proses") return { ping: "bg-blue-500", dot: "bg-blue-600" };
+            return { ping: "bg-[#a7e94a]", dot: "bg-[#a7e94a]" };
+        };
+
+        return (
+            <Map
+                ref={mapRef}
+                initialViewState={lombokCenter}
+                style={{ width: "100%", height: "100%" }}
+                mapStyle={isDarkMode ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
+                mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
+                attributionControl={false}
+                logoPosition="bottom-left"
             >
-                <Layer {...dangerZoneFillLayer} />
-                <Layer {...dangerZoneLineLayer} />
-            </Source>
+                <style>{`.mapboxgl-ctrl-logo { display: none !important; } .mapboxgl-ctrl-attrib { display: none !important; } .mapboxgl-ctrl-geolocate { display: none !important; }`}</style>
 
-            {/* SUMBER DATA 2: HEATMAP LAPORAN */}
-            <Source id="reports-data" type="geojson" data={geojsonData}>
-                <Layer {...heatmapLayer} />
-            </Source>
+                <div style={{ display: 'none' }}>
+                    <GeolocateControl
+                        ref={geolocateRef}
+                        positionOptions={{ enableHighAccuracy: true }}
+                        trackUserLocation
+                        showUserHeading
+                    />
+                </div>
 
-            {/* MARKER LAPORAN INDIVIDU */}
-            {reports.map((report) => (
-                <Marker
-                    key={report.id}
-                    longitude={parseFloat(report.longitude)}
-                    latitude={parseFloat(report.latitude)}
-                    anchor="center"
-                    onClick={(e) => {
-                        e.originalEvent.stopPropagation();
-                        setSelectedReport(report);
-                    }}
-                >
-                    <div className="relative flex items-center justify-center w-10 h-10 cursor-pointer hover:scale-110 transition-transform duration-300">
-                        <span
-                            className={`absolute w-10 h-10 opacity-50 rounded-full animate-ping ${
-                                report.status === "menunggu"
-                                    ? "bg-red-500"
-                                    : report.status === "proses"
-                                      ? "bg-blue-500"
-                                      : "bg-[#a7e94a]"
-                            }`}
-                        ></span>
-                        <span
-                            className={`absolute w-4 h-4 rounded-full border-2 border-white shadow-md ${
-                                report.status === "menunggu"
-                                    ? "bg-red-600"
-                                    : report.status === "proses"
-                                      ? "bg-blue-600"
-                                      : "bg-[#a7e94a]"
-                            }`}
-                        ></span>
-                    </div>
-                </Marker>
-            ))}
+                {/* Waste Density layer */}
+                <Source id="density-data" type="geojson" data={densityGeoJson}>
+                    <Layer {...densityFillLayer} />
+                    <Layer {...densityLineLayer} />
+                </Source>
 
-            {/* POPUP LAPORAN */}
-            {selectedReport && (
-                <Popup
-                    longitude={parseFloat(selectedReport.longitude)}
-                    latitude={parseFloat(selectedReport.latitude)}
-                    anchor="bottom"
-                    offset={20}
-                    onClose={() => setSelectedReport(null)}
-                    closeOnClick={true}
-                    closeButton={false}
-                    className="z-50"
-                    maxWidth="320px"
-                >
-                    <div className="flex flex-col w-[240px] gap-0 rounded-2xl overflow-hidden shadow-xl border border-slate-100 bg-white">
-                        {/* Area Foto Popup */}
-                        <div className="relative h-32 w-full bg-slate-200">
-                            <img
-                                src={`/storage/${selectedReport.photo_path}`}
-                                alt="Foto Sampah"
-                                className="w-full h-full object-cover"
-                            />
-                            <button
-                                onClick={() => setSelectedReport(null)}
-                                className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-black/40 hover:bg-black/70 text-white rounded-full backdrop-blur-md transition-colors z-10"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={3}
-                                    stroke="currentColor"
-                                    className="w-3 h-3"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                            <span
-                                className={`absolute bottom-2 left-2 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md shadow-sm backdrop-blur-md ${
-                                    selectedReport.status === "menunggu"
-                                        ? "bg-red-500/90 text-white"
-                                        : selectedReport.status === "proses"
-                                          ? "bg-blue-500/90 text-white"
-                                          : "bg-[#a7e94a]/90 text-slate-900"
-                                }`}
-                            >
-                                {selectedReport.status}
+                {/* Danger Zones layer */}
+                <Source id="danger-data" type="geojson" data={dangerGeoJson}>
+                    <Layer {...dangerFillLayer} />
+                    <Layer {...dangerLineLayer} />
+                </Source>
+
+                {/* Report heatmap */}
+                <Source id="reports-data" type="geojson" data={reportsGeoJson}>
+                    <Layer {...heatmapLayer} />
+                    <Layer {...pointLayer} />
+                </Source>
+
+                {/* Danger zone circle markers (center point) */}
+                {dangerZones.filter(z => z.center_lat && z.center_lng).map(zone => (
+                    <Marker
+                        key={`dz-${zone.id}`}
+                        longitude={zone.center_lng!}
+                        latitude={zone.center_lat!}
+                        anchor="center"
+                    >
+                        <div
+                            title={zone.name}
+                            className="relative flex items-center justify-center w-8 h-8 cursor-pointer hover:scale-125 transition-transform"
+                        >
+                            <span className={`absolute w-8 h-8 rounded-full opacity-40 animate-ping`}
+                                style={{ backgroundColor: severityColor[zone.severity] || '#ef4444' }} />
+                            <span className={`absolute w-3 h-3 rounded-full border-2 border-white shadow-lg`}
+                                style={{ backgroundColor: severityColor[zone.severity] || '#ef4444' }} />
+                            <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black/70 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100">
+                                {zone.name}
                             </span>
                         </div>
+                    </Marker>
+                ))}
 
-                        {/* Area Teks Popup */}
-                        <div className="p-4 flex flex-col">
-                            <h3 className="text-slate-800 text-xs font-bold leading-snug line-clamp-2 mb-2">
-                                {selectedReport.description ||
-                                    "Laporan tumpukan sampah."}
-                            </h3>
-                            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                                <div className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                        className="w-3 h-3 text-slate-400"
-                                    >
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                                            clipRule="evenodd"
-                                        />
+                {/* Report markers */}
+                {reports.map(report => {
+                    const { ping, dot } = statusColor(report.status);
+                    return (
+                        <Marker
+                            key={report.id}
+                            longitude={parseFloat(report.longitude)}
+                            latitude={parseFloat(report.latitude)}
+                            anchor="center"
+                            onClick={e => { e.originalEvent.stopPropagation(); setSelectedReport(report); }}
+                        >
+                            <div className="relative flex items-center justify-center w-10 h-10 cursor-pointer hover:scale-110 transition-transform duration-300">
+                                <span className={`absolute w-10 h-10 opacity-50 rounded-full animate-ping ${ping}`} />
+                                <span className={`absolute w-4 h-4 rounded-full border-2 border-white shadow-md ${dot}`} />
+                            </div>
+                        </Marker>
+                    );
+                })}
+
+                {/* Popup */}
+                {selectedReport && (
+                    <Popup
+                        longitude={parseFloat(selectedReport.longitude)}
+                        latitude={parseFloat(selectedReport.latitude)}
+                        anchor="bottom"
+                        offset={20}
+                        onClose={() => setSelectedReport(null)}
+                        closeOnClick={false}
+                        closeButton={false}
+                        className="z-50"
+                        maxWidth="320px"
+                    >
+                        <div className="flex flex-col w-[240px] gap-0 rounded-2xl overflow-hidden shadow-xl border border-slate-100 bg-white">
+                            <div className="relative h-32 w-full bg-slate-200">
+                                <img src={`/storage/${selectedReport.photo_path}`} alt="Foto Sampah" className="w-full h-full object-cover" />
+                                <button
+                                    onClick={() => setSelectedReport(null)}
+                                    className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-black/40 hover:bg-black/70 text-white rounded-full backdrop-blur-md transition-colors z-10"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3 h-3">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
-                                </div>
-                                <div className="flex items-center gap-1 overflow-hidden">
-                                    <span className="text-[10px] text-slate-600 font-semibold truncate">
-                                        {selectedReport.user?.name}
-                                    </span>
-                                    {!!selectedReport.user?.warga
-                                        ?.is_terverifikasi && (
-                                        <span
-                                            title="Pelapor Terverifikasi (Reputasi Tinggi)"
-                                            className="flex items-center flex-shrink-0"
-                                        >
-                                            <ShieldCheck
-                                                className="w-3 h-3 text-blue-500 fill-blue-500/20"
-                                                strokeWidth={2.5}
-                                            />
+                                </button>
+                                <span className={`absolute bottom-2 left-2 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md shadow-sm backdrop-blur-md ${selectedReport.status === "menunggu" ? "bg-red-500/90 text-white" : selectedReport.status === "proses" ? "bg-blue-500/90 text-white" : "bg-[#a7e94a]/90 text-slate-900"}`}>
+                                    {selectedReport.status}
+                                </span>
+                            </div>
+                            <div className="p-4 flex flex-col gap-2">
+                                <h3 className="text-slate-800 text-xs font-bold leading-snug line-clamp-2">
+                                    {selectedReport.description || "Laporan tumpukan sampah."}
+                                </h3>
+                                {selectedReport.address && (
+                                    <p className="text-[10px] text-slate-400 line-clamp-1">📍 {selectedReport.address}</p>
+                                )}
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                                    <div className="flex items-center gap-2">
+                                        <img
+                                            src={selectedReport.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedReport.user?.name || 'U')}&background=e2e8f0&color=64748b&size=32`}
+                                            className="w-5 h-5 rounded-full object-cover"
+                                            alt=""
+                                        />
+                                        <span className="text-[10px] text-slate-600 font-semibold truncate">{selectedReport.user?.name}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-slate-400">
+                                        <span className="text-[10px] font-bold flex items-center gap-0.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-3 h-3"><path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z" /></svg>
+                                            {selectedReport.likes_count}
                                         </span>
-                                    )}
+                                        <span className="text-[10px] font-bold flex items-center gap-0.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-3 h-3"><path fillRule="evenodd" d="M4.848 2.771A49.144 49.144 0 0112 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97a48.901 48.901 0 01-3.476.383.39.39 0 00-.297.17l-2.755 4.133a.75.75 0 01-1.248 0l-2.755-4.133a.39.39 0 00-.297-.17 48.9 48.9 0 01-3.476-.384c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97z" clipRule="evenodd" /></svg>
+                                            {selectedReport.comments_count}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </Popup>
-            )}
-        </Map>
-    );
-}
+                    </Popup>
+                )}
+            </Map>
+        );
+    }
+);
+
+export default MapComponent;

@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppNotification;
 use App\Models\Kaling;
 use App\Models\Report;
+use App\Models\ReportStatusLog;
 use App\Notifications\ReportStatusUpdated;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class ReportController extends Controller
 {
@@ -24,25 +26,29 @@ class ReportController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kaling_id'   => 'nullable|exists:kalings,id',
+            'kaling_id' => 'nullable|exists:kalings,id',
             'description' => 'required|string|max:1000',
-            'photo'       => 'required|image|mimes:jpeg,png,jpg|max:5120',
-            'latitude'    => 'required|numeric',
-            'longitude'   => 'required|numeric',
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'address' => 'nullable|string|max:500',
+            'waste_type' => 'nullable|in:organik,anorganik,b3,campuran',
+            'severity_level' => 'nullable|string|max:100',
         ]);
 
         $photoPath = $request->file('photo')->store('reports', 'public');
 
         Report::create([
-            'user_id'        => $request->user()->id,
-            'kaling_id'      => $request->kaling_id,
-            'description'    => $request->description,
-            'photo_path'     => $photoPath,
-            'latitude'       => $request->latitude,
-            'longitude'      => $request->longitude,
-            'status'         => 'menunggu',
-            'severity_level' => $request->severity_level,
-            'waste_type'     => $request->waste_type,
+            'user_id' => Auth::id(),
+            'kaling_id' => $request->kaling_id,
+            'description' => $request->description,
+            'photo_path' => $photoPath,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'address' => $request->address,
+            'status' => 'menunggu',
+            'severity_level' => $request->severity_level ?? 'Menunggu Analisis',
+            'waste_type' => $request->waste_type,
         ]);
 
         return redirect()->route('dashboard.warga')->with('success', 'Laporan berhasil dikirim!');
@@ -54,6 +60,7 @@ class ReportController extends Controller
 
         $request->validate([
             'status' => 'required|in:divalidasi,proses,selesai,ditolak',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         $newStatus = $request->status;
@@ -81,35 +88,39 @@ class ReportController extends Controller
             $warga->save();
         }
 
-        // Logika Notifikasi
-        $pesan = '';
-        if ($newStatus === 'divalidasi') {
-            $pesan = "Laporan Anda divalidasi oleh Kepala Lingkungan dan akan diteruskan ke petugas. Selamat, Anda mendapatkan +5 Poin Kepercayaan!";
-        } elseif ($newStatus === 'proses') {
-            $pesan = "Petugas sedang menuju lokasi untuk mengangkut tumpukan sampah laporan Anda.";
-        } elseif ($newStatus === 'selesai') {
-            $pesan = "Terima kasih! Tumpukan sampah telah selesai dibersihkan oleh petugas. Anda mendapatkan hadiah +10 Poin Kepercayaan!";
-        } elseif ($newStatus === 'ditolak') {
-            $pesan = "Mohon maaf, laporan Anda ditolak dan dihapus dari sistem karena tidak memenuhi kriteria. Poin Kepercayaan Anda dikurangi 5 poin.";
+        // Status log
+        ReportStatusLog::create([
+            'report_id' => $report->id,
+            'changed_by' => Auth::id(),
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'notes' => $request->notes,
+        ]);
+
+        // Notifikasi
+        if ($report->user_id !== Auth::id()) {
+            AppNotification::create([
+                'user_id' => $report->user_id,
+                'type' => 'report_status_updated',
+                'notifiable_type' => Report::class,
+                'notifiable_id' => $report->id,
+                'data' => [
+                    'report_id' => $report->id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $newStatus,
+                    'message' => 'Status laporan Anda telah diperbarui menjadi: ' . $newStatus,
+                ],
+            ]);
         }
 
-        if ($pesan !== '') {
-            $pelapor->notify(new ReportStatusUpdated($report, $pesan));
-        }
-
-        // Eksekusi Hapus Atau Update
+        // Eksekusi
         if ($newStatus === 'ditolak') {
-            // Hapus file foto dari folder storage agar server tidak penuh
             if ($report->photo_path) {
                 Storage::disk('public')->delete($report->photo_path);
             }
-
-            // Hapus datanya dari tabel database
             $report->delete();
-
             return back()->with('success', 'Laporan berhasil ditolak dan dihapus dari sistem.');
         } else {
-            // Jika status bukan ditolak, lakukan update seperti biasa
             $dataToUpdate = ['status' => $newStatus];
 
             if ($newStatus === 'proses' && $request->user()->role === 'petugas') {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DangerZone extends Model
 {
@@ -11,7 +12,6 @@ class DangerZone extends Model
 
     protected $guarded = ['id'];
 
-    // Ini sangat penting agar Laravel otomatis mengubah JSON di database menjadi Array di PHP, dan sebaliknya
     protected function casts(): array
     {
         return [
@@ -22,9 +22,13 @@ class DangerZone extends Model
         ];
     }
 
-    // Relasi ke User (Siapa admin DLH yang membuat zona ini)
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }

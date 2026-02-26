@@ -5,11 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ReportLike extends Model
+class ReportStatusLog extends Model
 {
     protected $fillable = [
         'report_id',
-        'user_id',
+        'changed_by',
+        'old_status',
+        'new_status',
+        'notes',
     ];
 
     public function report(): BelongsTo
@@ -17,8 +20,8 @@ class ReportLike extends Model
         return $this->belongsTo(Report::class);
     }
 
-    public function user(): BelongsTo
+    public function changedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'changed_by');
     }
 }

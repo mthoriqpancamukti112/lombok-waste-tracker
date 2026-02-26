@@ -38,6 +38,7 @@
         "aos": "^2.3.4",
         "framer-motion": "^12.34.3",
         "leaflet": "^1.9.4",
+        "lucide-react": "^0.575.0",
         "mapbox-gl": "^3.19.0",
         "react-leaflet": "^4.2.1",
         "react-map-gl": "^8.1.0",

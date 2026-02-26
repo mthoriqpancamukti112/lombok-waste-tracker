@@ -9,7 +9,6 @@ use Inertia\Inertia;
 
 class DangerZoneController extends Controller
 {
-    // Menampilkan halaman manajemen zona untuk DLH
     public function index()
     {
         $zones = DangerZone::with('creator:id,name')
@@ -22,7 +21,6 @@ class DangerZoneController extends Controller
         ]);
     }
 
-    // Menyimpan zona baru dari peta
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -30,7 +28,7 @@ class DangerZoneController extends Controller
             'description' => 'nullable|string',
             'type' => 'required|in:blackspot,illegal_dump,flood_risk,fire_risk,tpa',
             'severity' => 'required|in:low,medium,high,critical',
-            'coordinates' => 'nullable|array', // Array dari titik polygon Mapbox
+            'coordinates' => 'nullable|array',
             'center_lat' => 'nullable|numeric',
             'center_lng' => 'nullable|numeric',
             'radius_meters' => 'nullable|numeric',
@@ -43,16 +41,18 @@ class DangerZoneController extends Controller
         return back()->with('success', 'Zona rawan berhasil ditambahkan ke dalam peta.');
     }
 
-    // Mengupdate zona
     public function update(Request $request, DangerZone $dangerZone)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|in:blackspot,illegal_dump,flood_risk,fire_risk,tpa',
-            'severity' => 'required|in:low,medium,high,critical',
+            'type' => 'sometimes|in:blackspot,illegal_dump,flood_risk,fire_risk,tpa',
+            'severity' => 'sometimes|in:low,medium,high,critical',
             'is_active' => 'boolean',
             'coordinates' => 'nullable|array',
+            'center_lat' => 'nullable|numeric',
+            'center_lng' => 'nullable|numeric',
+            'radius_meters' => 'nullable|numeric',
         ]);
 
         $dangerZone->update($validated);
@@ -60,7 +60,6 @@ class DangerZoneController extends Controller
         return back()->with('success', 'Data zona rawan diperbarui.');
     }
 
-    // Menghapus zona
     public function destroy(DangerZone $dangerZone)
     {
         $dangerZone->delete();
