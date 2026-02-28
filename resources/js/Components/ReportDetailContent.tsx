@@ -67,17 +67,6 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
 
     return (
         <div className={`flex-1 flex flex-col h-full overflow-hidden ${bg}`}>
-          {/* Header — centered */}
-            <div className={`px-8 xl:px-12 pb-5 pt-2 flex items-center justify-center flex-shrink-0${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
-                <div className="flex items-center gap-3 flex-wrap justify-center">
-                    <h2 className="text-lg font-black tracking-tight">
-                        {displayDate} &nbsp;&bull;&nbsp; {displayTime}
-                    </h2>
-                    <span className={`px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wide ${urgencyColor}`}>
-                        {urgencyLabel}
-                    </span>
-                </div>
-            </div>
 
             {/* Scrollable Body */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -85,6 +74,16 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
 
                     {/* ═══════════ Column 1: Info ═══════════ */}
                     <div className="flex flex-col gap-7">
+
+                        {/* ── Date & Urgency ── */}
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <h2 className="text-lg font-black tracking-tight">
+                                {displayDate} &nbsp;&bull;&nbsp; {displayTime}
+                            </h2>
+                            <span className={`px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wide ${urgencyColor}`}>
+                                {urgencyLabel}
+                            </span>
+                        </div>
 
                         {/* ── Location ── */}
                         <section>
