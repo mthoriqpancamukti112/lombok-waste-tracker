@@ -37,4 +37,15 @@ class DlhController extends Controller
             'recentReports' => $recentReports
         ]);
     }
+
+    public function map()
+    {
+        // Ambil semua laporan beserta data usernya
+        $reports = Report::with('user:id,name')->latest()->get();
+
+        return Inertia::render('DLH/Map/Index', [
+            'reports' => $reports,
+            'mapboxToken' => env('VITE_MAPBOX_TOKEN')
+        ]);
+    }
 }

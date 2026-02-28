@@ -18,10 +18,21 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('Profile/Edit', [
+        // Eager load relasi warga dan kaling sekaligus (yang kosong akan bernilai null)
+        $user = $request->user()->load(['warga', 'kaling', 'petugas']);
+
+        $data = [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
-        ]);
+            'userData' => $user
+        ];
+
+        return match ($user->role) {
+            'kaling'  => Inertia::render('Profile/EditKaling', $data),
+            'petugas' => Inertia::render('Profile/EditPetugas', $data),
+            'dlh'     => Inertia::render('Profile/EditDlh', $data),
+            default   => Inertia::render('Profile/Edit', $data),
+        };
     }
 
     /**
@@ -29,20 +40,36 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Update data dasar di tabel users
+        $user->fill($request->safe()->only(['name', 'email']));
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+        $user->save();
+
+        // Update data tambahan sesuai role
+        if ($user->role === 'warga') {
+            $user->warga()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'no_telp' => $request->no_telp,
+                    'alamat' => $request->alamat,
+                ]
+            );
+        } elseif ($user->role === 'kaling') {
+            // Kaling hanya diizinkan update no_telp dari halaman ini (NIK & Wilayah diatur DLH)
+            $user->kaling()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['no_telp' => $request->no_telp]
+            );
         }
 
-        $request->user()->save();
-
-        return Redirect::route('profile.edit');
+        return Redirect::back()->with('status', 'profile-updated');
     }
 
-    /**
-     * Delete the user's account.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([
@@ -50,9 +77,7 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
-
         Auth::logout();
-
         $user->delete();
 
         $request->session()->invalidate();

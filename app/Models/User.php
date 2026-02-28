@@ -20,6 +20,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'google_id',
+        'avatar',
         'password',
         'role',
     ];
@@ -69,5 +71,20 @@ class User extends Authenticatable
     public function dlh()
     {
         return $this->hasOne(Dlh::class);
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function reportComments()
+    {
+        return $this->hasMany(ReportComment::class);
+    }
+
+    public function reportLikes()
+    {
+        return $this->hasMany(ReportLike::class);
     }
 }

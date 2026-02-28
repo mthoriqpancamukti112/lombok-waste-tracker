@@ -1,13 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Map, {
     Marker,
     Popup,
     GeolocateControl,
     Source,
     Layer,
+    MapRef,
 } from "react-map-gl/mapbox";
 import type { LayerProps } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { ShieldCheck } from "@mynaui/icons-react";
 
 interface Report {
     id: number;
@@ -16,24 +18,56 @@ interface Report {
     description: string;
     status: string;
     photo_path: string;
-    user: { name: string };
+    user: {
+        name: string;
+        warga?: {
+            is_terverifikasi: boolean;
+        };
+    };
     created_at: string;
+}
+
+interface DangerZone {
+    id: number;
+    name: string;
+    severity: string;
+    type: string;
+    coordinates: any;
 }
 
 interface MapProps {
     reports: Report[];
     isDarkMode: boolean;
+    userLocation?: { lat: number; lng: number } | null;
+    dangerZones?: DangerZone[];
 }
 
-export default function MapComponent({ reports, isDarkMode }: MapProps) {
+export default function MapComponent({
+    reports,
+    isDarkMode,
+    userLocation,
+    dangerZones = [],
+}: MapProps) {
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+    const mapRef = useRef<MapRef>(null);
 
     const lombokCenter = {
-        longitude: 116.3167,
+        longitude: 116.1165, // Diubah ke Mataram agar fokus
         latitude: -8.5833,
-        zoom: 10,
+        zoom: 12,
     };
 
+    useEffect(() => {
+        if (userLocation && mapRef.current) {
+            mapRef.current.flyTo({
+                center: [userLocation.lng, userLocation.lat],
+                zoom: 14,
+                duration: 2000,
+            });
+        }
+    }, [userLocation]);
+
+    // Data Laporan Warga (Heatmap)
     const geojsonData = useMemo(() => {
         return {
             type: "FeatureCollection" as const,
@@ -54,6 +88,27 @@ export default function MapComponent({ reports, isDarkMode }: MapProps) {
         };
     }, [reports]);
 
+    // Data Zona Rawan (Polygon Mapbox Draw)
+    const dangerZoneGeojson = useMemo(() => {
+        return {
+            type: "FeatureCollection" as const,
+            features: dangerZones.map((zone) => ({
+                type: "Feature" as const,
+                properties: {
+                    id: zone.id,
+                    name: zone.name,
+                    severity: zone.severity,
+                    type: zone.type,
+                },
+                geometry: {
+                    type: "Polygon" as const,
+                    coordinates: zone.coordinates,
+                },
+            })),
+        };
+    }, [dangerZones]);
+
+    // Styling Heatmap Laporan
     const heatmapLayer: LayerProps = {
         id: "reports-heat",
         type: "heatmap",
@@ -114,8 +169,56 @@ export default function MapComponent({ reports, isDarkMode }: MapProps) {
         },
     };
 
+    // Styling Zona Rawan - Area Dalam (Fill)
+    const dangerZoneFillLayer: LayerProps = {
+        id: "danger-zone-fill",
+        type: "fill",
+        source: "danger-zone-data",
+        paint: {
+            "fill-color": [
+                "match",
+                ["get", "severity"],
+                "critical",
+                "#ef4444", // Merah
+                "high",
+                "#f97316", // Oranye
+                "medium",
+                "#eab308", // Kuning
+                "low",
+                "#22c55e", // Hijau
+                "#94a3b8", // Abu-abu default
+            ],
+            "fill-opacity": isDarkMode ? 0.25 : 0.35, // Agak transparan agar peta di bawahnya tetap terlihat
+        },
+    };
+
+    // Styling Zona Rawan - Garis Luar (Outline)
+    const dangerZoneLineLayer: LayerProps = {
+        id: "danger-zone-line",
+        type: "line",
+        source: "danger-zone-data",
+        paint: {
+            "line-color": [
+                "match",
+                ["get", "severity"],
+                "critical",
+                "#b91c1c",
+                "high",
+                "#c2410c",
+                "medium",
+                "#a16207",
+                "low",
+                "#15803d",
+                "#475569",
+            ],
+            "line-width": 2,
+            "line-dasharray": [2, 2], // Garis putus-putus
+        },
+    };
+
     return (
         <Map
+            ref={mapRef}
             initialViewState={lombokCenter}
             style={{ width: "100%", height: "100%" }}
             mapStyle={
@@ -125,16 +228,22 @@ export default function MapComponent({ reports, isDarkMode }: MapProps) {
             }
             mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
         >
-            <GeolocateControl
-                position="top-right"
-                positionOptions={{ enableHighAccuracy: true }}
-                trackUserLocation={true}
-            />
+            {/* SUMBER DATA 1: ZONA RAWAN (Digambar duluan agar ada di layer bawah) */}
+            <Source
+                id="danger-zone-data"
+                type="geojson"
+                data={dangerZoneGeojson}
+            >
+                <Layer {...dangerZoneFillLayer} />
+                <Layer {...dangerZoneLineLayer} />
+            </Source>
 
+            {/* SUMBER DATA 2: HEATMAP LAPORAN */}
             <Source id="reports-data" type="geojson" data={geojsonData}>
                 <Layer {...heatmapLayer} />
             </Source>
 
+            {/* MARKER LAPORAN INDIVIDU */}
             {reports.map((report) => (
                 <Marker
                     key={report.id}
@@ -169,6 +278,7 @@ export default function MapComponent({ reports, isDarkMode }: MapProps) {
                 </Marker>
             ))}
 
+            {/* POPUP LAPORAN */}
             {selectedReport && (
                 <Popup
                     longitude={parseFloat(selectedReport.longitude)}
@@ -176,7 +286,7 @@ export default function MapComponent({ reports, isDarkMode }: MapProps) {
                     anchor="bottom"
                     offset={20}
                     onClose={() => setSelectedReport(null)}
-                    closeOnClick={false}
+                    closeOnClick={true}
                     closeButton={false}
                     className="z-50"
                     maxWidth="320px"
@@ -189,7 +299,6 @@ export default function MapComponent({ reports, isDarkMode }: MapProps) {
                                 alt="Foto Sampah"
                                 className="w-full h-full object-cover"
                             />
-                            {/* Tombol Close Custom */}
                             <button
                                 onClick={() => setSelectedReport(null)}
                                 className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-black/40 hover:bg-black/70 text-white rounded-full backdrop-blur-md transition-colors z-10"
@@ -209,7 +318,6 @@ export default function MapComponent({ reports, isDarkMode }: MapProps) {
                                     />
                                 </svg>
                             </button>
-                            {/* Status Badge */}
                             <span
                                 className={`absolute bottom-2 left-2 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md shadow-sm backdrop-blur-md ${
                                     selectedReport.status === "menunggu"
@@ -244,9 +352,23 @@ export default function MapComponent({ reports, isDarkMode }: MapProps) {
                                         />
                                     </svg>
                                 </div>
-                                <span className="text-[10px] text-slate-600 font-semibold truncate">
-                                    {selectedReport.user?.name}
-                                </span>
+                                <div className="flex items-center gap-1 overflow-hidden">
+                                    <span className="text-[10px] text-slate-600 font-semibold truncate">
+                                        {selectedReport.user?.name}
+                                    </span>
+                                    {!!selectedReport.user?.warga
+                                        ?.is_terverifikasi && (
+                                        <span
+                                            title="Pelapor Terverifikasi (Reputasi Tinggi)"
+                                            className="flex items-center flex-shrink-0"
+                                        >
+                                            <ShieldCheck
+                                                className="w-3 h-3 text-blue-500 fill-blue-500/20"
+                                                strokeWidth={2.5}
+                                            />
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

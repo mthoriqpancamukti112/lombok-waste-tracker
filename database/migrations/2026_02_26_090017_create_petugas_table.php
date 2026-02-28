@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('petugas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('id_pegawai')->unique();
             $table->enum('jenis_kendaraan', ['truk_besar', 'pickup', 'motor_gerobak']);
             $table->string('plat_nomor')->nullable();
             $table->integer('kapasitas_kg')->default(0);
