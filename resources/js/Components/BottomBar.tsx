@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from '@inertiajs/react';
 import { FilePlusSolid, ChevronUp, ListCheck, ListCheckSolid } from '@mynaui/icons-react';
 
@@ -9,7 +9,7 @@ interface User {
 }
 
 interface BottomBarProps {
-    activeTab: 'reports' | 'profile' | 'none';
+    activeTab: 'reports' | 'profile' | 'report-detail' | 'none';
     onTabClick: (tab: 'reports' | 'profile') => void;
     onAuthClick: () => void;
     onCreateClick?: () => void;
@@ -22,8 +22,8 @@ const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabClick, onAuthClic
 
     const isLoggedIn = !!user;
 
-    const avatarSrc = user?.avatar
-        || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=a7e94a&color=fff&size=128`;
+    const avatarSrc = useMemo(() => user?.avatar
+        || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=a7e94a&color=fff&size=128`, [user?.avatar, user?.name]);
 
     /** Left nav item — Reports */
     const ReportsItem = () => (
@@ -147,7 +147,7 @@ const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabClick, onAuthClic
             {/* ─────────────────────── MOBILE ─────────────────────── */}
             <div className="fixed bottom-0 inset-x-0 z-[100] xl:hidden">
                 <div className="relative">
-                    <div className="absolute left-1/2 -translate-x-1/2 -top-9 z-10">
+                    <div className="absolute left-1/2 -translate-x-1/2 -top-5 z-10">
                         <Fab size="lg" />
                     </div>
                     <div className="bg-white border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.07)] flex items-center justify-between px-10 pt-5 pb-7">
