@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Search, X, Heart, HeartSolid, Message, MapPin } from "@mynaui/icons-react";
+import React, { useState, useMemo } from "react";
+import { Search, X, Heart, Message, MapPin } from "@mynaui/icons-react";
 
 interface Report {
     id: number;
@@ -21,222 +21,169 @@ interface ReportListContentProps {
     reports: Report[];
     formatDate: (d: string) => string;
     onClose?: () => void;
+    onReportClick?: (report: Report) => void;
     isDark?: boolean;
     currentUserId?: number;
     onAuthRequired?: () => void;
 }
 
-const statusLabel: Record<string, string> = {
-    menunggu: "Menunggu",
-    proses: "Diproses",
-    selesai: "Selesai",
-};
+const filterOptions = [
+    { label: "All Report", value: "all" },
+    { label: "Low Urgency", value: "low" },
+    { label: "High Urgency", value: "high" },
+    { label: "Nearest", value: "nearest" },
+    { label: "Completed", value: "selesai" },
+];
 
-const statusCls: Record<string, string> = {
-    menunggu: "bg-red-100 text-red-700",
-    proses: "bg-blue-100 text-blue-700",
-    selesai: "bg-[#a7e94a]/20 text-[#5a8a1a]",
+const AvatarImage = ({ user }: { user: { name: string; avatar?: string | null } }) => {
+    const src = useMemo(() => user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=e2e8f0&color=64748b&size=64`, [user?.avatar, user?.name]);
+    return <img src={src} alt={user?.name} className="w-full h-full object-cover" />;
 };
-
-const wastes = ["Semua", "Organik", "Plastik", "B3", "Elektronik", "Besar"];
 
 const ReportListContent: React.FC<ReportListContentProps> = ({
     reports,
     formatDate,
     onClose,
+    onReportClick,
     isDark,
     currentUserId,
     onAuthRequired,
 }) => {
-    const [search, setSearch] = useState("");
-    const [filter, setFilter] = useState("Semua");
-    const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
-    const [likeCounts, setLikeCounts] = useState<Record<number, number>>({});
+    const [searchTerm, setSearchTerm] = useState("");
+    const [activeFilter, setActiveFilter] = useState("all");
 
-    const getLikeCount = (r: Report) => likeCounts[r.id] ?? r.likes_count;
-
-    const handleLike = (id: number) => {
-        if (!currentUserId) {
-            onAuthRequired?.();
-            return;
-        }
-        const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
-        fetch(`/reports/${id}/like`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-            },
-        })
-            .then(r => r.json())
-            .then(data => {
-                setLikedIds(prev => {
-                    const next = new Set(prev);
-                    if (data.liked) next.add(id); else next.delete(id);
-                    return next;
-                });
-                setLikeCounts(prev => ({ ...prev, [id]: data.count ?? prev[id] }));
-            })
-            .catch(() => { });
-    };
-
-    const filtered = reports.filter(r => {
-        const matchSearch =
-            r.description.toLowerCase().includes(search.toLowerCase()) ||
-            (r.address ?? "").toLowerCase().includes(search.toLowerCase());
-        const matchWaste = filter === "Semua" || (r.waste_type ?? "").toLowerCase().includes(filter.toLowerCase());
-        return matchSearch && matchWaste;
+    const filteredReports = reports.filter(r => {
+        const matchesSearch = r.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (r.address ?? "").toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter = activeFilter === "all" || r.status === activeFilter || r.severity_level === activeFilter;
+        return matchesSearch && matchesFilter;
     });
 
-    const base = isDark ? "bg-slate-900 text-slate-100" : "bg-white text-slate-800";
+    const bg = isDark ? "bg-slate-900" : "bg-white";
+    const textBase = isDark ? "text-slate-100" : "text-slate-900";
+    const textSubtle = isDark ? "text-slate-400" : "text-slate-500";
     const cardBg = isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100";
-    const subtleTxt = isDark ? "text-slate-400" : "text-slate-500";
-    const inputBg = isDark
-        ? "bg-slate-800 text-slate-100 placeholder-slate-500 border-slate-700"
-        : "bg-slate-50 text-slate-800 placeholder-slate-400 border-slate-200";
 
     return (
-        <div className={`flex flex-col w-full h-full ${base}`}>
-            {/* Header */}
-            <div className={`flex items-center justify-between px-6 pt-6 pb-4 border-b ${isDark ? "border-slate-700" : "border-slate-100"}`}>
-                <div>
-                    <h2 className="text-xl font-extrabold tracking-tight leading-none">Daftar Laporan</h2>
-                    <p className={`text-sm mt-0.5 ${subtleTxt}`}>{reports.length} laporan masuk</p>
-                </div>
-                {onClose && (
-                    <button
-                        onClick={onClose}
-                        className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors ${isDark ? "bg-slate-700 hover:bg-slate-600 text-slate-300" : "bg-slate-100 hover:bg-slate-200 text-slate-600"}`}
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                )}
-            </div>
-
-            {/* Search + filter */}
-            <div className="px-6 py-3 flex flex-col gap-3">
-                <div className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 ${inputBg}`}>
-                    <Search className={`w-4 h-4 shrink-0 ${subtleTxt}`} />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder="Cari laporan, alamat..."
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium min-w-0"
-                    />
-                </div>
-                <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
-                    {wastes.map(w => (
+        <div className={`flex flex-col w-full h-full overflow-hidden ${bg} ${textBase}`}>
+            {/* Header Section */}
+            <div className="px-6 pt-8 pb-6 flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-black tracking-tight">Report List</h2>
+                    {onClose && (
                         <button
-                            key={w}
-                            onClick={() => setFilter(w)}
-                            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${filter === w
-                                ? "bg-[#a7e94a] text-white shadow-sm"
-                                : isDark
-                                    ? "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                }`}
+                            onClick={onClose}
+                            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
                         >
-                            {w}
+                            <X className="w-5 h-5 text-slate-400" />
                         </button>
-                    ))}
+                    )}
+                </div>
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                        {filterOptions.map(opt => (
+                            <button
+                                key={opt.value}
+                                onClick={() => setActiveFilter(opt.value)}
+                                className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeFilter === opt.value
+                                    ? "bg-[#a7e94a] text-white shadow-lg shadow-[#a7e94a]/30"
+                                    : isDark ? "bg-slate-800 text-slate-400" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                                    }`}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Search Bar */}
+                    <div className={`relative flex items-center min-w-[300px] px-4 py-2.5 rounded-2xl border transition-all ${isDark ? "bg-slate-800 border-slate-700" : "bg-slate-50 border-slate-100 focus-within:bg-white focus-within:border-[#a7e94a]/50"
+                        }`}>
+                        <input
+                            type="text"
+                            placeholder="Search Report or location"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-slate-400"
+                        />
+                        <Search className="w-4 h-4 text-slate-400" />
+                    </div>
                 </div>
             </div>
 
-            {/* Report cards */}
-            <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-4">
-                {filtered.length === 0 ? (
-                    <div className={`flex flex-col items-center justify-center py-20 ${subtleTxt}`}>
-                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                            <Search className="w-6 h-6 text-slate-400" />
-                        </div>
-                        <p className="text-sm font-semibold">Tidak ada laporan ditemukan</p>
-                        <p className="text-xs mt-1">Coba ubah filter atau kata pencarian</p>
-                    </div>
-                ) : (
-                    filtered.map(report => (
+            {/* Grid Body */}
+            <div className="flex-1 overflow-y-auto px-6 pb-12 custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {filteredReports.map((report) => (
                         <div
                             key={report.id}
-                            className={`flex gap-3 p-4 rounded-2xl border shadow-sm transition-all hover:shadow-md ${cardBg}`}
+                            onClick={() => onReportClick?.(report)}
+                            className={`flex flex-col rounded-[32px] border p-5 gap-4 transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer ${cardBg}`}
                         >
-                            {/* Thumbnail */}
-                            <div className="shrink-0 w-[80px] h-[80px] rounded-xl overflow-hidden bg-slate-200">
+                            {/* Card Header: User Info */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
+                                        <AvatarImage user={report.user} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-black leading-tight truncate max-w-[120px]">
+                                            {report.user?.name || "Username"}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                    {formatDate(report.created_at)}
+                                </span>
+                            </div>
+
+                            {/* Card Body: Image */}
+                            <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-100">
                                 <img
                                     src={`/storage/${report.photo_path}`}
-                                    alt="Foto"
-                                    className="w-full h-full object-cover"
-                                    onError={e => {
-                                        (e.target as HTMLImageElement).src =
-                                            "https://placehold.co/80/e2e8f0/94a3b8?text=📷";
-                                    }}
+                                    alt="Waste"
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=600&auto=format&fit=crop'; }}
                                 />
                             </div>
 
-                            {/* Content */}
-                            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                                <div className="flex items-start justify-between gap-2">
-                                    <p className="text-sm font-bold leading-snug line-clamp-2">{report.description}</p>
-                                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${statusCls[report.status] ?? "bg-slate-100 text-slate-500"}`}>
-                                        {statusLabel[report.status] ?? report.status}
-                                    </span>
-                                </div>
-
-                                {report.address && (
-                                    <p className={`text-[11px] flex items-center gap-1 ${subtleTxt} truncate`}>
-                                        <MapPin className="w-3 h-3 shrink-0" />
-                                        {report.address}
-                                    </p>
-                                )}
-
-                                {report.waste_type && (
-                                    <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#a7e94a]/15 text-[#5a8a1a] w-fit">
-                                        {report.waste_type}
-                                    </span>
-                                )}
-
-                                <div className="flex items-center justify-between mt-auto pt-1">
+                            {/* Card Footer: Info & Tags */}
+                            <div className="flex flex-col gap-3">
+                                {/* Interaction counts */}
+                                <div className="flex items-center gap-4 text-slate-400">
                                     <div className="flex items-center gap-1.5">
-                                        <img
-                                            src={report.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.user?.name || 'U')}&background=e2e8f0&color=64748b&size=32`}
-                                            alt={report.user?.name}
-                                            className="w-5 h-5 rounded-full object-cover"
-                                        />
-                                        <span className={`text-[11px] font-semibold truncate max-w-[80px] ${subtleTxt}`}>
-                                            {report.user?.name}
-                                        </span>
+                                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" />
+                                            </svg>
+                                        </div>
+                                        <span className="text-xs font-black">{report.likes_count ?? 25}</span>
                                     </div>
-
-                                    <div className="flex items-center gap-3">
-                                        {/* Like button */}
-                                        <button
-                                            onClick={() => handleLike(report.id)}
-                                            className={`flex items-center gap-1 transition-colors ${likedIds.has(report.id) ? "text-[#a7e94a]" : subtleTxt}`}
-                                        >
-                                            {likedIds.has(report.id)
-                                                ? <HeartSolid className="w-4 h-4" />
-                                                : <Heart className="w-4 h-4" />
-                                            }
-                                            <span className="text-[11px] font-bold">
-                                                {getLikeCount(report)}
-                                            </span>
-                                        </button>
-
-                                        {/* Comment count */}
-                                        <span className={`flex items-center gap-1 ${subtleTxt}`}>
-                                            <Message className="w-4 h-4" />
-                                            <span className="text-[11px] font-bold">{report.comments_count}</span>
-                                        </span>
-
-                                        <span className={`text-[10px] ${subtleTxt}`}>
-                                            {formatDate(report.created_at)}
-                                        </span>
+                                    <div className="flex items-center gap-1.5">
+                                        <Message className="w-4 h-4" />
+                                        <span className="text-xs font-black">{report.comments_count ?? 25}</span>
                                     </div>
                                 </div>
+
+                                {/* Tags */}
+                                <div className="flex flex-wrap gap-2">
+                                    <span className="px-3 py-1 rounded-lg bg-[#a7e94a]/10 text-[#5a8a1a] text-[10px] font-extrabold uppercase tracking-wide">
+                                        {report.severity_level || "Low Urgency"}
+                                    </span>
+                                    <span className="px-3 py-1 rounded-lg bg-blue-50 text-blue-500 text-[10px] font-extrabold uppercase tracking-wide">
+                                        Nearest
+                                    </span>
+                                </div>
+
+                                {/* Description */}
+                                <p className="text-xs font-semibold leading-relaxed text-slate-600 line-clamp-3">
+                                    {report.description || "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
+                                </p>
                             </div>
                         </div>
-                    ))
-                )}
+                    ))}
+                </div>
             </div>
         </div>
     );

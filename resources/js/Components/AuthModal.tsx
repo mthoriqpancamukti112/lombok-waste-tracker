@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm, Link } from "@inertiajs/react";
 import { X, Mail, Lock, User, Eye, EyeOff } from "@mynaui/icons-react";
 import InputError from "./InputError";
+import { toast } from "react-hot-toast";
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -35,7 +36,10 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }: Aut
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         loginForm.post(route("login"), {
-            onSuccess: () => onClose(),
+            onSuccess: () => {
+                onClose();
+                toast.success("Login Berhasil! Selamat datang kembali.");
+            },
             onFinish: () => loginForm.reset("password"),
         });
     };
@@ -43,7 +47,10 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }: Aut
     const handleRegister = (e: React.FormEvent) => {
         e.preventDefault();
         registerForm.post(route("register"), {
-            onSuccess: () => onClose(),
+            onSuccess: () => {
+                onClose();
+                toast.success("Akun Berhasil Dibuat! Silakan masuk.");
+            },
             onFinish: () => registerForm.reset("password", "password_confirmation"),
         });
     };

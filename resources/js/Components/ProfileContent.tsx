@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { X } from '@mynaui/icons-react';
+import { toast } from 'react-hot-toast';
 
 interface Report {
     id: number;
@@ -43,6 +44,7 @@ const statusLabel: Record<string, string> = {
 };
 
 const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose, isDark = false }) => {
+    if (!user) return null;
     const [activeTab, setActiveTab] = useState('all');
 
     const avatarSrc = user.avatar
@@ -77,17 +79,21 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                     </button>
                 )}
                 <h2 className="text-lg font-black tracking-tight">Profile</h2>
-                <Link
-                    href={route('logout')}
-                    method="post"
-                    as="button"
+                <button
+                    onClick={() => {
+                        router.post(route('logout'), {}, {
+                            onSuccess: () => {
+                                toast.success("Logout Berhasil! Sampai jumpa lagi.");
+                            }
+                        });
+                    }}
                     className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-xs font-bold hover:bg-red-100 transition-all"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                     </svg>
                     Logout
-                </Link>
+                </button>
             </div>
 
             {/* Scrollable body */}

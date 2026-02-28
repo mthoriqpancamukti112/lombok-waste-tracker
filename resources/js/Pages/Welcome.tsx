@@ -8,6 +8,9 @@ import BottomSheet from "@/Components/BottomSheet";
 import ReportListContent from "@/Components/ReportListContent";
 import ProfileContent from "@/Components/ProfileContent";
 import AuthModal from "@/Components/AuthModal";
+import ReportModal from "@/Components/ReportModal";
+import ReportDetailContent from "@/Components/ReportDetailContent";
+import { Toaster, toast } from "react-hot-toast";
 import {
     Bell,
     BellSolid,
@@ -77,13 +80,15 @@ export default function Welcome({
     dangerZones: DangerZone[];
     wasteDensityZones: WasteDensityZone[];
 }>) {
-    const [activePanel, setActivePanel] = useState<'reports' | 'profile' | 'none'>('none');
+    const [activePanel, setActivePanel] = useState<'reports' | 'profile' | 'report-detail' | 'none'>('none');
+    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
     const [isDesktop, setIsDesktop] = useState(false);
     const [lang, setLang] = useState<"id" | "en">("id");
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authModalTab, setAuthModalTab] = useState<"login" | "register">("login");
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     const mapRef = useRef<{ centerOnUser: () => void } | null>(null);
     const t = landingDict[lang];
@@ -94,6 +99,13 @@ export default function Welcome({
         window.addEventListener('resize', checkSize);
         return () => window.removeEventListener('resize', checkSize);
     }, []);
+
+    // Auto-close profile panel on logout
+    useEffect(() => {
+        if (!auth.user && activePanel === 'profile') {
+            setActivePanel('none');
+        }
+    }, [auth.user, activePanel]);
 
     // Fetch unread notification count if logged in
     useEffect(() => {
@@ -122,6 +134,11 @@ export default function Welcome({
     const handleTabClick = (tab: 'reports' | 'profile') => {
         // If user clicks profile and is not logged in, that's handled in BottomBar (link to login)
         setActivePanel(prev => prev === tab ? 'none' : tab);
+    };
+
+    const handleReportClick = (report: Report) => {
+        setSelectedReport(report);
+        setActivePanel('report-detail');
     };
 
     const toggleLang = () => setLang(prev => prev === "id" ? "en" : "id");
@@ -281,14 +298,7 @@ export default function Welcome({
                     </div>
                 </div>
 
-                {/* ─── Bottom Navigation Bar ─── */}
-                <BottomBar
-                    activeTab={activePanel}
-                    onTabClick={handleTabClick}
-                    onAuthClick={() => setIsAuthModalOpen(true)}
-                    isDark={true}
-                    user={auth.user}
-                />
+
 
                 {/* ══════════════════════════════════════════
                     DESKTOP: Bottom-anchored slide-up panel
@@ -306,6 +316,7 @@ export default function Welcome({
                                     formatDate={formatDate}
                                     isDark={isDarkMode}
                                     onClose={() => setActivePanel('none')}
+                                    onReportClick={handleReportClick}
                                     currentUserId={auth.user?.id}
                                     onAuthRequired={() => openAuthModal("login")}
                                 />
@@ -315,6 +326,13 @@ export default function Welcome({
                                     reports={reports.filter(r => r.user?.id === auth.user?.id)}
                                     isDark={isDarkMode}
                                     onClose={() => setActivePanel('none')}
+                                />
+                            ) : activePanel === 'report-detail' && selectedReport ? (
+                                <ReportDetailContent
+                                    report={selectedReport}
+                                    onClose={() => setActivePanel('reports')}
+                                    isDark={isDarkMode}
+                                    formatDate={formatDate}
                                 />
                             ) : null}
                         </div>
@@ -336,18 +354,34 @@ export default function Welcome({
                                 formatDate={formatDate}
                                 isDark={isDarkMode}
                                 onClose={() => setActivePanel("none")}
+                                onReportClick={handleReportClick}
                                 currentUserId={auth.user?.id}
                                 onAuthRequired={() => openAuthModal("login")}
                             />
                         </BottomSheet>
 
-                        {activePanel === "profile" && (
+                        {activePanel === "report-detail" && selectedReport && (
+                            <BottomSheet
+                                isOpen={true}
+                                onClose={() => setActivePanel("reports")}
+                                title="Report Detail"
+                            >
+                                <ReportDetailContent
+                                    report={selectedReport}
+                                    onClose={() => setActivePanel("reports")}
+                                    isDark={isDarkMode}
+                                    formatDate={formatDate}
+                                />
+                            </BottomSheet>
+                        )}
+
+                        {activePanel === "profile" && auth.user && (
                             <BottomSheet
                                 isOpen={true}
                                 onClose={() => setActivePanel("none")}
                                 title="My Account"
-                                height="h-[85vh]"
                             >
+
                                 <ProfileContent
                                     user={auth.user}
                                     reports={reports.filter(r => r.user?.id === auth.user?.id)}
@@ -364,6 +398,7 @@ export default function Welcome({
                     activeTab={activePanel}
                     onTabClick={handleTabClick}
                     onAuthClick={() => openAuthModal("login")}
+                    onCreateClick={() => setIsReportModalOpen(true)}
                     user={auth.user}
                 />
 
@@ -372,6 +407,40 @@ export default function Welcome({
                     isOpen={isAuthModalOpen}
                     onClose={() => setIsAuthModalOpen(false)}
                     initialTab={authModalTab}
+                />
+
+                <ReportModal
+                    isOpen={isReportModalOpen}
+                    onClose={() => setIsReportModalOpen(false)}
+                    onSubmit={(data) => {
+                        console.log("Report submitted:", data);
+                        toast.success("Thank you! Your report has been submitted for review.");
+                    }}
+                    isDark={isDarkMode}
+                />
+
+                <Toaster
+                    position="top-center"
+                    reverseOrder={false}
+                    gutter={8}
+                    toastOptions={{
+                        duration: 4000,
+                        style: {
+                            background: isDarkMode ? '#1e293b' : '#fff',
+                            color: isDarkMode ? '#f1f5f9' : '#1e293b',
+                            borderRadius: '1.5rem',
+                            padding: '12px 20px',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                        },
+                        success: {
+                            iconTheme: {
+                                primary: '#a7e94a',
+                                secondary: '#fff',
+                            },
+                        },
+                    }}
                 />
             </div>
         </>
