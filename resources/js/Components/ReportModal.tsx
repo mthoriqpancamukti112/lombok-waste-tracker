@@ -246,7 +246,14 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, onSubmit, is
                 onSubmit(data);
                 onClose();
             },
-            onError: (err) => console.error('Submit errors:', err),
+            onError: (err) => {
+                console.error('Submit errors:', err);
+                if (Object.keys(err).length > 0) {
+                    Object.values(err).forEach(errMsg => toast.error(errMsg as string));
+                } else {
+                    toast.error("Gagal mengirim laporan. Pastikan file tidak terlalu besar.");
+                }
+            },
         });
     };
 
