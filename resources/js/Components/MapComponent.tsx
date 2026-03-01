@@ -384,12 +384,12 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                 {/* Legend */}
                 {mapSettings.showHeatmap && (
                     <div
-                        className={`absolute bottom-32 z-50 transition-all duration-500 ease-in-out flex items-center ${isLegendCollapsed
+                        className={`absolute bottom-[110px] xl:bottom-8 z-50 transition-all duration-500 ease-in-out flex items-center ${isLegendCollapsed
                             ? 'left-0 -translate-x-full ml-10'
-                            : 'left-6'
+                            : 'left-4 xl:left-6'
                             }`}
                     >
-                        <div className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-slate-100 w-48 relative overflow-hidden group">
+                        <div className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-slate-100 w-44 xl:w-48 relative overflow-hidden group">
                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Kepadatan Laporan</h4>
                             <div className="flex flex-col gap-2">
                                 <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#a7e94a] via-amber-400 to-red-500" />

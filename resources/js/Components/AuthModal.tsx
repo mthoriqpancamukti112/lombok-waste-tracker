@@ -58,7 +58,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }: Aut
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 drop-shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 sm:p-6 drop-shadow-2xl">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
@@ -66,18 +66,18 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }: Aut
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-[440px] bg-white rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="relative w-full max-w-[440px] max-h-[85vh] overflow-y-auto bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl animate-in fade-in zoom-in duration-300">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors z-10"
+                    className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors z-10"
                 >
                     <X className="w-5 h-5 text-slate-500" />
                 </button>
 
                 {/* Tabs Area */}
-                <div className="pt-10 px-8 pb-4">
-                    <div className="flex bg-slate-50 p-1.5 rounded-2xl mb-8">
+                <div className="pt-8 px-6 pb-2 sm:pt-10 sm:px-8 sm:pb-4">
+                    <div className="flex bg-slate-50 p-1.5 rounded-2xl mb-6 sm:mb-8">
                         <button
                             onClick={() => setActiveTab("login")}
                             className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${activeTab === "login"
