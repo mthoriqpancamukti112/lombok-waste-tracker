@@ -112,7 +112,7 @@ class ReportController extends Controller
             'waste_type' => $request->waste_type,
         ]);
 
-        return redirect()->route('dashboard.warga')->with('success', 'Laporan berhasil dikirim!' . ($matchingZone ? ' Terdeteksi berada di zona: ' . $matchingZone->name : ''));
+        return redirect()->to('/')->with('success', 'Laporan berhasil dikirim! Menunggu validasi petugas.');
     }
 
     public function show($id)

@@ -412,7 +412,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                         {isLegendCollapsed && (
                             <button
                                 onClick={() => setIsLegendCollapsed(false)}
-                                className="absolute left-0 bottom-0 top-0 w-10 flex items-center justify-center bg-white shadow-xl border border-slate-100 rounded-r-2xl text-slate-500 hover:text-[#a7e94a] transition-all animate-in slide-in-from-left duration-300 pointer-events-auto"
+                                className="absolute left-full bottom-0 top-0 w-10 flex items-center justify-center bg-white shadow-xl border border-slate-100 rounded-r-2xl text-slate-500 hover:text-[#a7e94a] transition-all animate-in slide-in-from-left duration-300 pointer-events-auto"
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>

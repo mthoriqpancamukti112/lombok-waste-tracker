@@ -121,12 +121,12 @@ const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabClick, onAuthClic
     };
 
     const Fab = ({ size = 'lg' }: { size?: 'lg' | 'sm' }) => {
-        const dim = size === 'lg' ? 'w-[56px] h-[56px]' : 'w-[48px] h-[48px]';
-        const icon = size === 'lg' ? 'w-7 h-7' : 'w-6 h-6';
+        const dim = size === 'lg' ? 'w-[72px] h-[72px]' : 'w-[64px] h-[64px]';
+        const icon = size === 'lg' ? 'w-9 h-9' : 'w-8 h-8';
         return (
             <Link
                 href={isLoggedIn ? route('report.create') : '#'}
-                className={`${dim} bg-[#a7e94a] rounded-[16px] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#a7e94a]/30`}
+                className={`${dim} bg-[#a7e94a] rounded-[22px] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#a7e94a]/30`}
                 onClick={(e) => {
                     if (!isLoggedIn) {
                         e.preventDefault();
@@ -150,9 +150,9 @@ const BottomBar: React.FC<BottomBarProps> = ({ activeTab, onTabClick, onAuthClic
                     <div className="absolute left-1/2 -translate-x-1/2 -top-5 z-10">
                         <Fab size="lg" />
                     </div>
-                    <div className="bg-white border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.07)] flex items-center justify-between px-10 pt-4 pb-6">
+                    <div className="bg-white border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.07)] flex items-center justify-between px-10 pt-5 pb-7">
                         <ReportsItem />
-                        <div className="w-[56px]" />
+                        <div className="w-[72px]" />
                         <AuthItem />
                     </div>
                 </div>

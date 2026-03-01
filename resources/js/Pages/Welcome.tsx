@@ -219,7 +219,7 @@ export default function Welcome({
                     MOBILE TOP BAR
                     ══════════════════════════════════════════ */}
                 <div className="xl:hidden absolute top-0 inset-x-0 z-50 px-4 pt-5 flex flex-col gap-2.5">
-                    <div className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 rounded-2xl flex items-center px-4 py-3">
+                    <div className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 rounded-2xl flex items-center px-4 py-1">
                         <input
                             type="text"
                             placeholder="Search Location"
