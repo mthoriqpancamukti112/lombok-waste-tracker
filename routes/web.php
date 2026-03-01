@@ -65,6 +65,7 @@ Route::prefix('api')->group(function () {
     Route::get('/map/reports', [MapDataController::class, 'reportPins']);
     Route::get('/map/danger-zones', [MapDataController::class, 'dangerZones']);
     Route::get('/map/waste-density', [MapDataController::class, 'wasteDensity']);
+    Route::get('/report/{id}', [MapDataController::class, 'reportDetail']);
 });
 
 // ──────────────────────────────────────────
@@ -84,6 +85,7 @@ Route::middleware('auth')->group(function () {
     })->middleware('verified')->name('dashboard');
 
     Route::get('/laporan-publik', [PublicReportController::class, 'index'])->name('laporan-publik.index');
+    Route::get('/profil/{id}', [PublicReportController::class, 'profile'])->name('laporan-publik.profile');
     Route::post('/laporan-publik/{id}/like', [PublicReportController::class, 'toggleLike'])->name('laporan-publik.like');
     Route::post('/laporan-publik/{id}/comment', [PublicReportController::class, 'storeComment'])->name('laporan-publik.comment');
 
@@ -138,6 +140,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/report/{report}/status', [ReportController::class, 'updateStatus'])->name('report.update-status');
     Route::get('/report/create', [ReportController::class, 'create'])->name('report.create');
     Route::post('/report', [ReportController::class, 'store'])->name('report.store');
+    Route::get('/report/{report}', [ReportController::class, 'show'])->name('report.show');
 
     // Comments
     Route::post('/report/{report}/comments', [CommentController::class, 'store'])->name('comments.store');

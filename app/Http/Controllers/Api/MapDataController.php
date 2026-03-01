@@ -7,6 +7,7 @@ use App\Models\DangerZone;
 use App\Models\Report;
 use App\Models\WasteDensityZone;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class MapDataController extends Controller
 {
@@ -37,5 +38,20 @@ class MapDataController extends Controller
             ->get();
 
         return response()->json($zones);
+    }
+
+    public function reportDetail($id): JsonResponse
+    {
+        $report = Report::with(['user:id,name,avatar', 'comments.user:id,name,avatar'])
+            ->withCount(['likes', 'comments'])
+            ->findOrFail($id);
+
+        $isLiked = Auth::check() ? $report->likes()->where('user_id', Auth::id())->exists() : false;
+
+        return response()->json([
+            'report' => $report,
+            'comments' => $report->comments,
+            'isLiked' => $isLiked,
+        ]);
     }
 }

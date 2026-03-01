@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,15 +13,16 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('kaling_id')->nullable()->constrained('kalings')->onDelete('set null');
-            $table->foreignId('petugas_id')->nullable()->constrained('petugas')->onDelete('set null');
+            $table->unsignedBigInteger('kaling_id')->nullable();
+            $table->unsignedBigInteger('petugas_id')->nullable();
             $table->text('description');
             $table->string('photo_path');
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);
+            $table->string('address')->nullable();
             $table->enum('status', ['menunggu', 'divalidasi', 'proses', 'selesai', 'ditolak'])->default('menunggu');
             $table->string('severity_level')->nullable();
-            $table->string('waste_type')->nullable();
+            $table->enum('waste_type', ['organik', 'anorganik', 'b3', 'campuran'])->nullable();
             $table->string('resolved_photo_path')->nullable();
             $table->text('resolved_notes')->nullable();
             $table->timestamps();

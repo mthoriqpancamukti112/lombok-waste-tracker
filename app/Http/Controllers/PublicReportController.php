@@ -100,4 +100,21 @@ class PublicReportController extends Controller
         }
         return back();
     }
+
+    // Menampilkan profil pengguna dan koleksi laporannya
+    public function profile($id)
+    {
+        $user = \App\Models\User::with(['warga'])->findOrFail($id);
+
+        $reports = Report::where('user_id', $user->id)
+            ->with(['likes', 'comments'])
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->get();
+
+        return Inertia::render('Warga/Profil', [
+            'profileUser' => $user,
+            'reports' => $reports
+        ]);
+    }
 }

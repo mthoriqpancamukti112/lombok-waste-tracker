@@ -11,8 +11,6 @@ import {
     MapPin,
     Target,
     CheckCircleSolid,
-    Building,
-    Edit,
 } from "@mynaui/icons-react";
 
 interface LngLat {
@@ -20,17 +18,10 @@ interface LngLat {
     lat: number;
 }
 
-interface Kaling {
-    id: number;
-    nama_wilayah: string;
-}
-
 export default function CreateReport({
     auth,
-    kalings = [],
 }: {
     auth: any;
-    kalings?: Kaling[];
 }) {
     const initialCenter = { longitude: 116.1165, latitude: -8.5833, zoom: 13 };
 
@@ -49,7 +40,6 @@ export default function CreateReport({
         latitude: "",
         longitude: "",
         address: "",
-        kaling_id: "",
         waste_type: "",
         severity_level: "",
         description: "",
@@ -90,36 +80,9 @@ export default function CreateReport({
 
             if (json.features && json.features.length > 0) {
                 const placeName = json.features[0].place_name;
-                const placeNameLower = placeName.toLowerCase();
-                let bestKalingId = "";
-                let maxScore = 0;
-
-                kalings.forEach((k) => {
-                    const wilLower = k.nama_wilayah.toLowerCase();
-                    const cleanWilayah = wilLower.replace(
-                        /\b(lingkungan|kel\.|kelurahan|kec\.|kecamatan|desa)\b/g,
-                        " ",
-                    );
-                    const keywords =
-                        cleanWilayah
-                            .match(/[a-z]+/g)
-                            ?.filter((w) => w.length > 3) || [];
-
-                    let currentScore = 0;
-                    keywords.forEach((kw) => {
-                        if (placeNameLower.includes(kw)) currentScore += 1;
-                    });
-
-                    if (currentScore > maxScore) {
-                        maxScore = currentScore;
-                        bestKalingId = k.id.toString();
-                    }
-                });
-
                 setData((prev) => ({
                     ...prev,
                     address: placeName,
-                    kaling_id: maxScore > 0 ? bestKalingId : "",
                 }));
             }
         } catch (error) {
@@ -321,7 +284,7 @@ export default function CreateReport({
                             )}
                         </div>
 
-                        {/* 2. Wilayah & Auto Assignment */}
+                        {/* 2. Wilayah & Auto Assignment (Now Automated in Backend) */}
                         <div className="grid grid-cols-1 gap-4">
                             <div>
                                 <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
@@ -367,100 +330,6 @@ export default function CreateReport({
                                     />
                                 </div>
                             </div>
-
-                            {/* TAMPILAN MODE MANUAL VS OTOMATIS */}
-                            {isManualOverride ? (
-                                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-200 animate-in fade-in zoom-in-95">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <label className="block text-sm font-bold text-slate-800">
-                                            Pilih Wilayah Manual{" "}
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setIsManualOverride(false)
-                                            }
-                                            className="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-100 px-2 py-1 rounded"
-                                        >
-                                            Batal
-                                        </button>
-                                    </div>
-                                    <select
-                                        value={data.kaling_id}
-                                        onChange={(e) =>
-                                            setData("kaling_id", e.target.value)
-                                        }
-                                        className="w-full rounded-xl border-blue-200 focus:border-blue-500 sm:text-sm bg-white p-3 shadow-sm"
-                                    >
-                                        <option value="" disabled>
-                                            -- Tentukan Wilayah Kaling --
-                                        </option>
-                                        {kalings.map((k) => (
-                                            <option key={k.id} value={k.id}>
-                                                {k.nama_wilayah}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            ) : (
-                                <div
-                                    className={`p-4 rounded-xl border transition-colors duration-500 relative group ${data.kaling_id ? "bg-emerald-50/50 border-emerald-200" : "bg-slate-50 border-slate-200"}`}
-                                >
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
-                                        Penanggung Jawab Wilayah
-                                    </label>
-                                    {data.kaling_id ? (
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0 mt-0.5">
-                                                <CheckCircleSolid className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-800 leading-tight pr-6">
-                                                    {
-                                                        kalings.find(
-                                                            (k) =>
-                                                                k.id.toString() ===
-                                                                data.kaling_id,
-                                                        )?.nama_wilayah
-                                                    }
-                                                </p>
-                                                <p className="text-[10px] text-emerald-600 mt-0.5 font-medium">
-                                                    Dideteksi otomatis oleh
-                                                    sistem
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-start gap-3 opacity-70">
-                                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 flex-shrink-0 mt-0.5">
-                                                <Building className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-700 leading-tight">
-                                                    Fasilitas Umum / Kota
-                                                </p>
-                                                <p className="text-[10px] text-slate-500 mt-0.5 font-medium">
-                                                    Ditangani langsung oleh
-                                                    Satgas DLH
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setIsManualOverride(true)
-                                        }
-                                        className="absolute top-4 right-4 p-2 bg-white rounded-lg border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 shadow-sm transition-all md:opacity-0 group-hover:opacity-100"
-                                        title="Koreksi Manual"
-                                    >
-                                        <Edit className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
                         </div>
 
                         {/* 3. Detail Sampah */}
@@ -481,13 +350,12 @@ export default function CreateReport({
                                             onClick={() =>
                                                 toggleWasteType(type)
                                             }
-                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
-                                                selectedWasteTypes.includes(
-                                                    type,
-                                                )
-                                                    ? "bg-emerald-50 border-emerald-500 text-emerald-700"
-                                                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-                                            }`}
+                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${selectedWasteTypes.includes(
+                                                type,
+                                            )
+                                                ? "bg-emerald-50 border-emerald-500 text-emerald-700"
+                                                : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                                                }`}
                                         >
                                             {type}
                                         </button>

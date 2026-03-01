@@ -26,7 +26,6 @@ class WargaController extends Controller
         $riwayatLaporan = Report::with('user:id,name')
             ->where('user_id', $userId)
             ->latest()
-            ->take(5)
             ->get();
 
         return Inertia::render('Dashboard/Warga', [

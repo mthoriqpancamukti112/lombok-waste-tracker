@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Search, X, Heart, Message, MapPin } from "@mynaui/icons-react";
+import { Link } from "@inertiajs/react";
 
 interface Report {
     id: number;
@@ -21,10 +22,10 @@ interface ReportListContentProps {
     reports: Report[];
     formatDate: (d: string) => string;
     onClose?: () => void;
-    onReportClick?: (report: Report) => void;
     isDark?: boolean;
     currentUserId?: number;
     onAuthRequired?: () => void;
+    onSelectReport?: (id: number) => void;
 }
 
 const filterOptions = [
@@ -44,10 +45,10 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
     reports,
     formatDate,
     onClose,
-    onReportClick,
     isDark,
     currentUserId,
     onAuthRequired,
+    onSelectReport,
 }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [activeFilter, setActiveFilter] = useState("all");
@@ -118,17 +119,17 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                     {filteredReports.map((report) => (
                         <div
                             key={report.id}
-                            onClick={() => onReportClick?.(report)}
-                            className={`flex flex-col rounded-[32px] border p-5 gap-4 transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer ${cardBg}`}
+                            onClick={() => onSelectReport?.(report.id)}
+                            className={`flex flex-col rounded-[32px] border p-5 gap-4 transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1 group ${cardBg}`}
                         >
                             {/* Card Header: User Info */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
+                                    <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-100 group-hover:border-ds-primary transition-colors">
                                         <AvatarImage user={report.user} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-black leading-tight truncate max-w-[120px]">
+                                        <span className="text-sm font-black leading-tight truncate max-w-[120px] group-hover:text-ds-primary transition-colors">
                                             {report.user?.name || "Username"}
                                         </span>
                                     </div>
@@ -139,11 +140,11 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                             </div>
 
                             {/* Card Body: Image */}
-                            <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-100">
+                            <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-200">
                                 <img
                                     src={`/storage/${report.photo_path}`}
                                     alt="Waste"
-                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=600&auto=format&fit=crop'; }}
                                 />
                             </div>
@@ -152,33 +153,35 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                             <div className="flex flex-col gap-3">
                                 {/* Interaction counts */}
                                 <div className="flex items-center gap-4 text-slate-400">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" />
-                                            </svg>
-                                        </div>
-                                        <span className="text-xs font-black">{report.likes_count ?? 25}</span>
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full group-hover:border-pink-200 group-hover:bg-pink-50 group-hover:text-pink-500 transition-all">
+                                        <Heart className="w-4 h-4" />
+                                        <span className="text-xs font-black">{report.likes_count ?? 0}</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5">
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full group-hover:border-blue-200 group-hover:bg-blue-50 group-hover:text-blue-500 transition-all">
                                         <Message className="w-4 h-4" />
-                                        <span className="text-xs font-black">{report.comments_count ?? 25}</span>
+                                        <span className="text-xs font-black">{report.comments_count ?? 0}</span>
                                     </div>
                                 </div>
 
                                 {/* Tags */}
                                 <div className="flex flex-wrap gap-2">
-                                    <span className="px-3 py-1 rounded-lg bg-[#a7e94a]/10 text-[#5a8a1a] text-[10px] font-extrabold uppercase tracking-wide">
-                                        {report.severity_level || "Low Urgency"}
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border
+                                        ${report.severity_level === 'high' ? 'bg-red-50 text-red-500 border-red-100' :
+                                            report.severity_level === 'moderate' ? 'bg-orange-50 text-orange-500 border-orange-100' :
+                                                'bg-[#a7e94a]/10 text-ds-primary border-[#a7e94a]/20'}`}>
+                                        {report.severity_level || "Low"}
                                     </span>
-                                    <span className="px-3 py-1 rounded-lg bg-blue-50 text-blue-500 text-[10px] font-extrabold uppercase tracking-wide">
-                                        Nearest
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border
+                                        ${report.status === 'selesai' ? 'bg-[#a7e94a]/20 text-slate-800 border-[#a7e94a]/30' :
+                                            report.status === 'proses' ? 'bg-blue-50 text-blue-500 border-blue-100' :
+                                                'bg-red-50 text-red-500 border-red-100'}`}>
+                                        {report.status}
                                     </span>
                                 </div>
 
                                 {/* Description */}
-                                <p className="text-xs font-semibold leading-relaxed text-slate-600 line-clamp-3">
-                                    {report.description || "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
+                                <p className="text-xs font-semibold leading-relaxed text-slate-600 line-clamp-2 group-hover:text-slate-900 transition-colors">
+                                    {report.description}
                                 </p>
                             </div>
                         </div>

@@ -171,38 +171,35 @@ export default function WargaDashboard({
                     ) : (
                         <div className="divide-y divide-slate-100">
                             {riwayat.map((report, index) => (
-                                <div
+                                <Link
                                     key={report.id}
+                                    href={route('report.show', report.id)}
                                     data-aos="fade-left"
-                                    // Delay bertingkat berdasarkan urutan list agar masuknya bergantian
                                     data-aos-delay={100 * index}
-                                    className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:bg-slate-50 transition-colors"
+                                    className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:bg-slate-50 transition-all group"
                                 >
-                                    <img
-                                        src={`/storage/${report.photo_path}`}
-                                        alt="Foto Laporan"
-                                        className="w-20 h-20 rounded-xl object-cover bg-slate-200 flex-shrink-0"
-                                    />
+                                    <div className="relative">
+                                        <img
+                                            src={`/storage/${report.photo_path}`}
+                                            alt="Foto Laporan"
+                                            className="w-20 h-20 rounded-xl object-cover bg-slate-200 flex-shrink-0 group-hover:scale-105 transition-transform"
+                                        />
+                                        <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-sm
+                                            ${report.severity_level === 'high' ? 'bg-red-500' : report.severity_level === 'moderate' ? 'bg-orange-500' : 'bg-blue-500'}`}>
+                                            <Sparkles className="w-3.5 h-3.5 text-white" />
+                                        </div>
+                                    </div>
 
                                     <div className="flex-1">
-                                        <h4 className="font-bold text-slate-800 line-clamp-2">
-                                            {report.description ||
-                                                "Tumpukan Sampah"}
+                                        <h4 className="font-bold text-slate-800 line-clamp-2 group-hover:text-ds-primary transition-colors">
+                                            {report.description || "Tumpukan Sampah"}
                                         </h4>
                                         <div className="flex items-center gap-3 mt-2 text-xs text-slate-500 font-medium">
                                             <span className="flex items-center gap-1">
                                                 <Map className="w-3.5 h-3.5" />
-                                                {parseFloat(
-                                                    report.latitude,
-                                                ).toFixed(4)}
-                                                ,{" "}
-                                                {parseFloat(
-                                                    report.longitude,
-                                                ).toFixed(4)}
+                                                {report.address || `${parseFloat(report.latitude).toFixed(4)}, ${parseFloat(report.longitude).toFixed(4)}`}
                                             </span>
-                                            <span className="text-slate-300">
-                                                •
-                                            </span>
+                                            <span className="text-slate-300">•</span>
                                             <span className="flex items-center gap-1">
                                                 <Clock9 className="w-3.5 h-3.5" />
                                                 {formatDate(report.created_at)}
@@ -210,24 +207,25 @@ export default function WargaDashboard({
                                         </div>
                                     </div>
 
-                                    <div className="mt-2 sm:mt-0">
+                                    <div className="mt-2 sm:mt-0 flex flex-col items-end gap-2">
                                         <span
-                                            className={`px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full
-                                                ${
-                                                    report.status === "menunggu"
-                                                        ? "bg-red-100 text-red-600"
-                                                        : report.status ===
-                                                                "proses" ||
-                                                            report.status ===
-                                                                "divalidasi"
-                                                          ? "bg-blue-100 text-blue-600"
-                                                          : "bg-[#a7e94a] text-slate-900"
-                                                }`}
+                                            className={`px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full shadow-sm
+                                                ${report.status === "menunggu" ? "bg-red-100 text-red-600 border border-red-200" :
+                                                    report.status === "proses" ? "bg-blue-100 text-blue-600 border border-blue-200" :
+                                                        report.status === "selesai" ? "bg-[#a7e94a]/30 text-slate-800 border border-[#a7e94a]/50" :
+                                                            "bg-slate-100 text-slate-600 border border-slate-200"}`}
                                         >
-                                            {report.status}
+                                            {report.status === 'menunggu' ? 'Menunggu' :
+                                                report.status === 'proses' ? 'Diproses' :
+                                                    report.status === 'selesai' ? 'Selesai' :
+                                                        report.status === 'ditolak' ? 'Ditolak' : report.status}
                                         </span>
+                                        <div className="flex items-center text-[10px] font-bold text-slate-400 group-hover:text-ds-primary transition-colors">
+                                            Lihat Detail
+                                            <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor font-black"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                        </div>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}

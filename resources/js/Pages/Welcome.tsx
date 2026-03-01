@@ -21,6 +21,11 @@ import {
     MoonSolid,
     CrosshairSolid,
     ChevronDown,
+    MapPin,
+    Flame,
+    DangerTriangle,
+    Grid,
+    LayersThree,
 } from "@mynaui/icons-react";
 
 interface User {
@@ -81,7 +86,8 @@ export default function Welcome({
     wasteDensityZones: WasteDensityZone[];
 }>) {
     const [activePanel, setActivePanel] = useState<'reports' | 'profile' | 'report-detail' | 'none'>('none');
-    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+    const [selectedReportDetail, setSelectedReportDetail] = useState<{ report: Report; comments: any[]; isLiked: boolean } | null>(null);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     const [lang, setLang] = useState<"id" | "en">("id");
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -89,6 +95,13 @@ export default function Welcome({
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authModalTab, setAuthModalTab] = useState<"login" | "register">("login");
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [mapSettings, setMapSettings] = useState({
+        showHeatmap: true,
+        showMarkers: true,
+        showDangerZones: true,
+        showDensityZones: false,
+    });
+    const [showMobileMapSettings, setShowMobileMapSettings] = useState(false);
 
     const mapRef = useRef<{ centerOnUser: () => void } | null>(null);
     const t = landingDict[lang];
@@ -136,15 +149,32 @@ export default function Welcome({
         setActivePanel(prev => prev === tab ? 'none' : tab);
     };
 
-    const handleReportClick = (report: Report) => {
-        setSelectedReport(report);
-        setActivePanel('report-detail');
-    };
-
     const toggleLang = () => setLang(prev => prev === "id" ? "en" : "id");
     const toggleDark = () => setIsDarkMode(prev => !prev);
     const handleGeolocate = () => {
         if (mapRef.current) mapRef.current.centerOnUser();
+    };
+
+    const toggleSetting = (setting: keyof typeof mapSettings) => {
+        setMapSettings(prev => ({ ...prev, [setting]: !prev[setting] }));
+    };
+
+    const handleReportSelect = async (reportId: number) => {
+        setIsLoadingDetail(true);
+        setActivePanel('report-detail');
+        try {
+            const response = await fetch(`/api/report/${reportId}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            setSelectedReportDetail(data);
+        } catch (error) {
+            console.error("Failed to fetch report details:", error);
+            toast.error("Gagal memuat detail laporan");
+            setActivePanel('none');
+        } finally {
+            setIsLoadingDetail(false);
+        }
     };
 
     const markNotifRead = () => {
@@ -158,7 +188,7 @@ export default function Welcome({
         }).then(() => setUnreadCount(0));
     };
 
-    const mobileBtn = "w-10 h-10 bg-white shadow-[0_4px_14px_rgba(0,0,0,0.07)] border border-slate-100 rounded-xl flex items-center justify-center transition-all active:scale-90";
+    const mobileBtnBase = "w-10 h-10 shadow-[0_4px_14px_rgba(0,0,0,0.07)] border border-slate-100 rounded-xl flex items-center justify-center transition-all active:scale-90";
     const desktopBtn = "w-12 h-12 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-slate-100 rounded-2xl flex items-center justify-center transition-all hover:shadow-lg hover:scale-105 active:scale-95";
 
     const openAuthModal = (tab: "login" | "register" = "login") => {
@@ -179,6 +209,9 @@ export default function Welcome({
                         dangerZones={dangerZones}
                         wasteDensityZones={wasteDensityZones}
                         isDarkMode={isDarkMode}
+                        mapSettings={mapSettings}
+                        onToggleSetting={toggleSetting}
+                        onSelectReport={handleReportSelect}
                     />
                 </div>
 
@@ -204,7 +237,7 @@ export default function Welcome({
                         {auth.user && (
                             <button
                                 onClick={markNotifRead}
-                                className={`${mobileBtn} relative text-slate-500`}
+                                className={`${mobileBtnBase} bg-white relative text-slate-500`}
                             >
                                 {unreadCount > 0 ? <BellSolid className="w-[18px] h-[18px]" /> : <Bell className="w-[18px] h-[18px]" />}
                                 {unreadCount > 0 && (
@@ -214,20 +247,60 @@ export default function Welcome({
                         )}
 
                         {/* Language */}
-                        <button onClick={toggleLang} className={`${mobileBtn} gap-0.5 px-2.5 w-auto`}>
+                        <button onClick={toggleLang} className={`${mobileBtnBase} bg-white gap-0.5 px-1`}>
                             <Globe className="w-[15px] h-[15px] text-slate-500" />
-                            <span className="text-[11px] font-black text-slate-600">{lang.toUpperCase()}</span>
+                            <span className="text-[11px] font-black text-slate-600 tracking-tighter">{lang.toUpperCase()}</span>
                         </button>
 
                         {/* Dark mode */}
-                        <button onClick={toggleDark} className={`${mobileBtn} text-slate-500`}>
+                        <button onClick={toggleDark} className={`${mobileBtnBase} bg-white text-slate-500`}>
                             {isDarkMode ? <MoonSolid className="w-[18px] h-[18px]" /> : <SunSolid className="w-[18px] h-[18px]" />}
                         </button>
 
                         {/* Geolocate */}
-                        <button onClick={handleGeolocate} className={`${mobileBtn} text-slate-500`}>
+                        <button onClick={handleGeolocate} className={`${mobileBtnBase} bg-white text-slate-500`}>
                             <CrosshairSolid className="w-[18px] h-[18px]" />
                         </button>
+
+                        {/* Map Layers Toggle */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowMobileMapSettings(!showMobileMapSettings)}
+                                className={`${mobileBtnBase} ${showMobileMapSettings ? 'bg-[#a7e94a] text-white border-[#a7e94a]' : 'text-slate-500 bg-white'}`}
+                            >
+                                <LayersThree className="w-[18px] h-[18px]" />
+                            </button>
+
+                            {/* Dropdown - Expands Downward */}
+                            {showMobileMapSettings && (
+                                <div className="absolute top-12 right-0 z-50 flex flex-col gap-2 bg-white/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-slate-100 animate-in slide-in-from-top-2 duration-200">
+                                    <button
+                                        onClick={() => toggleSetting('showMarkers')}
+                                        className={`${mobileBtnBase} ${mapSettings.showMarkers ? 'bg-[#a7e94a] text-white' : 'bg-transparent text-slate-500 hover:bg-white/50'}`}
+                                    >
+                                        <MapPin className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => toggleSetting('showHeatmap')}
+                                        className={`${mobileBtnBase} ${mapSettings.showHeatmap ? 'bg-[#a7e94a] text-white' : 'bg-transparent text-slate-500 hover:bg-white/50'}`}
+                                    >
+                                        <Flame className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => toggleSetting('showDangerZones')}
+                                        className={`${mobileBtnBase} ${mapSettings.showDangerZones ? 'bg-[#a7e94a] text-white' : 'bg-transparent text-slate-500 hover:bg-white/50'}`}
+                                    >
+                                        <DangerTriangle className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => toggleSetting('showDensityZones')}
+                                        className={`${mobileBtnBase} ${mapSettings.showDensityZones ? 'bg-[#a7e94a] text-white' : 'bg-transparent text-slate-500 hover:bg-white/50'}`}
+                                    >
+                                        <Grid className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -274,6 +347,40 @@ export default function Welcome({
                             {isDarkMode ? <MoonSolid className="w-5 h-5" /> : <SunSolid className="w-5 h-5" />}
                         </button>
 
+                        <div className="h-8 w-px bg-slate-200 mx-1" />
+
+                        {/* Map Settings Controls */}
+                        <div className="flex items-center gap-1.5 bg-slate-50/50 p-1 rounded-2xl border border-slate-100 shadow-inner">
+                            <button
+                                onClick={() => toggleSetting('showMarkers')}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showMarkers ? 'bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20' : 'text-slate-400 hover:bg-white hover:text-slate-600'}`}
+                                title="Tampilkan Marker"
+                            >
+                                <MapPin className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => toggleSetting('showHeatmap')}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showHeatmap ? 'bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20' : 'text-slate-400 hover:bg-white hover:text-slate-600'}`}
+                                title="Tampilkan Heatmap"
+                            >
+                                <Flame className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => toggleSetting('showDangerZones')}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showDangerZones ? 'bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20' : 'text-slate-400 hover:bg-white hover:text-slate-600'}`}
+                                title="Tampilkan Zona Bahaya"
+                            >
+                                <DangerTriangle className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => toggleSetting('showDensityZones')}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showDensityZones ? 'bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20' : 'text-slate-400 hover:bg-white hover:text-slate-600'}`}
+                                title="Tampilkan Kepadatan Sampah"
+                            >
+                                <Grid className="w-5 h-5" />
+                            </button>
+                        </div>
+
                         {/* Geolocate */}
                         <button onClick={handleGeolocate} className={`${desktopBtn} text-slate-500`}>
                             <CrosshairSolid className="w-5 h-5" />
@@ -316,9 +423,9 @@ export default function Welcome({
                                     formatDate={formatDate}
                                     isDark={isDarkMode}
                                     onClose={() => setActivePanel('none')}
-                                    onReportClick={handleReportClick}
                                     currentUserId={auth.user?.id}
                                     onAuthRequired={() => openAuthModal("login")}
+                                    onSelectReport={handleReportSelect}
                                 />
                             ) : activePanel === 'profile' && auth.user ? (
                                 <ProfileContent
@@ -327,13 +434,21 @@ export default function Welcome({
                                     isDark={isDarkMode}
                                     onClose={() => setActivePanel('none')}
                                 />
-                            ) : activePanel === 'report-detail' && selectedReport ? (
-                                <ReportDetailContent
-                                    report={selectedReport}
-                                    onClose={() => setActivePanel('reports')}
-                                    isDark={isDarkMode}
-                                    formatDate={formatDate}
-                                />
+                            ) : activePanel === 'report-detail' ? (
+                                isLoadingDetail ? (
+                                    <div className="flex-1 flex items-center justify-center">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ds-primary"></div>
+                                    </div>
+                                ) : selectedReportDetail ? (
+                                    <ReportDetailContent
+                                        report={selectedReportDetail.report}
+                                        comments={selectedReportDetail.comments}
+                                        isLiked={selectedReportDetail.isLiked}
+                                        isDark={isDarkMode}
+                                        formatDate={formatDate}
+                                        onClose={() => setActivePanel('none')}
+                                    />
+                                ) : null
                             ) : null}
                         </div>
                     </div>
@@ -354,26 +469,11 @@ export default function Welcome({
                                 formatDate={formatDate}
                                 isDark={isDarkMode}
                                 onClose={() => setActivePanel("none")}
-                                onReportClick={handleReportClick}
                                 currentUserId={auth.user?.id}
                                 onAuthRequired={() => openAuthModal("login")}
+                                onSelectReport={handleReportSelect}
                             />
                         </BottomSheet>
-
-                        {activePanel === "report-detail" && selectedReport && (
-                            <BottomSheet
-                                isOpen={true}
-                                onClose={() => setActivePanel("reports")}
-                                title="Report Detail"
-                            >
-                                <ReportDetailContent
-                                    report={selectedReport}
-                                    onClose={() => setActivePanel("reports")}
-                                    isDark={isDarkMode}
-                                    formatDate={formatDate}
-                                />
-                            </BottomSheet>
-                        )}
 
                         {activePanel === "profile" && auth.user && (
                             <BottomSheet
@@ -390,6 +490,31 @@ export default function Welcome({
                                 />
                             </BottomSheet>
                         )}
+
+                        <BottomSheet
+                            isOpen={activePanel === 'report-detail'}
+                            onClose={() => setActivePanel('none')}
+                            title="Detail Laporan"
+                        >
+                            {isLoadingDetail ? (
+                                <div className="py-12 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ds-primary"></div>
+                                </div>
+                            ) : selectedReportDetail ? (
+                                <ReportDetailContent
+                                    report={selectedReportDetail.report}
+                                    comments={selectedReportDetail.comments}
+                                    isLiked={selectedReportDetail.isLiked}
+                                    isDark={isDarkMode}
+                                    formatDate={formatDate}
+                                    onClose={() => setActivePanel('none')}
+                                />
+                            ) : (
+                                <div className="py-12 text-center text-slate-400 text-sm">
+                                    Laporan tidak ditemukan
+                                </div>
+                            )}
+                        </BottomSheet>
                     </>
                 )}
 
@@ -418,6 +543,8 @@ export default function Welcome({
                     }}
                     isDark={isDarkMode}
                 />
+
+
 
                 <Toaster
                     position="top-center"

@@ -9,7 +9,7 @@ interface User {
 }
 
 interface BottomBarProps {
-    activeTab: 'reports' | 'profile' | 'report-detail' | 'none';
+    activeTab: 'reports' | 'profile' | 'none';
     onTabClick: (tab: 'reports' | 'profile') => void;
     onAuthClick: () => void;
     onCreateClick?: () => void;

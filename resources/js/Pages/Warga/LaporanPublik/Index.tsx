@@ -58,8 +58,8 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
     const commentInputRef = useRef<HTMLInputElement>(null);
     const commentsCount = report.comments
         ? report.comments.reduce((total, comment) => {
-              return total + 1 + (comment.replies ? comment.replies.length : 0);
-          }, 0)
+            return total + 1 + (comment.replies ? comment.replies.length : 0);
+        }, 0)
         : 0;
 
     // Form khusus untuk komentar laporan ini
@@ -145,14 +145,20 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
             {/* Header Kartu (Info Pembuat) */}
             <div className="p-4 sm:p-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    <Link
+                        href={route('laporan-publik.profile', report.user_id || (report as any).user?.id)}
+                        className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg flex-shrink-0 hover:bg-emerald-200 transition-colors"
+                    >
                         {report.user.name.charAt(0)}
-                    </div>
+                    </Link>
                     <div>
                         <div className="flex items-center gap-1.5">
-                            <p className="font-bold text-slate-800 text-sm">
+                            <Link
+                                href={route('laporan-publik.profile', report.user_id || (report as any).user?.id)}
+                                className="font-bold text-slate-800 text-sm hover:text-emerald-600 transition-colors"
+                            >
                                 {report.user.name}
-                            </p>
+                            </Link>
 
                             {!!report.user.warga?.is_terverifikasi && (
                                 <span
@@ -176,14 +182,13 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                 {/* Badge Status */}
                 <span
                     className={`px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow-sm
-                    ${
-                        report.status === "menunggu"
+                    ${report.status === "menunggu"
                             ? "bg-red-100 text-red-600"
                             : report.status === "proses" ||
                                 report.status === "divalidasi"
-                              ? "bg-blue-100 text-blue-600"
-                              : "bg-[#a7e94a] text-slate-900"
-                    }`}
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-[#a7e94a] text-slate-900"
+                        }`}
                 >
                     {report.status}
                 </span>
@@ -460,41 +465,37 @@ export default function FeedLaporanPublik({
                 >
                     <button
                         onClick={() => handleFilter("semua")}
-                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
-                            currentFilter === "semua"
+                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${currentFilter === "semua"
                                 ? "bg-slate-800 text-white"
                                 : "bg-white text-slate-500 hover:bg-slate-100 border border-slate-200"
-                        }`}
+                            }`}
                     >
                         Semua Laporan
                     </button>
                     <button
                         onClick={() => handleFilter("menunggu")}
-                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
-                            currentFilter === "menunggu"
+                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${currentFilter === "menunggu"
                                 ? "bg-red-500 text-white"
                                 : "bg-white text-slate-500 hover:bg-red-50 hover:text-red-500 border border-slate-200"
-                        }`}
+                            }`}
                     >
                         Menunggu
                     </button>
                     <button
                         onClick={() => handleFilter("proses")}
-                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
-                            currentFilter === "proses"
+                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${currentFilter === "proses"
                                 ? "bg-blue-500 text-white"
                                 : "bg-white text-slate-500 hover:bg-blue-50 hover:text-blue-500 border border-slate-200"
-                        }`}
+                            }`}
                     >
                         Diproses
                     </button>
                     <button
                         onClick={() => handleFilter("selesai")}
-                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
-                            currentFilter === "selesai"
+                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${currentFilter === "selesai"
                                 ? "bg-green-500 text-white"
                                 : "bg-white text-slate-500 hover:bg-green-50 hover:text-green-500 border border-slate-200"
-                        }`}
+                            }`}
                     >
                         Selesai
                     </button>

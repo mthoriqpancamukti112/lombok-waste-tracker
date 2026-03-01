@@ -16,52 +16,155 @@ class ReportController extends Controller
 {
     public function create()
     {
-        $kalings = Kaling::orderBy('nama_wilayah', 'asc')->get(['id', 'nama_wilayah']);
-
-        return Inertia::render('Report/Create', [
-            'kalings' => $kalings
-        ]);
+        return Inertia::render('Report/Create');
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'kaling_id' => 'nullable|exists:kalings,id',
             'description' => 'required|string|max:1000',
-            'photo' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'photo' => 'required_without:photos|image|mimes:jpeg,png,jpg,webp|max:7168',
+            'photos' => 'nullable|array',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'address' => 'nullable|string|max:500',
-            'waste_type' => 'nullable|in:organik,anorganik,b3,campuran',
+            'waste_type' => 'nullable|string|max:255',
             'severity_level' => 'nullable|string|max:100',
         ]);
 
-        $photoPath = $request->file('photo')->store('reports', 'public');
+        $photoFile = $request->file('photo') ?? ($request->file('photos')[0] ?? null);
 
-        Report::create([
+        if (!$photoFile) {
+            return back()->withErrors(['photo' => 'Photo is required.']);
+        }
+
+        $photoPath = $photoFile->store('reports', 'public');
+
+        // --- SISTEM OTOMATIS DLH (GIS ANALYSIS) ---
+        $matchingZone = null;
+        /** @var \Illuminate\Database\Eloquent\Collection<\App\Models\DangerZone> $activeZones */
+        $activeZones = \App\Models\DangerZone::active()->get();
+        foreach ($activeZones as $zone) {
+            if ($zone->isPointInside($request->latitude, $request->longitude)) {
+                $matchingZone = $zone;
+                break; // Ambil zona pertama yang cocok
+            }
+        }
+
+        $severity = $request->severity_level ?? 'low';
+        // Normalize severity to match case if needed, but 'low', 'moderate', 'high' is standard
+        $severity = strtolower($severity);
+        if ($severity === 'ringan')
+            $severity = 'low';
+        if ($severity === 'sedang')
+            $severity = 'moderate';
+        if ($severity === 'parah')
+            $severity = 'high';
+
+        $desc = $request->description;
+
+        if ($matchingZone) {
+            // Jika masuk zona sistem, otomatis naikkan severity dan tandai deskripsi
+            $severity = $matchingZone->severity; // Ikuti severity zona dari DLH
+            $desc = "[AUTOSYSTEM: {$matchingZone->name}] " . $desc;
+        }
+
+        // --- SISTEM OTOMATIS PENENTUAN KALING (SMART MATCHING) ---
+        $kalingId = null;
+        if ($request->address) {
+            $addressLower = strtolower($request->address);
+            $kalings = Kaling::all();
+            $maxScore = 0;
+
+            foreach ($kalings as $k) {
+                $wilLower = strtolower($k->nama_wilayah);
+                // Bersihkan kata-kata umum wilayah
+                $cleanWilayah = preg_replace('/\b(lingkungan|kel\.|kelurahan|kec\.|kecamatan|desa)\b/i', ' ', $wilLower);
+
+                // Ambil kata kunci (lebih dari 3 huruf)
+                preg_match_all('/[a-z]{4,}/i', $cleanWilayah, $matches);
+                $keywords = $matches[0] ?? [];
+
+                $currentScore = 0;
+                foreach ($keywords as $kw) {
+                    if (str_contains($addressLower, strtolower($kw))) {
+                        $currentScore++;
+                    }
+                }
+
+                if ($currentScore > $maxScore) {
+                    $maxScore = $currentScore;
+                    $kalingId = $k->id;
+                }
+            }
+        }
+
+        $report = Report::create([
             'user_id' => Auth::id(),
-            'kaling_id' => $request->kaling_id,
-            'description' => $request->description,
+            'kaling_id' => $kalingId,
+            'description' => $desc,
             'photo_path' => $photoPath,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'address' => $request->address,
             'status' => 'menunggu',
-            'severity_level' => $request->severity_level ?? 'Menunggu Analisis',
+            'severity_level' => $severity,
             'waste_type' => $request->waste_type,
         ]);
 
-        return redirect()->route('dashboard.warga')->with('success', 'Laporan berhasil dikirim!');
+        return redirect()->route('dashboard.warga')->with('success', 'Laporan berhasil dikirim!' . ($matchingZone ? ' Terdeteksi berada di zona: ' . $matchingZone->name : ''));
+    }
+
+    public function show($id)
+    {
+        $report = Report::with(['user:id,name', 'comments.user:id,name'])
+            ->findOrFail($id);
+
+        $comments = $report->comments;
+        $isLiked = Auth::check() ? $report->likes()->where('user_id', Auth::id())->exists() : false;
+
+        return Inertia::render('Report/Show', [
+            'report' => $report,
+            'comments' => $comments,
+            'isLiked' => $isLiked
+        ]);
     }
 
     public function updateStatus(Request $request, Report $report)
     {
         $oldStatus = $report->status;
+        $user = Auth::user();
 
-        $request->validate([
-            'status' => 'required|in:divalidasi,proses,selesai,ditolak',
-            'notes' => 'nullable|string|max:500',
-        ]);
+        // 1. STICK ROLE-BASED ACCESS CONTROL
+        if ($user->role === 'kaling') {
+            // Kaling hanya bisa memvalidasi atau menolak laporan baru (menunggu)
+            if ($oldStatus !== 'menunggu') {
+                return back()->with('error', 'Kaling hanya dapat memproses laporan dengan status Menunggu.');
+            }
+            $request->validate([
+                'status' => 'required|in:divalidasi,ditolak',
+                'notes' => 'nullable|string|max:500',
+            ]);
+        } elseif ($user->role === 'petugas') {
+            // Petugas hanya bisa memproses laporan yang sudah divalidasi ke 'proses'
+            // ATAU menyelesaikan laporan yang sedang 'proses'.
+            if ($oldStatus === 'divalidasi') {
+                $request->validate(['status' => 'required|in:proses']);
+            } elseif ($oldStatus === 'proses') {
+                $request->validate(['status' => 'required|in:selesai']);
+            } else {
+                return back()->with('error', 'Laporan ini tidak dalam tahap yang bisa diproses petugas.');
+            }
+            $request->validate(['notes' => 'nullable|string|max:500']);
+        } elseif ($user->role === 'dlh') {
+            // DLH memiliki akses kontrol penuh (superadmin bypass)
+            $request->validate([
+                'status' => 'required|in:divalidasi,proses,selesai,ditolak',
+                'notes' => 'nullable|string|max:500',
+            ]);
+        } else {
+            abort(403, 'Anda tidak memiliki akses untuk mengubah status laporan.');
+        }
 
         $newStatus = $request->status;
         $pelapor = $report->user;
@@ -123,9 +226,9 @@ class ReportController extends Controller
         } else {
             $dataToUpdate = ['status' => $newStatus];
 
-            if ($newStatus === 'proses' && $request->user()->role === 'petugas') {
-                if ($request->user()->petugas) {
-                    $dataToUpdate['petugas_id'] = $request->user()->petugas->id;
+            if ($newStatus === 'proses' && $user->role === 'petugas') {
+                if ($user->petugas) {
+                    $dataToUpdate['petugas_id'] = $user->petugas->id;
                 }
             }
 
