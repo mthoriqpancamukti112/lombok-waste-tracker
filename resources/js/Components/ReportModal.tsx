@@ -4,6 +4,7 @@ import { useForm } from '@inertiajs/react';
 import { MapPinUserInside, X } from '@mynaui/icons-react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import imageCompression from 'browser-image-compression';
 import { MapPinned } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -95,15 +96,37 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, onSubmit, is
         }));
     };
 
-    const handleFiles = (files: FileList | null) => {
+    const handleFiles = async (files: FileList | null) => {
         if (!files) return;
-        const newImagesList = Array.from(files)
+
+        const validFiles = Array.from(files)
             .filter(f => f.type.startsWith('image/'))
-            .slice(0, 5 - images.length)
-            .map(file => ({
-                file,
-                preview: URL.createObjectURL(file),
-            }));
+            .slice(0, 5 - images.length);
+
+        if (validFiles.length === 0) return;
+
+        // Compress images to significantly reduce upload size (ideal for mobile)
+        const options = {
+            maxSizeMB: 1.5,
+            maxWidthOrHeight: 1280,
+            useWebWorker: true
+        };
+
+        const compressedFiles = await Promise.all(
+            validFiles.map(async (file) => {
+                try {
+                    return await imageCompression(file, options);
+                } catch (error) {
+                    console.error("Image compression failed:", error);
+                    return file; // fallback back to original if compression fails
+                }
+            })
+        );
+
+        const newImagesList = compressedFiles.map(file => ({
+            file,
+            preview: URL.createObjectURL(file),
+        }));
 
         const updatedImages = [...images, ...newImagesList].slice(0, 5);
         setImages(updatedImages);
