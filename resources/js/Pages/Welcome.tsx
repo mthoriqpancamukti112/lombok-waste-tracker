@@ -200,7 +200,7 @@ export default function Welcome({
         <>
             <Head title={t.title} />
 
-            <div className={`relative h-screen w-full overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
+            <div className={`fixed inset-0 w-full overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'} h-[100dvh]`}>
                 {/* ─── Map fills full viewport ─── */}
                 <div className="absolute inset-0 z-0">
                     <MapComponent
@@ -520,7 +520,7 @@ export default function Welcome({
 
                 {/* ─── Bottom Navigation ─── */}
                 <BottomBar
-                    activeTab={activePanel}
+                    activeTab={activePanel === 'report-detail' ? 'reports' : activePanel}
                     onTabClick={handleTabClick}
                     onAuthClick={() => openAuthModal("login")}
                     onCreateClick={() => setIsReportModalOpen(true)}

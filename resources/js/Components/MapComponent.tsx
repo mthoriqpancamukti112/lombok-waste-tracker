@@ -384,7 +384,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                 {/* Legend */}
                 {mapSettings.showHeatmap && (
                     <div
-                        className={`absolute bottom-[110px] xl:bottom-8 z-50 transition-all duration-500 ease-in-out flex items-center ${isLegendCollapsed
+                        className={`absolute bottom-[140px] xl:bottom-8 z-50 transition-all duration-500 ease-in-out flex items-center ${isLegendCollapsed
                             ? 'left-0 -translate-x-full ml-10'
                             : 'left-4 xl:left-6'
                             }`}
