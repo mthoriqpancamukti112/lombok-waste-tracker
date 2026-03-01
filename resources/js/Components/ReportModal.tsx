@@ -5,6 +5,7 @@ import { MapPinUserInside, X } from '@mynaui/icons-react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPinned } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface ReportModalProps {
     isOpen: boolean;
@@ -231,7 +232,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, onSubmit, is
 
     // ── Submit ─────────────────────────────────────
     const handleSubmit = () => {
-        if (!data.photo || !data.description || !selectedLocation) return;
+        if (!data.photo || !data.description || !selectedLocation) {
+            if (!data.photo) toast.error("Mohon unggah foto bukti.");
+            if (!data.description) toast.error("Mohon isi deskripsi.");
+            if (!selectedLocation) toast.error("Mohon pilih lokasi di peta.");
+            return;
+        }
 
         // Append needs to description for now or handle in backend if needed
         // For consistency with existing backend, we'll follow the same structure
@@ -560,8 +566,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, onSubmit, is
                         <button
                             type="button"
                             onClick={handleSubmit}
-                            disabled={isSubmitting || images.length === 0 || !data.description || !selectedLocation}
-                            className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${isSubmitting || images.length === 0 || !data.description || !selectedLocation
+                            disabled={isSubmitting}
+                            className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${isSubmitting
                                 ? `${isDark ? 'bg-ds-border-bold text-ds-border-bold' : 'bg-ds-disabled-bg text-ds-disabled'} cursor-not-allowed`
                                 : 'bg-ds-primary text-ds-mono-bold hover:bg-ds-primary-hover active:scale-[0.98] shadow-lg shadow-ds-primary/20'
                                 }`}
