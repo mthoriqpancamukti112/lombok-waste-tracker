@@ -36,10 +36,10 @@ class AuthenticatedSessionController extends Controller
         $role = $request->user()->role;
 
         return match ($role) {
-            'dlh'     => redirect()->intended(route('dashboard.dlh', absolute: false)),
-            'kaling'  => redirect()->intended(route('dashboard.kaling', absolute: false)),
+            'dlh' => redirect()->intended(route('dashboard.dlh', absolute: false)),
+            'kaling' => redirect()->intended(route('dashboard.kaling', absolute: false)),
             'petugas' => redirect()->intended(route('dashboard.petugas', absolute: false)),
-            default   => redirect()->intended(route('dashboard.warga', absolute: false)),
+            default => redirect()->intended('/'),
         };
     }
 
