@@ -28,10 +28,10 @@ class ProfileController extends Controller
         ];
 
         return match ($user->role) {
-            'kaling'  => Inertia::render('Profile/EditKaling', $data),
+            'kaling' => Inertia::render('Profile/EditKaling', $data),
             'petugas' => Inertia::render('Profile/EditPetugas', $data),
-            'dlh'     => Inertia::render('Profile/EditDlh', $data),
-            default   => Inertia::render('Profile/Edit', $data),
+            'dlh' => Inertia::render('Profile/EditDlh', $data),
+            default => Inertia::render('Profile/Edit', $data),
         };
     }
 
@@ -44,6 +44,7 @@ class ProfileController extends Controller
 
         // Update data dasar di tabel users
         $user->fill($request->safe()->only(['name', 'email']));
+        $user->phone_number = $request->no_telp; // Sinkronkan no_telp ke users.phone_number untuk sistem WA
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;

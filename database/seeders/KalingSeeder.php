@@ -16,12 +16,14 @@ class KalingSeeder extends Seeder
         $kalingUser = User::where('role', 'kaling')->first();
 
         if ($kalingUser) {
-            Kaling::create([
-                'user_id' => $kalingUser->id,
-                'nik' => '1234567890123456',
-                'nama_wilayah' => 'Lingkungan Karang Baru',
-                'no_telp' => '081234567890',
-            ]);
+            Kaling::updateOrCreate(
+                ['user_id' => $kalingUser->id],
+                [
+                    'nik' => '1234567890123456',
+                    'nama_wilayah' => 'Lingkungan Karang Baru',
+                    'no_telp' => '081234567890',
+                ]
+            );
         }
     }
 }

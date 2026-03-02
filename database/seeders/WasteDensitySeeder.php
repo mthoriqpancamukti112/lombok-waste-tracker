@@ -76,7 +76,10 @@ class WasteDensitySeeder extends Seeder
         ];
 
         foreach ($zones as $zone) {
-            WasteDensityZone::create($zone);
+            WasteDensityZone::updateOrCreate(
+                ['name' => $zone['name']],
+                $zone
+            );
         }
     }
 

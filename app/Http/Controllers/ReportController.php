@@ -7,6 +7,7 @@ use App\Models\Kaling;
 use App\Models\Report;
 use App\Models\ReportStatusLog;
 use App\Notifications\ReportStatusUpdated;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -111,6 +112,24 @@ class ReportController extends Controller
             'severity_level' => $severity,
             'waste_type' => $request->waste_type,
         ]);
+
+        // --- NOTIFIKASI WHATSAPP KE KALING ---
+        if ($report->kaling_id) {
+            $kaling = Kaling::with('user')->find($report->kaling_id);
+            if ($kaling && $kaling->user && $kaling->user->phone_number) {
+                $wa = new WhatsAppService();
+                $msg = "📢 *Laporan Sampah Baru!*\n\n" .
+                    "ID: #{$report->id}\n" .
+                    "Lokasi: {$report->address}\n" .
+                    "Jenis: {$report->waste_type}\n" .
+                    "Tingkat: {$report->severity_level}\n\n" .
+                    "Silakan balas pesan ini dengan:\n" .
+                    "✅ *ACC {$report->id}* (untuk Validasi)\n" .
+                    "❌ *TOLAK {$report->id} [Alasan]* (untuk Menolak)";
+
+                $wa->sendMessage($kaling->user->phone_number, $msg);
+            }
+        }
 
         return redirect()->to('/')->with('success', 'Laporan berhasil dikirim! Menunggu validasi petugas.');
     }

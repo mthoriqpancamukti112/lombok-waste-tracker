@@ -19,9 +19,10 @@ class PetugasSeeder extends Seeder
             Petugas::updateOrCreate(
                 ['user_id' => $petugasUser->id],
                 [
-                    'nama_petugas' => 'Ucok',
-                    'wilayah_tugas' => 'Mataram',
-                    'kontak' => '081234567890',
+                    'jenis_kendaraan' => 'motor_gerobak',
+                    'plat_nomor' => 'DR 1234 AB',
+                    'kapasitas_kg' => 500,
+                    'is_aktif' => true,
                 ]
             );
         }

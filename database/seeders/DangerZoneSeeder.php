@@ -79,7 +79,10 @@ class DangerZoneSeeder extends Seeder
         ];
 
         foreach ($zones as $zone) {
-            DangerZone::create($zone);
+            DangerZone::updateOrCreate(
+                ['name' => $zone['name']],
+                $zone
+            );
         }
     }
 }

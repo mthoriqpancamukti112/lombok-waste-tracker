@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             DangerZoneSeeder::class,
             WasteDensitySeeder::class,
             PetugasSeeder::class,
+            KalingSeeder::class,
         ]);
     }
 }

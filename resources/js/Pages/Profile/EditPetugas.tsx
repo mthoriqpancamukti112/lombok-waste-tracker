@@ -8,6 +8,7 @@ import {
     Save,
     Truck,
     InfoCircle,
+    Telephone,
 } from "@mynaui/icons-react";
 import Swal from "sweetalert2";
 
@@ -20,6 +21,7 @@ interface UserData {
         plat_nomor: string | null;
         kapasitas_kg: number;
         is_aktif: boolean;
+        no_telp: string | null;
     } | null;
 }
 
@@ -33,6 +35,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
         useForm({
             name: userData.name,
             email: userData.email,
+            no_telp: userData.petugas?.no_telp || "",
         });
 
     useEffect(() => {
@@ -238,6 +241,32 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                 {errors.email && (
                                     <p className="text-xs text-red-500 mt-1">
                                         {errors.email}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Nomor Telepon */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                    Nomor WhatsApp Aktif
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Telephone className="h-5 w-5 text-slate-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={data.no_telp}
+                                        onChange={(e) =>
+                                            setData("no_telp", e.target.value)
+                                        }
+                                        placeholder="Contoh: 628123456789"
+                                        className="w-full pl-10 rounded-xl border-slate-200 focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-slate-50 p-2.5 transition-colors"
+                                    />
+                                </div>
+                                {errors.no_telp && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                        {errors.no_telp}
                                     </p>
                                 )}
                             </div>

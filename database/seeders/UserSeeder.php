@@ -16,32 +16,40 @@ class UserSeeder extends Seeder
     {
         $password = Hash::make('password');
 
-        User::create([
-            'name' => 'Budi (Warga)',
-            'email' => 'warga@gmail.com',
-            'password' => $password,
-            'role' => 'warga',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'warga@gmail.com'],
+            [
+                'name' => 'Budi (Warga)',
+                'password' => $password,
+                'role' => 'warga',
+            ]
+        );
 
-        User::create([
-            'name' => 'Pak Kades (Kaling)',
-            'email' => 'kaling@gmail.com',
-            'password' => $password,
-            'role' => 'kaling',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'kaling@gmail.com'],
+            [
+                'name' => 'Pak Kades (Kaling)',
+                'password' => $password,
+                'role' => 'kaling',
+            ]
+        );
 
-        User::create([
-            'name' => 'Ucok (Petugas Sampah)',
-            'email' => 'petugas@gmail.com',
-            'password' => $password,
-            'role' => 'petugas',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'petugas@gmail.com'],
+            [
+                'name' => 'Ucok (Petugas Sampah)',
+                'password' => $password,
+                'role' => 'petugas',
+            ]
+        );
 
-        User::create([
-            'name' => 'Kepala DLH Lombok',
-            'email' => 'dlh@gmail.com',
-            'password' => $password,
-            'role' => 'dlh',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'dlh@gmail.com'],
+            [
+                'name' => 'Kepala DLH Lombok',
+                'password' => $password,
+                'role' => 'dlh',
+            ]
+        );
     }
 }
