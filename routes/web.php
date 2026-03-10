@@ -66,6 +66,27 @@ Route::prefix('api')->group(function () {
     Route::get('/map/danger-zones', [MapDataController::class, 'dangerZones']);
     Route::get('/map/waste-density', [MapDataController::class, 'wasteDensity']);
     Route::get('/report/{id}', [MapDataController::class, 'reportDetail']);
+
+    // Proxy for Google Maps Places API to avoid CORS issues on frontend
+    Route::get('/map/places', function (Request $request) {
+        $query = $request->query('q');
+        if (!$query)
+            return response()->json(['results' => []]);
+
+        $key = env('VITE_GOOGLE_MAPS_API_KEY');
+        if (!$key)
+            return response()->json(['results' => [], 'error' => 'API key missing']);
+
+        $response = Illuminate\Support\Facades\Http::get('https://maps.googleapis.com/maps/api/place/textsearch/json', [
+            'query' => $query . ' Lombok', // Append Lombok to prioritize local results
+            'location' => '-8.5833,116.1167',
+            'radius' => 50000,
+            'key' => $key,
+            'language' => 'id',
+        ]);
+
+        return $response->json();
+    });
 });
 
 // ──────────────────────────────────────────

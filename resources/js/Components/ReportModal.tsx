@@ -13,11 +13,12 @@ interface ReportModalProps {
     onClose: () => void;
     onSubmit: (data: any) => void;
     isDark?: boolean;
+    initialLocation?: { lat: number; lng: number; address: string } | null;
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, onSubmit, isDark = false }) => {
+const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, onSubmit, isDark = false, initialLocation }) => {
     // ── Form State (Inertia) ──────────────────────
     const { data, setData, post, processing: isSubmitting, errors, reset } = useForm({
         description: '',
@@ -76,16 +77,22 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, onSubmit, is
         if (isOpen) {
             setImages([]);
             reset();
-            setLocationMode('current');
+            if (initialLocation) {
+                setLocationMode('pick');
+                setSelectedLocation(initialLocation);
+                setViewState({ longitude: initialLocation.lng, latitude: initialLocation.lat, zoom: 15 });
+            } else {
+                setLocationMode('current');
+                setSelectedLocation(null);
+            }
             setSearchQuery('');
-            setSelectedLocation(null);
             setUrgency('');
             setNeeds([]);
             setNeedInput('');
             setSearchResults([]);
             setShowResults(false);
         }
-    }, [isOpen]);
+    }, [isOpen, initialLocation]);
 
     // ── Image handling ────────────────────────────
     const updateImagesInForm = (newImages: { file: File; preview: string }[]) => {

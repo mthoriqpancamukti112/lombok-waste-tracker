@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Search, X, Heart, Message, MapPin } from "@mynaui/icons-react";
 import { Link } from "@inertiajs/react";
+import { landingDict } from "@/Lang/Landing";
 
 interface Report {
     id: number;
@@ -26,6 +27,7 @@ interface ReportListContentProps {
     currentUserId?: number;
     onAuthRequired?: () => void;
     onSelectReport?: (id: number) => void;
+    lang?: "id" | "en";
 }
 
 const filterOptions = [
@@ -49,7 +51,9 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
     currentUserId,
     onAuthRequired,
     onSelectReport,
+    lang = "id",
 }) => {
+    const t = landingDict[lang];
     const [searchTerm, setSearchTerm] = useState("");
     const [activeFilter, setActiveFilter] = useState("all");
 
@@ -66,11 +70,11 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
     const cardBg = isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100";
 
     return (
-        <div className={`flex flex-col w-full h-full overflow-hidden ${bg} ${textBase}`}>
+        <div className={`flex flex-col w-full ${bg} ${textBase}`}>
             {/* Header Section */}
-            <div className="px-6 pt-8 pb-6 flex flex-col gap-6">
+            <div className={`sticky top-0 z-10 px-6 pt-8 pb-6 flex flex-col gap-6 ${bg}`}>
                 <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-black tracking-tight">Report List</h2>
+                    <h2 className="text-2xl font-black tracking-tight">{t.reportList}</h2>
                     {onClose && (
                         <button
                             onClick={onClose}
@@ -84,12 +88,17 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     {/* Filter Pills */}
                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                        {filterOptions.map(opt => (
+                        {[
+                            { label: t.filterAll, value: "all" },
+                            { label: t.filterLow, value: "low" },
+                            { label: t.filterHigh, value: "high" },
+                            { label: t.filterCompleted, value: "selesai" },
+                        ].map(opt => (
                             <button
                                 key={opt.value}
                                 onClick={() => setActiveFilter(opt.value)}
                                 className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeFilter === opt.value
-                                    ? "bg-[#a7e94a] text-white shadow-lg shadow-[#a7e94a]/30"
+                                    ? "bg-[#a7e94a] text-slate-900 shadow-lg shadow-[#a7e94a]/30"
                                     : isDark ? "bg-slate-800 text-slate-400" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                                     }`}
                             >
@@ -99,11 +108,11 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                     </div>
 
                     {/* Search Bar */}
-                    <div className={`relative flex items-center min-w-[300px] px-4 py-2.5 rounded-2xl border transition-all ${isDark ? "bg-slate-800 border-slate-700" : "bg-slate-50 border-slate-100 focus-within:bg-white focus-within:border-[#a7e94a]/50"
+                    <div className={`relative flex items-center min-w-[300px] px-4 py-2.5 rounded-2xl border transition-all ${isDark ? "bg-slate-800 border-slate-700 focus-within:border-[#a7e94a]/50" : "bg-slate-50 border-slate-100 focus-within:bg-white focus-within:border-[#a7e94a]/50"
                         }`}>
                         <input
                             type="text"
-                            placeholder="Search Report or location"
+                            placeholder={t.searchPlaceholder}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-slate-400"
@@ -114,7 +123,7 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
             </div>
 
             {/* Grid Body */}
-            <div className="flex-1 overflow-y-auto px-6 pb-12 custom-scrollbar">
+            <div className="px-6 pb-32">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredReports.map((report) => (
                         <div
@@ -153,11 +162,11 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                             <div className="flex flex-col gap-3">
                                 {/* Interaction counts */}
                                 <div className="flex items-center gap-4 text-slate-400">
-                                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full group-hover:border-pink-200 group-hover:bg-pink-50 group-hover:text-pink-500 transition-all">
+                                    <div className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-full group-hover:border-pink-2 transition-all ${isDark ? 'bg-slate-700/50 border-slate-600' : 'bg-slate-50 border-slate-100'}`}>
                                         <Heart className="w-4 h-4" />
                                         <span className="text-xs font-black">{report.likes_count ?? 0}</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full group-hover:border-blue-200 group-hover:bg-blue-50 group-hover:text-blue-500 transition-all">
+                                    <div className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-full group-hover:border-blue-2 transition-all ${isDark ? 'bg-slate-700/50 border-slate-600' : 'bg-slate-50 border-slate-100'}`}>
                                         <Message className="w-4 h-4" />
                                         <span className="text-xs font-black">{report.comments_count ?? 0}</span>
                                     </div>
@@ -169,18 +178,22 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                                         ${report.severity_level === 'high' ? 'bg-red-50 text-red-500 border-red-100' :
                                             report.severity_level === 'moderate' ? 'bg-orange-50 text-orange-500 border-orange-100' :
                                                 'bg-[#a7e94a]/10 text-ds-primary border-[#a7e94a]/20'}`}>
-                                        {report.severity_level || "Low"}
+                                        {report.severity_level === 'high' ? t.urgencyHigh :
+                                            report.severity_level === 'moderate' ? t.urgencyModerate :
+                                                t.urgencyLow}
                                     </span>
                                     <span className={`px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border
-                                        ${report.status === 'selesai' ? 'bg-[#a7e94a]/20 text-slate-800 border-[#a7e94a]/30' :
+                                        ${report.status === 'selesai' ? 'bg-[#a7e94a]/20 text-slate-800 dark:text-slate-200 border-[#a7e94a]/30' :
                                             report.status === 'proses' ? 'bg-blue-50 text-blue-500 border-blue-100' :
                                                 'bg-red-50 text-red-500 border-red-100'}`}>
-                                        {report.status}
+                                        {report.status === 'selesai' ? t.statusCompleted :
+                                            report.status === 'proses' ? t.statusInProcess :
+                                                t.statusWaiting}
                                     </span>
                                 </div>
 
                                 {/* Description */}
-                                <p className="text-xs font-semibold leading-relaxed text-slate-600 line-clamp-2 group-hover:text-slate-900 transition-colors">
+                                <p className={`text-xs font-semibold leading-relaxed line-clamp-2 transition-colors ${isDark ? 'text-slate-400 group-hover:text-slate-200' : 'text-slate-600 group-hover:text-slate-900'}`}>
                                     {report.description}
                                 </p>
                             </div>

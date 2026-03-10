@@ -8,9 +8,10 @@ import Map, {
     NavigationControl,
 } from "react-map-gl/mapbox";
 import { Link } from "@inertiajs/react";
-import type { LayerProps, MapRef, GeolocateControlRef } from "react-map-gl/mapbox";
+import type { LayerProps, MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ChevronLeft, ChevronRight } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface Report {
     id: number;
@@ -63,10 +64,15 @@ interface MapProps {
     };
     onToggleSetting?: (setting: any) => void;
     onSelectReport?: (id: number) => void;
+    searchedLocation?: { lat: number; lng: number; address: string } | null;
+    onClearSearchLocation?: () => void;
+    onReportSearchedLocation?: () => void;
+    lang?: "id" | "en";
 }
 
 export interface MapHandle {
     centerOnUser: () => void;
+    flyTo: (lat: number, lng: number) => void;
 }
 
 const severityColor: Record<string, string> = {
@@ -100,7 +106,11 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
         isDarkMode,
         mapSettings: propsMapSettings,
         onToggleSetting,
-        onSelectReport
+        onSelectReport,
+        searchedLocation,
+        onClearSearchLocation,
+        onReportSearchedLocation,
+        lang = "id",
     }, ref) {
         const [selectedReport, setSelectedReport] = useState<Report | null>(null);
         const [isLegendCollapsed, setIsLegendCollapsed] = useState(false);
@@ -130,12 +140,21 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
             }
         };
         const mapRef = useRef<MapRef>(null);
-        const geolocateRef = useRef<GeolocateControlRef>(null);
+        const geolocateRef = useRef<any>(null);
 
         const lombokCenter = { longitude: 116.3167, latitude: -8.5833, zoom: 10 };
+        const t = landingDict[lang];
 
         useImperativeHandle(ref, () => ({
             centerOnUser: () => { geolocateRef.current?.trigger(); },
+            flyTo: (lat: number, lng: number) => {
+                mapRef.current?.flyTo({
+                    center: [lng, lat],
+                    zoom: 14,
+                    essential: true,
+                    duration: 2000
+                });
+            }
         }));
 
         const reportsGeoJson = useMemo(() => ({
@@ -389,13 +408,13 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                             : 'left-4 xl:left-6'
                             }`}
                     >
-                        <div className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-slate-100 w-44 xl:w-48 relative overflow-hidden group">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Kepadatan Laporan</h4>
+                        <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 w-44 xl:w-48 relative overflow-hidden group">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{lang === 'id' ? 'Kepadatan Sampah' : 'Waste Density'}</h4>
                             <div className="flex flex-col gap-2">
                                 <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#a7e94a] via-amber-400 to-red-500" />
                                 <div className="flex justify-between text-[9px] font-bold text-slate-500">
-                                    <span>Rendah</span>
-                                    <span>Tinggi</span>
+                                    <span>{lang === 'id' ? 'Rendah' : 'Low'}</span>
+                                    <span>{lang === 'id' ? 'Tinggi' : 'High'}</span>
                                 </div>
                             </div>
 
@@ -499,7 +518,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                         className="z-50"
                         maxWidth="320px"
                     >
-                        <div className="flex flex-col w-[240px] gap-0 rounded-2xl overflow-hidden shadow-xl border border-slate-100 bg-white">
+                        <div className="flex flex-col w-[240px] gap-0 rounded-2xl overflow-hidden shadow-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
                             <div className="relative h-32 w-full bg-slate-200">
                                 <img src={`/storage/${selectedReport.photo_path}`} alt="Foto Sampah" className="w-full h-full object-cover" />
                                 <button
@@ -515,13 +534,13 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                                 </span>
                             </div>
                             <div className="p-4 flex flex-col gap-2">
-                                <h3 className="text-slate-800 text-xs font-bold leading-snug line-clamp-2">
-                                    {selectedReport.description || "Laporan tumpukan sampah."}
+                                <h3 className="text-slate-800 dark:text-slate-100 text-xs font-bold leading-snug line-clamp-2">
+                                    {selectedReport.description || t.noReports}
                                 </h3>
                                 {selectedReport.address && (
-                                    <p className="text-[10px] text-slate-400 line-clamp-1">📍 {selectedReport.address}</p>
+                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 line-clamp-1">📍 {selectedReport.address}</p>
                                 )}
-                                <div className="flex flex-col gap-3 pt-2 border-t border-slate-100">
+                                <div className="flex flex-col gap-3 pt-2 border-t border-slate-100 dark:border-slate-700">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <img
@@ -529,7 +548,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                                                 className="w-5 h-5 rounded-full object-cover"
                                                 alt=""
                                             />
-                                            <span className="text-[10px] text-slate-600 font-semibold truncate">{selectedReport.user?.name}</span>
+                                            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold truncate">{selectedReport.user?.name}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-slate-400">
                                             <span className="text-[10px] font-bold flex items-center gap-0.5">
@@ -541,22 +560,74 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                                     {onSelectReport ? (
                                         <button
                                             onClick={() => onSelectReport(selectedReport.id)}
-                                            className="w-full py-2 bg-slate-900 text-white text-[10px] font-black rounded-xl text-center hover:bg-slate-800 transition-colors uppercase tracking-wider"
+                                            className="w-full py-2 bg-slate-900 dark:bg-[#a7e94a] text-white dark:text-slate-900 text-[10px] font-black rounded-xl text-center hover:bg-slate-800 dark:hover:bg-[#96d142] transition-colors uppercase tracking-wider"
                                         >
-                                            Lihat Detail Laporan
+                                            {t.viewDetail}
                                         </button>
                                     ) : (
                                         <Link
                                             href={route('report.show', selectedReport.id)}
-                                            className="w-full py-2 bg-slate-900 text-white text-[10px] font-black rounded-xl text-center hover:bg-slate-800 transition-colors uppercase tracking-wider"
+                                            className="w-full py-2 bg-slate-900 dark:bg-[#a7e94a] text-white dark:text-slate-900 text-[10px] font-black rounded-xl text-center hover:bg-slate-800 dark:hover:bg-[#96d142] transition-colors uppercase tracking-wider"
                                         >
-                                            Lihat Detail Laporan
+                                            {t.viewDetail}
                                         </Link>
                                     )}
                                 </div>
                             </div>
                         </div>
                     </Popup>
+                )}
+
+                {/* Searched Location Marker & Popup */}
+                {searchedLocation && (
+                    <>
+                        <Marker longitude={searchedLocation.lng} latitude={searchedLocation.lat} anchor="bottom">
+                            <div className="flex flex-col items-center">
+                                <div className="w-8 h-8 bg-[#a7e94a] rounded-full border-[3px] border-white shadow-lg flex items-center justify-center animate-bounce">
+                                    <svg className="w-4 h-4 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </Marker>
+                        <Popup
+                            longitude={searchedLocation.lng}
+                            latitude={searchedLocation.lat}
+                            anchor="top"
+                            offset={10}
+                            onClose={onClearSearchLocation}
+                            closeOnClick={false}
+                            closeButton={false}
+                            className="z-50"
+                        >
+                            <div className="px-4 py-3 bg-white dark:bg-slate-800 rounded-2xl shadow-xl flex flex-col gap-2 w-[220px] relative border border-slate-100 dark:border-slate-700">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onClearSearchLocation) onClearSearchLocation();
+                                    }}
+                                    className="absolute top-2 right-2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                                <h3 className="text-[11px] font-black text-slate-800 dark:text-slate-100 pr-4">{lang === 'id' ? 'Lokasi Pencarian' : 'Searched Location'}</h3>
+                                <p className="text-[10px] text-slate-500 font-medium line-clamp-3 mb-1">{searchedLocation.address}</p>
+                                {onReportSearchedLocation && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onReportSearchedLocation) onReportSearchedLocation();
+                                        }}
+                                        className="w-full py-2 bg-slate-900 dark:bg-[#a7e94a] text-white dark:text-slate-900 text-[10px] font-black rounded-lg hover:bg-slate-800 dark:hover:bg-[#96d142] transition-colors tracking-wider uppercase"
+                                    >
+                                        {lang === 'id' ? 'Lapor di sini' : 'Report here'}
+                                    </button>
+                                )}
+                            </div>
+                        </Popup>
+                    </>
                 )}
             </Map>
         );

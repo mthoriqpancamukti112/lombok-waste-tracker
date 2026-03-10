@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { X } from '@mynaui/icons-react';
 import { toast } from 'react-hot-toast';
+import { landingDict } from '@/Lang/Landing';
 
 interface Report {
     id: number;
@@ -22,6 +23,10 @@ interface User {
     avatar?: string | null;
     google_id?: string | null;
     role?: string;
+    warga?: {
+        is_terverifikasi: boolean;
+        poin_kepercayaan: number;
+    } | null;
 }
 
 interface ProfileContentProps {
@@ -29,6 +34,7 @@ interface ProfileContentProps {
     reports: Report[];
     onClose?: () => void;
     isDark?: boolean;
+    lang?: 'id' | 'en';
 }
 
 const statusCls: Record<string, string> = {
@@ -43,8 +49,9 @@ const statusLabel: Record<string, string> = {
     selesai: 'Selesai',
 };
 
-const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose, isDark = false }) => {
+const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose, isDark = false, lang = 'id' }) => {
     if (!user) return null;
+    const t = landingDict[lang];
     const [activeTab, setActiveTab] = useState('all');
 
     const avatarSrc = user.avatar
@@ -67,23 +74,23 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
     const subtle = isDark ? 'text-slate-400' : 'text-slate-400';
 
     return (
-        <div className={`flex-1 flex flex-col h-full overflow-hidden ${bg}`}>
+        <div className={`flex flex-col ${bg}`}>
             {/* Header */}
-            <div className={`px-6 py-5 flex items-center justify-between flex-shrink-0 border-b ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+            <div className={`sticky top-0 z-10 px-6 py-5 flex items-center justify-between flex-shrink-0 border-b ${isDark ? 'border-slate-700' : 'border-slate-100'} ${bg}`}>
                 {onClose && (
                     <button
                         onClick={onClose}
-                        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-slate-300' : 'bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-500'}`}
+                        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors`}
                     >
-                        <X className="w-4 h-4" />
+                        <X className="w-5 h-5 text-slate-400" />
                     </button>
                 )}
-                <h2 className="text-lg font-black tracking-tight">Profile</h2>
+                <h2 className="text-lg font-black tracking-tight">{t.profile}</h2>
                 <button
                     onClick={() => {
                         router.post(route('logout'), {}, {
                             onSuccess: () => {
-                                toast.success("Logout Berhasil! Sampai jumpa lagi.");
+                                toast.success(lang === 'id' ? "Logout Berhasil! Sampai jumpa lagi." : "Logout Successful! See you again.");
                             }
                         });
                     }}
@@ -92,14 +99,14 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                     </svg>
-                    Logout
+                    {t.logout || 'Logout'}
                 </button>
             </div>
 
-            {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto">
+            {/* Body */}
+            <div>
                 {/* ─── MOBILE layout ─── */}
-                <div className="xl:hidden px-5 py-5 flex flex-col gap-4">
+                <div className="xl:hidden px-5 pt-5 pb-28 flex flex-col gap-4">
                     {/* User Info card */}
                     <div className={`rounded-3xl p-5 border flex flex-col gap-5 ${cardBg}`}>
                         {/* Avatar */}
@@ -127,48 +134,53 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                             ].map(stat => (
                                 <div key={stat.label} className={`flex flex-col items-center py-3 rounded-2xl border ${inBg}`}>
                                     <span className="text-xl font-black text-[#a7e94a]">{stat.value}</span>
-                                    <span className={`text-[10px] font-bold ${subtle}`}>{stat.label}</span>
+                                    <span className={`text-[10px] font-bold ${subtle}`}>{stat.label === 'Laporan' ? t.reportList : stat.label === 'Likes' ? t.likes : t.comments}</span>
                                 </div>
                             ))}
                         </div>
 
                         <div className={`h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
 
-                        {/* Connected account */}
-                        <div>
-                            <span className={`text-xs font-bold uppercase tracking-wider ${subtle}`}>Connected Account</span>
-                            <div className={`mt-2 border rounded-2xl px-4 py-3 flex items-center justify-between ${inBg}`}>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm">
-                                        <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold">Google</p>
-                                        <div className="flex items-center gap-1">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${isGoogleLinked ? 'bg-[#a7e94a]' : 'bg-slate-300'}`} />
-                                            <span className={`text-[10px] font-bold ${isGoogleLinked ? 'text-[#a7e94a]' : subtle}`}>
-                                                {isGoogleLinked ? 'Linked' : 'Not linked'}
-                                            </span>
+                        {/* Certified account */}
+                        {user.role === 'warga' && (
+                            <div>
+                                <span className={`text-xs font-bold uppercase tracking-wider ${subtle}`}>Akun Terverifikasi</span>
+                                <div className={`mt-2 border rounded-2xl px-4 py-3 flex items-center justify-between ${inBg}`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm ${user.warga?.is_terverifikasi ? 'bg-[#a7e94a]' : 'bg-slate-200'}`}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke={user.warga?.is_terverifikasi ? '#fff' : '#94a3b8'} className="w-5 h-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold">Status Warga</p>
+                                            <div className="flex items-center gap-1">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${user.warga?.is_terverifikasi ? 'bg-[#a7e94a]' : 'bg-slate-300'}`} />
+                                                <span className={`text-[10px] font-bold ${user.warga?.is_terverifikasi ? 'text-[#a7e94a]' : subtle}`}>
+                                                    {user.warga?.is_terverifikasi ? 'Terverifikasi' : 'Belum Terverifikasi'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-sm font-black text-[#a7e94a]">{user.warga?.poin_kepercayaan || 0}</span>
+                                        <span className={`text-[9px] font-bold ${subtle}`}>Poin</span>
+                                    </div>
                                 </div>
-                                {!isGoogleLinked && (
-                                    <Link
-                                        href={route('google.redirect')}
-                                        className="px-3 py-1.5 bg-[#a7e94a] text-white rounded-xl text-[10px] font-bold"
-                                    >
-                                        Link
-                                    </Link>
+                                {!user.warga?.is_terverifikasi && (
+                                    <p className={`mt-2 text-[10px] ${subtle}`}>
+                                        *Kumpulkan 50 poin kepercayaan dengan melaporkan sampah tervalidasi.
+                                    </p>
                                 )}
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Posts card */}
                     <div className={`rounded-3xl p-5 border flex flex-col gap-4 ${cardBg}`}>
-                        <h3 className="text-base font-black">Laporan Saya</h3>
+                        <h3 className="text-base font-black">{t.myReports || 'Laporan Saya'}</h3>
                         <div className="flex gap-2 flex-wrap">
-                            {[['all', 'Semua'], ['high-upvote', 'Terpopuler'], ['selesai', 'Selesai']].map(([val, label]) => (
+                            {[['all', t.filterAll], ['high-upvote', t.mostPopular || 'Terpopuler'], ['selesai', t.filterCompleted]].map(([val, label]) => (
                                 <button
                                     key={val}
                                     onClick={() => setActiveTab(val)}
@@ -179,7 +191,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                             ))}
                         </div>
                         {filteredReports.length === 0 ? (
-                            <p className={`text-sm text-center py-8 ${subtle}`}>Belum ada laporan</p>
+                            <p className={`text-sm text-center py-8 ${subtle}`}>{t.noReports || 'Belum ada laporan'}</p>
                         ) : (
                             <div className="grid grid-cols-2 gap-3">
                                 {filteredReports.slice(0, 6).map(report => (
@@ -192,7 +204,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2.5 gap-1">
                                             <span className={`self-start px-2 py-0.5 rounded-md text-[9px] font-extrabold ${statusCls[report.status] ?? 'bg-slate-100'}`}>
-                                                {statusLabel[report.status] ?? report.status}
+                                                {report.status === 'selesai' ? t.statusCompleted : report.status === 'proses' ? t.statusInProcess : t.statusWaiting}
                                             </span>
                                             <p className="text-white text-[10px] font-semibold line-clamp-2">{report.description}</p>
                                             <div className="flex gap-2 text-white/80">
@@ -208,7 +220,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                 </div>
 
                 {/* ─── DESKTOP layout (3-col) ─── */}
-                <div className="hidden xl:grid xl:grid-cols-3 gap-12 px-12 py-10 max-w-[1400px] mx-auto">
+                <div className="hidden xl:grid xl:grid-cols-3 gap-12 px-12 pt-10 pb-32 max-w-[1400px] mx-auto">
                     {/* Col 1: User Info */}
                     <div className="flex flex-col gap-7">
                         {/* Avatar */}
@@ -244,40 +256,46 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                             ))}
                         </div>
 
-                        {/* Connected account */}
-                        <div>
-                            <span className={`text-[11px] font-black uppercase tracking-[0.1em] ${subtle}`}>Connected Account</span>
-                            <div className={`mt-3 border rounded-[24px] px-5 py-4 flex items-center justify-between ${inBg}`}>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center shadow-sm">
-                                        <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold">Google</p>
-                                        <div className="flex items-center gap-1">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${isGoogleLinked ? 'bg-[#a7e94a]' : 'bg-slate-300'}`} />
-                                            <span className={`text-[10px] font-bold ${isGoogleLinked ? 'text-[#a7e94a]' : subtle}`}>
-                                                {isGoogleLinked ? 'Linked' : 'Not linked'}
-                                            </span>
+                        {/* Certified account */}
+                        {user.role === 'warga' && (
+                            <div>
+                                <span className={`text-[11px] font-black uppercase tracking-[0.1em] ${subtle}`}>Akun Terverifikasi</span>
+                                <div className={`mt-3 border rounded-[24px] px-5 py-4 flex items-center justify-between ${inBg}`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${user.warga?.is_terverifikasi ? 'bg-[#a7e94a]' : 'bg-slate-200'}`}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke={user.warga?.is_terverifikasi ? '#fff' : '#94a3b8'} className="w-5 h-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold">Status Warga</p>
+                                            <div className="flex items-center gap-1">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${user.warga?.is_terverifikasi ? 'bg-[#a7e94a]' : 'bg-slate-300'}`} />
+                                                <span className={`text-[10px] font-bold ${user.warga?.is_terverifikasi ? 'text-[#a7e94a]' : subtle}`}>
+                                                    {user.warga?.is_terverifikasi ? 'Terverifikasi' : 'Belum Terverifikasi'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-sm font-black text-[#a7e94a]">{user.warga?.poin_kepercayaan || 0}</span>
+                                        <span className={`text-[9px] font-bold ${subtle}`}>Poin</span>
+                                    </div>
                                 </div>
-                                {!isGoogleLinked ? (
-                                    <Link href={route('google.redirect')} className="px-4 py-2 bg-[#a7e94a] text-white rounded-xl text-[10px] font-bold hover:shadow-lg transition-all">
-                                        Link Google
-                                    </Link>
-                                ) : (
-                                    <span className={`text-[10px] px-3 py-1.5 rounded-xl ${isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-400'}`}>Unlink</span>
+                                {!user.warga?.is_terverifikasi && (
+                                    <p className={`mt-2 text-[10px] ${subtle}`}>
+                                        *Kumpulkan 50 poin kepercayaan dengan melaporkan sampah tervalidasi.
+                                    </p>
                                 )}
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Col 2: Posts */}
                     <div className="flex flex-col gap-6">
-                        <h3 className="text-lg font-black">Laporan Saya</h3>
+                        <h3 className="text-lg font-black">{t.myReports || 'Laporan Saya'}</h3>
                         <div className="flex gap-2 flex-wrap">
-                            {[['all', 'Semua'], ['high-upvote', 'Terpopuler'], ['selesai', 'Selesai']].map(([val, label]) => (
+                            {[['all', t.filterAll], ['high-upvote', t.mostPopular || 'Terpopuler'], ['selesai', t.filterCompleted]].map(([val, label]) => (
                                 <button
                                     key={val}
                                     onClick={() => setActiveTab(val)}
@@ -288,7 +306,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                             ))}
                         </div>
                         {filteredReports.length === 0 ? (
-                            <p className={`text-sm text-center py-12 ${subtle}`}>Belum ada laporan</p>
+                            <p className={`text-sm text-center py-12 ${subtle}`}>{t.noReports || 'Belum ada laporan'}</p>
                         ) : (
                             <div className="grid grid-cols-2 gap-4">
                                 {filteredReports.slice(0, 4).map(report => (
@@ -301,7 +319,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-5 gap-2">
                                             <span className={`self-start px-2 py-0.5 rounded-md text-[9px] font-extrabold ${statusCls[report.status] ?? 'bg-slate-100 text-slate-500'}`}>
-                                                {statusLabel[report.status] ?? report.status}
+                                                {report.status === 'selesai' ? t.statusCompleted : report.status === 'proses' ? t.statusInProcess : t.statusWaiting}
                                             </span>
                                             <p className="text-white text-xs font-semibold line-clamp-2">{report.description}</p>
                                             <div className="flex gap-3 text-white/80">
@@ -317,10 +335,10 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
 
                     {/* Col 3: Recent reports list */}
                     <div className="flex flex-col gap-6">
-                        <h3 className="text-lg font-black">Riwayat</h3>
+                        <h3 className="text-lg font-black">{t.history || 'Riwayat'}</h3>
                         <div className="space-y-3">
                             {reports.length === 0 ? (
-                                <p className={`text-sm ${subtle}`}>Belum ada riwayat laporan</p>
+                                <p className={`text-sm ${subtle}`}>{t.noReports || 'Belum ada riwayat laporan'}</p>
                             ) : (
                                 reports.slice(0, 6).map(report => (
                                     <div key={report.id} className={`border rounded-[22px] p-4 flex gap-3 items-start shadow-sm ${inBg}`}>
@@ -339,7 +357,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({ user, reports, onClose,
                                             )}
                                             <div className="flex items-center justify-between mt-2">
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${statusCls[report.status] ?? 'bg-slate-100 text-slate-500'}`}>
-                                                    {statusLabel[report.status] ?? report.status}
+                                                    {report.status === 'selesai' ? t.statusCompleted : report.status === 'proses' ? t.statusInProcess : t.statusWaiting}
                                                 </span>
                                                 <div className="flex gap-2 text-[10px] font-bold text-slate-400">
                                                     <span>👍 {report.likes_count}</span>

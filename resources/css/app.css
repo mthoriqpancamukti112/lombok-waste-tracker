@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -7,6 +7,16 @@
 /* Hide Mapbox watermark */
 .mapboxgl-ctrl-bottom-left,
 .mapboxgl-ctrl-bottom-right {
+    display: none !important;
+}
+
+/* Override Mapbox Popup default styles */
+.mapboxgl-popup-content {
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+.mapboxgl-popup-tip {
     display: none !important;
 }
 
@@ -36,4 +46,9 @@
 .no-scrollbar {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
+}
+
+/* Hide default react-spring-bottom-sheet drag handle since we use a custom one */
+[data-rsbs-header]::before {
+    display: none !important;
 }
