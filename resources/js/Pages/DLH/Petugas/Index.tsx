@@ -1,9 +1,10 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import DLHLayout from "@/Layouts/DLHLayout";
-import { Plus, Trash, Edit, Truck, X, Hash } from "@mynaui/icons-react";
+import { Plus, Trash, Edit, Truck, X } from "@mynaui/icons-react";
 import Swal from "sweetalert2";
+import { landingDict } from "@/Lang/Landing";
 
 interface Petugas {
     id: number;
@@ -21,8 +22,18 @@ export default function Index({
     auth,
     petugasList,
 }: PageProps<{ petugasList: Petugas[] }>) {
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
+
+    // Load bahasa dari localStorage
+    useEffect(() => {
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } =
         useForm({
@@ -38,11 +49,11 @@ export default function Index({
     const formatKendaraan = (jenis: string) => {
         switch (jenis) {
             case "truk_besar":
-                return "Truk Besar";
+                return t.pmVehicleTruck;
             case "pickup":
-                return "Mobil Pickup";
+                return t.pmVehiclePickup;
             case "motor_gerobak":
-                return "Motor Gerobak";
+                return t.pmVehicleMotor;
             default:
                 return jenis;
         }
@@ -84,8 +95,8 @@ export default function Index({
                 onSuccess: () => {
                     closeModal();
                     Swal.fire({
-                        title: "Berhasil!",
-                        text: "Data diperbarui.",
+                        title: t.saPmSavedTitle,
+                        text: t.saPmUpdatedText,
                         icon: "success",
                         timer: 1500,
                         showConfirmButton: false,
@@ -97,8 +108,8 @@ export default function Index({
                 onSuccess: () => {
                     closeModal();
                     Swal.fire({
-                        title: "Berhasil!",
-                        text: "Petugas ditambahkan.",
+                        title: t.saPmSavedTitle,
+                        text: t.saPmAddedText,
                         icon: "success",
                         timer: 1500,
                         showConfirmButton: false,
@@ -110,21 +121,21 @@ export default function Index({
 
     const handleDelete = (id: number, name: string) => {
         Swal.fire({
-            title: "Hapus Petugas?",
-            text: `Data ${name} akan dihapus permanen!`,
+            title: t.saPmDeleteTitle,
+            text: t.saPmDeleteText.replace("{name}", name),
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
             cancelButtonColor: "#94a3b8",
-            confirmButtonText: "Ya, Hapus!",
-            cancelButtonText: "Batal",
+            confirmButtonText: t.saPmDeleteConfirm,
+            cancelButtonText: t.pmCancel,
             reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route("petugas-management.destroy", id), {
                     onSuccess: () =>
                         Swal.fire({
-                            title: "Terhapus!",
+                            title: t.saPmDeletedTitle,
                             icon: "success",
                             timer: 1500,
                             showConfirmButton: false,
@@ -142,10 +153,10 @@ export default function Index({
                     <div>
                         <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
                             <Truck className="w-7 h-7 text-[#86bf36]" />
-                            Armada & Petugas
+                            {t.pmTitle}
                         </h2>
                         <p className="text-xs lg:text-sm text-slate-500 mt-1">
-                            Kelola data petugas pengangkut dan armadanya.
+                            {t.pmSubtitle}
                         </p>
                     </div>
                     <button
@@ -153,22 +164,24 @@ export default function Index({
                         className="bg-[#a7e94a] hover:bg-[#92ce40] text-slate-900 font-bold py-2 px-4 rounded-xl shadow-sm transition-all flex items-center gap-2 text-xs lg:text-sm"
                     >
                         <Plus className="w-5 h-5" />
-                        <span className="hidden sm:block">Tambah Petugas</span>
+                        <span className="hidden sm:block">{t.pmAddBtn}</span>
                     </button>
                 </div>
             }
         >
-            <Head title="Armada & Petugas" />
+            <Head title={t.pmTitle} />
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase font-bold text-slate-500">
                             <tr>
-                                <th className="px-6 py-4">Nama Petugas</th>
-                                <th className="px-6 py-4">Kendaraan</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-center">Aksi</th>
+                                <th className="px-6 py-4">{t.pmTableCol1}</th>
+                                <th className="px-6 py-4">{t.pmTableCol2}</th>
+                                <th className="px-6 py-4">{t.pmTableCol3}</th>
+                                <th className="px-6 py-4 text-center">
+                                    {t.pmTableCol4}
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -179,7 +192,7 @@ export default function Index({
                                         className="px-6 py-12 text-center text-slate-400"
                                     >
                                         <Truck className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                        <p>Belum ada data armada & petugas.</p>
+                                        <p>{t.pmEmptyData}</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -200,7 +213,7 @@ export default function Index({
                                                 )}
                                             </div>
                                             <div className="text-xs text-slate-500 mt-0.5">
-                                                {p.plat_nomor || "Tanpa Plat"} •{" "}
+                                                {p.plat_nomor || t.pmNoPlate} •{" "}
                                                 {p.kapasitas_kg} kg
                                             </div>
                                         </td>
@@ -209,8 +222,8 @@ export default function Index({
                                                 className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${p.is_aktif ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
                                             >
                                                 {p.is_aktif
-                                                    ? "Aktif"
-                                                    : "Non-Aktif"}
+                                                    ? t.pmStatusActive
+                                                    : t.pmStatusInactive}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -220,6 +233,7 @@ export default function Index({
                                                         openEditModal(p)
                                                     }
                                                     className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    title={t.pmTooltipEdit}
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </button>
@@ -231,6 +245,7 @@ export default function Index({
                                                         )
                                                     }
                                                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title={t.pmTooltipDelete}
                                                 >
                                                     <Trash className="w-4 h-4" />
                                                 </button>
@@ -259,9 +274,7 @@ export default function Index({
                                 ) : (
                                     <Plus className="w-5 h-5 text-[#86bf36]" />
                                 )}
-                                {editingId
-                                    ? "Edit Petugas"
-                                    : "Tambah Petugas Baru"}
+                                {editingId ? t.pmEditTitle : t.pmAddTitle}
                             </h3>
                             <button
                                 onClick={closeModal}
@@ -280,12 +293,12 @@ export default function Index({
                                 {/* Akun */}
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                                        Informasi Akun
+                                        {t.pmAccountInfo}
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Nama Lengkap
+                                                {t.pmFullNameLabel}
                                             </label>
                                             <input
                                                 type="text"
@@ -296,7 +309,9 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
-                                                placeholder="Contoh: Ahmad Subarjo"
+                                                placeholder={
+                                                    t.pmFullNamePlaceholder
+                                                }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors placeholder:text-slate-400"
                                             />
                                             {errors.name && (
@@ -307,7 +322,7 @@ export default function Index({
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Email
+                                                {t.pmEmailLabel}
                                             </label>
                                             <input
                                                 type="email"
@@ -318,7 +333,9 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
-                                                placeholder="Contoh: ahmad@gmail.com"
+                                                placeholder={
+                                                    t.pmEmailPlaceholder
+                                                }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors placeholder:text-slate-400"
                                             />
                                             {errors.email && (
@@ -330,8 +347,8 @@ export default function Index({
                                         <div className="sm:col-span-2">
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
                                                 {editingId
-                                                    ? "Password Baru (Opsional)"
-                                                    : "Password"}
+                                                    ? t.pmPasswordNew
+                                                    : t.pmPasswordTemp}
                                             </label>
                                             <input
                                                 type="password"
@@ -344,8 +361,8 @@ export default function Index({
                                                 }
                                                 placeholder={
                                                     editingId
-                                                        ? "Kosongkan jika tidak ingin mengubah password"
-                                                        : "Minimal 8 karakter"
+                                                        ? t.pmPasswordPlaceholderEdit
+                                                        : t.pmPasswordPlaceholderAdd
                                                 }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors placeholder:text-slate-400"
                                             />
@@ -361,12 +378,12 @@ export default function Index({
                                 {/* Armada */}
                                 <div className="pt-2 border-t border-dashed border-slate-200">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 mt-2">
-                                        Detail Armada
+                                        {t.pmFleetDetail}
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Jenis Kendaraan
+                                                {t.pmVehicleTypeLabel}
                                             </label>
                                             <select
                                                 value={data.jenis_kendaraan}
@@ -379,19 +396,19 @@ export default function Index({
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors"
                                             >
                                                 <option value="pickup">
-                                                    Mobil Pickup
+                                                    {t.pmVehiclePickup}
                                                 </option>
                                                 <option value="motor_gerobak">
-                                                    Motor Gerobak (Tossa)
+                                                    {t.pmVehicleMotor}
                                                 </option>
                                                 <option value="truk_besar">
-                                                    Truk Besar
+                                                    {t.pmVehicleTruck}
                                                 </option>
                                             </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Plat Nomor
+                                                {t.pmPlateLabel}
                                             </label>
                                             <input
                                                 type="text"
@@ -402,13 +419,15 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
-                                                placeholder="Contoh: DR 1234 AB"
+                                                placeholder={
+                                                    t.pmPlatePlaceholder
+                                                }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors uppercase placeholder:normal-case placeholder:text-slate-400"
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Kapasitas Muatan (Kg)
+                                                {t.pmCapacityLabel}
                                             </label>
                                             <input
                                                 type="number"
@@ -424,7 +443,9 @@ export default function Index({
                                                               ),
                                                     )
                                                 }
-                                                placeholder="Contoh: 1500"
+                                                placeholder={
+                                                    t.pmCapacityPlaceholder
+                                                }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors placeholder:text-slate-400"
                                                 min="0"
                                             />
@@ -450,14 +471,11 @@ export default function Index({
                                                         className="rounded-md border-slate-300 text-[#a7e94a] focus:ring-[#a7e94a] w-5 h-5 transition-colors cursor-pointer"
                                                     />
                                                     <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
-                                                        Status Petugas Aktif
+                                                        {t.pmStatusActiveLabel}
                                                     </span>
                                                 </label>
                                                 <p className="text-xs text-slate-400 mt-1 ml-8">
-                                                    Hapus centang jika petugas
-                                                    sedang cuti panjang,
-                                                    diskors, atau tidak
-                                                    beroperasi.
+                                                    {t.pmStatusActiveNote}
                                                 </p>
                                             </div>
                                         )}
@@ -472,7 +490,7 @@ export default function Index({
                                 onClick={closeModal}
                                 className="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
                             >
-                                Batal
+                                {t.pmCancel}
                             </button>
                             <button
                                 type="submit"
@@ -506,12 +524,12 @@ export default function Index({
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             ></path>
                                         </svg>
-                                        Memproses...
+                                        {t.pmProcessing}
                                     </>
                                 ) : editingId ? (
-                                    "Update Data"
+                                    t.pmUpdateData
                                 ) : (
-                                    "Simpan Data"
+                                    t.pmSaveData
                                 )}
                             </button>
                         </div>

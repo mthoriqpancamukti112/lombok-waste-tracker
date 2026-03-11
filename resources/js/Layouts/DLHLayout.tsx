@@ -1,4 +1,4 @@
-import { useState, PropsWithChildren, ReactNode } from "react";
+import { useState, PropsWithChildren, ReactNode, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import {
     Grid,
@@ -16,6 +16,7 @@ import {
     ChevronDown,
     Earth,
 } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface DLHLayoutProps {
     auth: any;
@@ -27,45 +28,53 @@ export default function DLHLayout({
     header,
     children,
 }: PropsWithChildren<DLHLayoutProps>) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // STATE UNTUK BAHASA
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
 
-    // STATE BARU: Untuk membuka/tutup menu profil dropdown
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-    // Data Menu Sidebar (Profil Saya dipindah ke Dropdown Atas)
+    useEffect(() => {
+        // Ambil bahasa dari localStorage saat komponen dimuat
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
+
+    // Data Menu Sidebar dengan Terjemahan
     const sidebarMenus = [
         {
-            name: "Dashboard",
+            name: t.dlhMenuDashboard,
             icon: <Grid />,
             href: route("dashboard.dlh"),
             active: route().current("dashboard.dlh"),
         },
         {
-            name: "Peta Sebaran",
+            name: t.dlhMenuMap,
             icon: <Map />,
             href: route("dlh.map"),
             active: route().current("dlh.map"),
         },
         {
-            name: "Pemetaan Zona Rawan",
+            name: t.dlhMenuDangerZone,
             icon: <Earth />,
             href: route("danger-zones.index"),
             active: route().current("danger-zones.*"),
         },
         {
-            name: "Manajemen Kaling",
+            name: t.dlhMenuKaling,
             icon: <UsersGroup />,
             href: route("kaling-management.index"),
             active: route().current("kaling-management.*"),
         },
         {
-            name: "Armada & Petugas",
+            name: t.dlhMenuFleet,
             icon: <Truck />,
             href: route("petugas-management.index"),
             active: route().current("petugas-management.*"),
         },
         {
-            name: "Laporan & Analitik",
+            name: t.dlhMenuAnalytics,
             icon: <ChartPie />,
             href: route("laporan.index"),
             active: route().current("laporan.*"),
@@ -101,7 +110,7 @@ export default function DLHLayout({
                                 EcoLombok
                             </h1>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                Portal DLH
+                                {t.dlhPortal}
                             </p>
                         </div>
                     </div>
@@ -113,10 +122,10 @@ export default function DLHLayout({
                     </button>
                 </div>
 
-                {/* Navigasi (Kartu Profil dan Footer Dihapus dari Sini) */}
+                {/* Navigasi */}
                 <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
                     <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                        Menu Utama
+                        {t.dlhMainMenu}
                     </p>
                     {sidebarMenus.map((menu, index) => (
                         <Link
@@ -208,7 +217,7 @@ export default function DLHLayout({
                             {/* Isi Pop-up Dropdown Profil */}
                             {isProfileMenuOpen && (
                                 <>
-                                    {/* Invisible overlay untuk menutup pop-up saat klik di luar */}
+                                    {/* Invisible overlay */}
                                     <div
                                         className="fixed inset-0 z-40"
                                         onClick={() =>
@@ -235,6 +244,25 @@ export default function DLHLayout({
                                             )}
                                         </div>
 
+                                        {/* TAMPILKAN MENU PROFIL HANYA JIKA ROLE BUKAN DLH */}
+                                        {auth.user?.role !== "dlh" && (
+                                            <Link
+                                                href={route("profile.edit")}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#a7e94a]/20 transition-colors group"
+                                                onClick={() =>
+                                                    setIsProfileMenuOpen(false)
+                                                }
+                                            >
+                                                <User
+                                                    className="w-5 h-5 text-slate-400 group-hover:text-slate-800"
+                                                    strokeWidth={1.5}
+                                                />
+                                                <span className="text-sm font-semibold">
+                                                    {t.dlhProfileMenu}
+                                                </span>
+                                            </Link>
+                                        )}
+
                                         {/* Link Halaman Depan */}
                                         <Link
                                             href="/"
@@ -245,7 +273,7 @@ export default function DLHLayout({
                                                 strokeWidth={1.5}
                                             />
                                             <span className="text-sm font-semibold">
-                                                Beranda
+                                                {t.dlhHomeMenu}
                                             </span>
                                         </Link>
 
@@ -264,7 +292,7 @@ export default function DLHLayout({
                                                 strokeWidth={1.5}
                                             />
                                             <span className="text-sm font-semibold">
-                                                Keluar
+                                                {t.logout}
                                             </span>
                                         </Link>
                                     </div>

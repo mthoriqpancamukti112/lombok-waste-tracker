@@ -1,4 +1,4 @@
-import { useState, PropsWithChildren, ReactNode } from "react";
+import { useState, PropsWithChildren, ReactNode, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import {
     Home,
@@ -12,6 +12,7 @@ import {
     MapPin,
     ChevronDown, // Ikon tambahan untuk dropdown
 } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface KalingLayoutProps {
     auth: any;
@@ -23,21 +24,29 @@ export default function KalingLayout({
     header,
     children,
 }: PropsWithChildren<KalingLayoutProps>) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // State untuk bahasa (diambil dari localStorage jika ada)
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
 
-    // STATE BARU: Untuk membuka/tutup menu profil dropdown
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-    // Data Menu Sidebar KHUSUS KALING (Profil Saya dipindah ke Dropdown Atas)
+    useEffect(() => {
+        // Ambil bahasa dari localStorage saat komponen dimuat
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
+
+    // Data Menu Sidebar KHUSUS KALING menggunakan kamus
     const sidebarMenus = [
         {
-            name: "Dashboard Validasi",
+            name: t.kalingMenuDashboard,
             icon: <Home />,
             href: route("dashboard.kaling"),
             active: route().current("dashboard.kaling"),
         },
         {
-            name: "Peta Wilayah",
+            name: t.kalingMenuMap,
             icon: <Map />,
             href: route("kaling.map"),
             active: route().current("kaling.map"),
@@ -73,7 +82,7 @@ export default function KalingLayout({
                                 EcoLombok
                             </h1>
                             <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">
-                                Portal Kaling
+                                {t.kalingPortal}
                             </p>
                         </div>
                     </div>
@@ -85,10 +94,10 @@ export default function KalingLayout({
                     </button>
                 </div>
 
-                {/* Navigasi (Kartu Profil & Menu Bawah Dihapus dari Sini) */}
+                {/* Navigasi */}
                 <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
                     <p className="px-4 text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">
-                        Menu Utama
+                        {t.kalingMainMenu}
                     </p>
                     {sidebarMenus.map((menu, index) => (
                         <Link
@@ -139,7 +148,6 @@ export default function KalingLayout({
 
                     {/* Area Kanan Header (Dropdown Profil) */}
                     <div className="flex items-center gap-2 sm:gap-4 ml-4">
-                        {/* --- DROPDOWN PROFIL PENGGUNA --- */}
                         <div className="relative">
                             <button
                                 onClick={() =>
@@ -226,7 +234,7 @@ export default function KalingLayout({
                                                 strokeWidth={1.5}
                                             />
                                             <span className="text-sm font-semibold">
-                                                Profil
+                                                {t.kalingProfileMenu}
                                             </span>
                                         </Link>
 
@@ -240,7 +248,7 @@ export default function KalingLayout({
                                                 strokeWidth={1.5}
                                             />
                                             <span className="text-sm font-semibold">
-                                                Beranda
+                                                {t.kalingHomeMenu}
                                             </span>
                                         </Link>
 
@@ -259,7 +267,7 @@ export default function KalingLayout({
                                                 strokeWidth={1.5}
                                             />
                                             <span className="text-sm font-semibold">
-                                                Keluar
+                                                {t.logout}
                                             </span>
                                         </Link>
                                     </div>

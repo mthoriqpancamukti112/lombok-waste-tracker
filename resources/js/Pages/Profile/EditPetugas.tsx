@@ -1,4 +1,4 @@
-import { FormEvent, useEffect } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import PetugasLayout from "@/Layouts/PetugasLayout";
 import { Head, useForm } from "@inertiajs/react";
 import { PageProps } from "@/types";
@@ -11,6 +11,7 @@ import {
     Telephone,
 } from "@mynaui/icons-react";
 import Swal from "sweetalert2";
+import { landingDict } from "@/Lang/Landing";
 
 interface UserData {
     id: number;
@@ -31,6 +32,16 @@ interface Props extends PageProps {
 }
 
 export default function EditPetugas({ auth, userData, status }: Props) {
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
+
+    useEffect(() => {
+        // Ambil bahasa dari localStorage jika ada
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
+
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
             name: userData.name,
@@ -41,8 +52,8 @@ export default function EditPetugas({ auth, userData, status }: Props) {
     useEffect(() => {
         if (recentlySuccessful) {
             Swal.fire({
-                title: "Tersimpan!",
-                text: "Data profil Petugas berhasil diperbarui.",
+                title: t.petugasSaveSuccessTitle,
+                text: t.petugasSaveSuccessDesc,
                 icon: "success",
                 timer: 2000,
                 showConfirmButton: false,
@@ -50,7 +61,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                 position: "top-end",
             });
         }
-    }, [recentlySuccessful]);
+    }, [recentlySuccessful, t]);
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -58,7 +69,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
     };
 
     const formatKendaraan = (jenis: string) => {
-        if (!jenis) return "Belum Diatur";
+        if (!jenis) return t.petugasVehicleNotSet;
         return jenis
             .replace(/_/g, " ")
             .replace(/\b\w/g, (l) => l.toUpperCase());
@@ -71,15 +82,15 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                 <div>
                     <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
                         <User className="w-7 h-7 text-amber-500" />
-                        Profil & Armada
+                        {t.petugasProfileTitle}
                     </h2>
                     <p className="text-xs lg:text-sm text-slate-500 mt-1">
-                        Kelola informasi akun dan pantau status armada Anda.
+                        {t.petugasProfileSubtitle}
                     </p>
                 </div>
             }
         >
-            <Head title="Profil Petugas" />
+            <Head title={t.petugasProfilePageTitle} />
 
             <div className="max-w-4xl mx-auto space-y-6 pb-12">
                 {/* KARTU IDENTITAS ARMADA (ID CARD) */}
@@ -94,8 +105,8 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                 className={`absolute bottom-0 right-0 ${userData.petugas?.is_aktif ? "bg-green-500" : "bg-red-500"} text-white p-1.5 rounded-full border-2 border-white shadow-sm`}
                                 title={
                                     userData.petugas?.is_aktif
-                                        ? "Status: Aktif"
-                                        : "Status: Non-Aktif"
+                                        ? t.petugasStatusActive
+                                        : t.petugasStatusInactive
                                 }
                             >
                                 <Truck className="w-5 h-5" />
@@ -108,7 +119,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                     {userData.name}
                                 </h3>
                                 <span className="bg-amber-900/40 text-amber-50 text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full w-fit mx-auto sm:mx-0 border border-amber-300/30">
-                                    Petugas Lapangan
+                                    {t.petugasRoleBadge}
                                 </span>
                             </div>
                             <p className="text-amber-100 font-medium text-sm mb-5">
@@ -122,7 +133,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                     </div>
                                     <div className="text-left">
                                         <p className="text-[10px] text-amber-200 font-bold uppercase tracking-wider">
-                                            Jenis Armada
+                                            {t.petugasVehicleType}
                                         </p>
                                         <p className="text-sm font-bold text-white leading-none mt-1">
                                             {formatKendaraan(
@@ -135,17 +146,17 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                 <div className="bg-white/10 border border-white/20 px-4 py-2 rounded-xl flex items-center gap-3 backdrop-blur-sm">
                                     <div className="text-left">
                                         <p className="text-[10px] text-amber-200 font-bold uppercase tracking-wider">
-                                            Plat Nomor
+                                            {t.petugasVehiclePlate}
                                         </p>
                                         <p className="text-sm font-bold text-white leading-none mt-1 uppercase">
                                             {userData.petugas?.plat_nomor ||
-                                                "TIDAK ADA"}
+                                                t.petugasNoPlate}
                                         </p>
                                     </div>
                                     <div className="w-px h-8 bg-white/20 mx-2"></div>
                                     <div className="text-left">
                                         <p className="text-[10px] text-amber-200 font-bold uppercase tracking-wider">
-                                            Kapasitas
+                                            {t.petugasVehicleCapacity}
                                         </p>
                                         <p className="text-sm font-bold text-white leading-none mt-1">
                                             {userData.petugas?.kapasitas_kg ||
@@ -164,13 +175,10 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                     <InfoCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                     <div>
                         <h5 className="text-sm font-bold text-blue-800">
-                            Perubahan Data Armada
+                            {t.petugasFleetChangeTitle}
                         </h5>
                         <p className="text-xs text-blue-600 mt-1">
-                            Data kendaraan (Jenis, Plat, Kapasitas) dikelola
-                            langsung oleh pihak DLH. Jika Anda berganti armada
-                            atau terdapat kesalahan data, silakan lapor ke
-                            kantor DLH.
+                            {t.petugasFleetChangeDesc}
                         </p>
                     </div>
                 </div>
@@ -179,11 +187,10 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="p-6 lg:p-8 border-b border-slate-100 bg-slate-50/50">
                         <h4 className="text-lg font-bold text-slate-800">
-                            Edit Akun
+                            {t.petugasEditAccountTitle}
                         </h4>
                         <p className="text-sm text-slate-500">
-                            Perbarui nama dan email untuk keperluan login
-                            sistem.
+                            {t.petugasEditAccountDesc}
                         </p>
                     </div>
 
@@ -192,7 +199,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                             {/* Nama */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    Nama Lengkap{" "}
+                                    {t.petugasFullNameLabel}{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
@@ -219,7 +226,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                             {/* Email */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    Alamat Email{" "}
+                                    {t.petugasEmailLabel}{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
@@ -248,7 +255,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                             {/* Nomor Telepon */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    Nomor WhatsApp Aktif
+                                    {t.petugasPhoneLabel}
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -260,7 +267,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                         onChange={(e) =>
                                             setData("no_telp", e.target.value)
                                         }
-                                        placeholder="Contoh: 628123456789"
+                                        placeholder={t.petugasPhonePlaceholder}
                                         className="w-full pl-10 rounded-xl border-slate-200 focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-slate-50 p-2.5 transition-colors"
                                     />
                                 </div>
@@ -301,12 +308,12 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             ></path>
                                         </svg>
-                                        Menyimpan...
+                                        {t.petugasSavingBtn}
                                     </span>
                                 ) : (
                                     <span className="flex items-center gap-2">
-                                        <Save className="w-5 h-5" /> Simpan
-                                        Profil
+                                        <Save className="w-5 h-5" />{" "}
+                                        {t.petugasSaveProfileBtn}
                                     </span>
                                 )}
                             </button>

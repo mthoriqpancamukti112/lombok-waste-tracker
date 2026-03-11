@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, FormEvent } from "react";
+import { useEffect, useRef, useState, FormEvent, useCallback } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import DlhLayout from "@/Layouts/DLHLayout";
 import mapboxgl from "mapbox-gl";
@@ -17,6 +17,7 @@ import {
     InfoCircle,
     MapPin,
 } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface DangerZone {
     id: number;
@@ -36,6 +37,10 @@ interface Props {
 }
 
 export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
+
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const draw = useRef<MapboxDraw | null>(null);
@@ -51,7 +56,13 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
         coordinates: null as any,
     });
 
-    // Inisialisasi Peta & Tool Menggambar
+    // 1. Sinkronisasi Bahasa dari LocalStorage (Berjalan sekali)
+    useEffect(() => {
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
+
+    // 2. Inisialisasi Peta & Tool Menggambar (Hanya berjalan sekali di awal)
     useEffect(() => {
         if (map.current || !mapContainer.current) return;
 
@@ -71,7 +82,11 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
             marker: {
                 color: "#ef4444",
             } as any,
-            placeholder: "Cari jalan, tempat, atau Koordinat...",
+            // Placeholder awal, nanti akan diupdate oleh useEffect di bawah
+            placeholder:
+                lang === "id"
+                    ? "Cari jalan, tempat, atau Koordinat..."
+                    : "Search places or coordinates...",
             countries: "id",
             proximity: { longitude: 116.1165, latitude: -8.5833 },
 
@@ -79,16 +94,12 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                 const matches = query.match(
                     /^[ ]*(-?\d+\.?\d*)[, ]+(-?\d+\.?\d*)[ ]*$/,
                 );
-                if (!matches) {
-                    return [];
-                }
+                if (!matches) return [];
 
                 const lat = Number(matches[1]);
                 const lng = Number(matches[2]);
 
-                if (lat < -11 || lat > 6 || lng < 95 || lng > 141) {
-                    return [];
-                }
+                if (lat < -11 || lat > 6 || lng < 95 || lng > 141) return [];
 
                 return [
                     {
@@ -139,10 +150,25 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
             setDrawnFeatureId(null);
             reset();
         });
-    }, [mapboxToken, zones]);
+    }, [mapboxToken]); // Hanya dependensi token, agar peta tidak tereset saat ganti bahasa
+
+    // 3. Efek khusus untuk MENGUPDATE PLACEHOLDER GEOCODER tanpa mereset peta
+    useEffect(() => {
+        const geocoderInput = document.querySelector(
+            ".mapboxgl-ctrl-geocoder--input",
+        ) as HTMLInputElement;
+        if (geocoderInput) {
+            // Gunakan kamus jika sudah diset di Landing.ts, jika tidak gunakan fallback ternary
+            geocoderInput.placeholder =
+                t.dzSearchPlaceholder ||
+                (lang === "id"
+                    ? "Cari jalan, tempat, atau Koordinat..."
+                    : "Search places or coordinates...");
+        }
+    }, [lang, t]);
 
     // Fungsi menggambar zona yang sudah ada di database ke atas peta
-    const renderExistingZones = () => {
+    const renderExistingZones = useCallback(() => {
         if (!map.current) return;
 
         const features = zones.map((zone) => ({
@@ -245,7 +271,14 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                 map.current.getSource("danger-zones") as mapboxgl.GeoJSONSource
             ).setData(geojsonData);
         }
-    };
+    }, [zones]);
+
+    // Memastikan zona digambar ulang jika data `zones` berubah
+    useEffect(() => {
+        if (map.current && map.current.isStyleLoaded()) {
+            renderExistingZones();
+        }
+    }, [zones, renderExistingZones]);
 
     const handleCancel = () => {
         if (draw.current && drawnFeatureId) {
@@ -268,7 +301,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                     toast: true,
                     position: "top-end",
                     icon: "success",
-                    title: "Zona Berhasil Disimpan",
+                    title: t.saDzSavedTitle,
                     showConfirmButton: false,
                     timer: 2000,
                 });
@@ -278,13 +311,13 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
 
     const handleDeleteZone = (id: number) => {
         Swal.fire({
-            title: "Hapus Zona Rawan?",
-            text: "Data yang dihapus akan hilang dari peta.",
+            title: t.saDzDeleteTitle,
+            text: t.saDzDeleteText,
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
-            cancelButtonText: "Batal",
-            confirmButtonText: "Ya, Hapus!",
+            cancelButtonText: t.cancel || "Batal",
+            confirmButtonText: t.saDzDeleteConfirm,
             reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
@@ -295,7 +328,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                             toast: true,
                             position: "top-end",
                             icon: "success",
-                            title: "Terhapus",
+                            title: t.saDzDeletedTitle,
                             showConfirmButton: false,
                             timer: 1500,
                         });
@@ -312,16 +345,15 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                 <div>
                     <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
                         <MapPin className="w-7 h-7 text-red-500" />
-                        Pemetaan Zona Rawan (GIS)
+                        {t.dzTitle}
                     </h2>
                     <p className="text-xs lg:text-sm text-slate-500 mt-1 hidden sm:block">
-                        Gunakan alat Polygon di pojok kanan atas peta untuk
-                        menggambar area rawan/TPS liar baru.
+                        {t.dzSubtitle}
                     </p>
                 </div>
             }
         >
-            <Head title="GIS - Zona Rawan" />
+            <Head title={t.dzPageTitle} />
 
             {/* RESPONSIVE LAYOUT CONTAINER */}
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 lg:h-[calc(100vh-140px)]">
@@ -335,17 +367,14 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                             <InfoCircle className="w-6 h-6 text-blue-500 flex-shrink-0" />
                             <div>
                                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-1">
-                                    Cara Menggambar
+                                    {t.dzHowToDraw}
                                 </h4>
                                 <p className="text-[11px] text-slate-600 leading-relaxed">
-                                    1. Klik ikon segi-banyak (Polygon) di kanan
-                                    atas peta.
+                                    {t.dzDrawStep1}
                                     <br />
-                                    2. Klik titik-titik di peta untuk
-                                    mengelilingi area.
+                                    {t.dzDrawStep2}
                                     <br />
-                                    3. Klik titik awal kembali untuk
-                                    menyelesaikannya.
+                                    {t.dzDrawStep3}
                                 </p>
                             </div>
                         </div>
@@ -357,7 +386,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                     <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
                         <h3 className="font-bold text-slate-800 flex items-center gap-2">
                             <MapIcon className="w-5 h-5 text-slate-500" />{" "}
-                            Daftar Zona Aktif
+                            {t.dzActiveZones}
                         </h3>
                     </div>
 
@@ -366,7 +395,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                             <div className="text-center py-10 opacity-60">
                                 <DangerTriangle className="w-10 h-10 mx-auto text-slate-400 mb-2" />
                                 <p className="text-sm font-medium text-slate-500">
-                                    Belum ada zona yang dipetakan.
+                                    {t.dzNoZones}
                                 </p>
                             </div>
                         ) : (
@@ -425,8 +454,8 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                     <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="px-6 py-4 border-b border-slate-100 bg-red-50/50 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-red-700 flex items-center gap-2">
-                                <DangerTriangle className="w-6 h-6" /> Simpan
-                                Zona Rawan
+                                <DangerTriangle className="w-6 h-6" />{" "}
+                                {t.dzSaveZoneTitle}
                             </h3>
                             <button
                                 onClick={handleCancel}
@@ -439,7 +468,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1">
-                                    Nama Area{" "}
+                                    {t.dzAreaNameLabel}{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -448,7 +477,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                     onChange={(e) =>
                                         setData("name", e.target.value)
                                     }
-                                    placeholder="Cth: TPS Liar Pasar Pagesangan"
+                                    placeholder={t.dzAreaNamePlaceholder}
                                     required
                                     className="w-full rounded-xl border-slate-200 focus:border-red-500 focus:ring-red-500 sm:text-sm"
                                 />
@@ -462,7 +491,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 mb-1">
-                                        Tipe Zona{" "}
+                                        {t.dzZoneTypeLabel}{" "}
                                         <span className="text-red-500">*</span>
                                     </label>
                                     <select
@@ -473,23 +502,25 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                         className="w-full rounded-xl border-slate-200 focus:border-red-500 focus:ring-red-500 sm:text-sm bg-slate-50"
                                     >
                                         <option value="illegal_dump">
-                                            TPS Liar
+                                            {t.dzZoneIllegalDump}
                                         </option>
                                         <option value="blackspot">
-                                            Titik Hitam
+                                            {t.dzZoneBlackspot}
                                         </option>
                                         <option value="flood_risk">
-                                            Rawan Banjir
+                                            {t.dzZoneFloodRisk}
                                         </option>
                                         <option value="fire_risk">
-                                            Rawan Kebakaran
+                                            {t.dzZoneFireRisk}
                                         </option>
-                                        <option value="tpa">TPA Resmi</option>
+                                        <option value="tpa">
+                                            {t.dzZoneTpa}
+                                        </option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 mb-1">
-                                        Tingkat Bahaya
+                                        {t.dzSeverityLabel}
                                     </label>
                                     <select
                                         value={data.severity}
@@ -499,16 +530,16 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                         className="w-full rounded-xl border-slate-200 focus:border-red-500 focus:ring-red-500 sm:text-sm bg-slate-50"
                                     >
                                         <option value="critical">
-                                            Kritis (Merah)
+                                            {t.dzSeverityCritical}
                                         </option>
                                         <option value="high">
-                                            Tinggi (Oranye)
+                                            {t.dzSeverityHigh}
                                         </option>
                                         <option value="medium">
-                                            Sedang (Kuning)
+                                            {t.dzSeverityMedium}
                                         </option>
                                         <option value="low">
-                                            Rendah (Hijau)
+                                            {t.dzSeverityLow}
                                         </option>
                                     </select>
                                 </div>
@@ -516,7 +547,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
 
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1">
-                                    Keterangan / Alasan
+                                    {t.dzDescLabel}
                                 </label>
                                 <textarea
                                     value={data.description}
@@ -524,7 +555,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                         setData("description", e.target.value)
                                     }
                                     rows={2}
-                                    placeholder="Penjelasan singkat zona ini..."
+                                    placeholder={t.dzDescPlaceholder}
                                     className="w-full rounded-xl border-slate-200 focus:border-red-500 focus:ring-red-500 sm:text-sm resize-none"
                                 ></textarea>
                             </div>
@@ -535,7 +566,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                     onClick={handleCancel}
                                     className="flex-1 font-bold text-slate-500 hover:bg-slate-100 py-2.5 rounded-xl transition-colors"
                                 >
-                                    Batal
+                                    {t.cancel || "Batal"}
                                 </button>
                                 <button
                                     type="submit"
@@ -564,12 +595,12 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                                 ></path>
                                             </svg>
-                                            Menyimpan...
+                                            {t.dzSavingBtn}
                                         </span>
                                     ) : (
                                         <span className="flex items-center gap-2">
-                                            <Save className="w-5 h-5" /> Simpan
-                                            Area
+                                            <Save className="w-5 h-5" />{" "}
+                                            {t.dzSaveAreaBtn}
                                         </span>
                                     )}
                                 </button>

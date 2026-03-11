@@ -1,4 +1,4 @@
-import { FormEvent, useEffect } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import KalingLayout from "@/Layouts/KalingLayout";
 import { Head, useForm } from "@inertiajs/react";
 import { PageProps } from "@/types";
@@ -11,6 +11,7 @@ import {
     MapPin,
 } from "@mynaui/icons-react";
 import Swal from "sweetalert2";
+import { landingDict } from "@/Lang/Landing";
 
 interface UserData {
     id: number;
@@ -29,6 +30,16 @@ interface Props extends PageProps {
 }
 
 export default function EditKaling({ auth, userData, status }: Props) {
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
+
+    useEffect(() => {
+        // Ambil bahasa dari localStorage jika ada
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
+
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
             name: userData.name,
@@ -39,8 +50,8 @@ export default function EditKaling({ auth, userData, status }: Props) {
     useEffect(() => {
         if (recentlySuccessful) {
             Swal.fire({
-                title: "Tersimpan!",
-                text: "Data profil Kaling berhasil diperbarui.",
+                title: t.kalingSaveSuccessTitle,
+                text: t.kalingSaveSuccessDesc,
                 icon: "success",
                 timer: 2000,
                 showConfirmButton: false,
@@ -48,7 +59,7 @@ export default function EditKaling({ auth, userData, status }: Props) {
                 position: "top-end",
             });
         }
-    }, [recentlySuccessful]);
+    }, [recentlySuccessful, t]);
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -62,15 +73,15 @@ export default function EditKaling({ auth, userData, status }: Props) {
                 <div>
                     <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
                         <User className="w-7 h-7 text-indigo-500" />
-                        Profil Dinas
+                        {t.kalingProfileTitle}
                     </h2>
                     <p className="text-xs lg:text-sm text-slate-500 mt-1">
-                        Kelola informasi kontak dan identitas Kepala Lingkungan.
+                        {t.kalingProfileSubtitle}
                     </p>
                 </div>
             }
         >
-            <Head title="Profil Kaling" />
+            <Head title={t.kalingProfilePageTitle} />
 
             <div className="max-w-4xl mx-auto space-y-6 pb-12">
                 {/* KARTU IDENTITAS KALING (ID CARD) */}
@@ -83,7 +94,7 @@ export default function EditKaling({ auth, userData, status }: Props) {
                             {userData.name.charAt(0).toUpperCase()}
                             <div
                                 className="absolute bottom-0 right-0 bg-emerald-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm"
-                                title="Petugas Resmi"
+                                title={t.kalingOfficialBadge}
                             >
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
@@ -95,7 +106,7 @@ export default function EditKaling({ auth, userData, status }: Props) {
                                     {userData.name}
                                 </h3>
                                 <span className="bg-indigo-900/50 text-indigo-100 text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full w-fit mx-auto sm:mx-0 border border-indigo-400/30">
-                                    Kepala Lingkungan
+                                    {t.kalingRoleBadge}
                                 </span>
                             </div>
                             <p className="text-indigo-100 font-medium text-sm mb-5">
@@ -109,11 +120,11 @@ export default function EditKaling({ auth, userData, status }: Props) {
                                     </div>
                                     <div className="text-left">
                                         <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">
-                                            Wilayah Tugas
+                                            {t.kalingWorkRegion}
                                         </p>
                                         <p className="text-sm font-bold text-white leading-none mt-1">
                                             {userData.kaling?.nama_wilayah ||
-                                                "Belum Diatur"}
+                                                t.kalingRegionNotSet}
                                         </p>
                                     </div>
                                 </div>
@@ -123,11 +134,11 @@ export default function EditKaling({ auth, userData, status }: Props) {
                                     </div>
                                     <div className="text-left">
                                         <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">
-                                            Nomor Induk Kependudukan
+                                            {t.kalingNIK}
                                         </p>
                                         <p className="text-sm font-bold text-white leading-none mt-1">
                                             {userData.kaling?.nik ||
-                                                "Belum Diatur"}
+                                                t.kalingRegionNotSet}
                                         </p>
                                     </div>
                                 </div>
@@ -141,11 +152,10 @@ export default function EditKaling({ auth, userData, status }: Props) {
                     <div className="p-6 lg:p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                         <div>
                             <h4 className="text-lg font-bold text-slate-800">
-                                Edit Kontak
+                                {t.kalingEditContactTitle}
                             </h4>
                             <p className="text-sm text-slate-500">
-                                Perbarui kontak Anda yang dapat dihubungi oleh
-                                sistem/warga.
+                                {t.kalingEditContactDesc}
                             </p>
                         </div>
                     </div>
@@ -155,7 +165,7 @@ export default function EditKaling({ auth, userData, status }: Props) {
                             {/* Nama */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    Nama Lengkap{" "}
+                                    {t.kalingFullNameLabel}{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
@@ -182,7 +192,7 @@ export default function EditKaling({ auth, userData, status }: Props) {
                             {/* Email */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    Email Kedinasan{" "}
+                                    {t.kalingEmailLabel}{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
@@ -211,7 +221,7 @@ export default function EditKaling({ auth, userData, status }: Props) {
                             {/* Nomor Telepon */}
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                                    Nomor WhatsApp / Telepon Aktif
+                                    {t.kalingPhoneLabel}
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -223,7 +233,7 @@ export default function EditKaling({ auth, userData, status }: Props) {
                                         onChange={(e) =>
                                             setData("no_telp", e.target.value)
                                         }
-                                        placeholder="Contoh: 08123456789"
+                                        placeholder={t.kalingPhonePlaceholder}
                                         className="w-full pl-10 rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-slate-50 p-2.5 transition-colors"
                                     />
                                 </div>
@@ -233,8 +243,7 @@ export default function EditKaling({ auth, userData, status }: Props) {
                                     </p>
                                 )}
                                 <p className="text-[10px] text-slate-400 mt-1 ml-1">
-                                    *Nomor ini dapat dilihat oleh DLH dan
-                                    Petugas Pengangkut.
+                                    {t.kalingPhoneNote}
                                 </p>
                             </div>
                         </div>
@@ -268,12 +277,12 @@ export default function EditKaling({ auth, userData, status }: Props) {
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             ></path>
                                         </svg>
-                                        Menyimpan...
+                                        {t.kalingSavingBtn}
                                     </span>
                                 ) : (
                                     <span className="flex items-center gap-2">
-                                        <Save className="w-5 h-5" /> Simpan
-                                        Profil
+                                        <Save className="w-5 h-5" />{" "}
+                                        {t.kalingSaveProfileBtn}
                                     </span>
                                 )}
                             </button>

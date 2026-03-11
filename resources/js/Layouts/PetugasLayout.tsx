@@ -1,4 +1,4 @@
-import { useState, PropsWithChildren, ReactNode } from "react";
+import { useState, PropsWithChildren, ReactNode, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import {
     Home,
@@ -11,6 +11,7 @@ import {
     Globe,
     ChevronDown, // Tambahan icon dropdown
 } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface PetugasLayoutProps {
     auth: any;
@@ -22,21 +23,30 @@ export default function PetugasLayout({
     header,
     children,
 }: PropsWithChildren<PetugasLayoutProps>) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // STATE UNTUK BAHASA (Diambil dari localStorage)
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
 
-    // STATE BARU: Untuk mengontrol buka/tutup menu profil dropdown
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // STATE UNTUK MENGONTROL DROPDOWN PROFIL
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-    // Data Menu Sidebar KHUSUS PETUGAS (Profil Saya dipindah ke Dropdown Atas)
+    useEffect(() => {
+        // Ambil bahasa dari localStorage saat komponen dimuat
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
+
+    // Data Menu Sidebar KHUSUS PETUGAS (Menggunakan terjemahan)
     const sidebarMenus = [
         {
-            name: "Daftar Tugas",
+            name: t.petugasMenuDashboard,
             icon: <Home />,
             href: route("dashboard.petugas"),
             active: route().current("dashboard.petugas"),
         },
         {
-            name: "Riwayat Selesai",
+            name: t.petugasMenuHistory,
             icon: <CheckCircleSolid />,
             href: route("petugas.riwayat"),
             active: route().current("petugas.riwayat"),
@@ -72,7 +82,7 @@ export default function PetugasLayout({
                                 EcoLombok
                             </h1>
                             <p className="text-[10px] text-amber-300 font-bold uppercase tracking-widest">
-                                Portal Petugas
+                                {t.petugasPortal}
                             </p>
                         </div>
                     </div>
@@ -84,10 +94,10 @@ export default function PetugasLayout({
                     </button>
                 </div>
 
-                {/* Navigasi (Kartu Profil dan Menu Bawah Dihapus dari Sini) */}
+                {/* Navigasi */}
                 <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
                     <p className="px-4 text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-3">
-                        Menu Utama
+                        {t.petugasMainMenu}
                     </p>
                     {sidebarMenus.map((menu, index) => (
                         <Link
@@ -132,7 +142,6 @@ export default function PetugasLayout({
 
                     {/* Area Kanan Header (Dropdown Profil) */}
                     <div className="flex items-center gap-2 sm:gap-4 ml-4">
-                        {/* --- DROPDOWN PROFIL PENGGUNA --- */}
                         <div className="relative">
                             <button
                                 onClick={() =>
@@ -157,7 +166,7 @@ export default function PetugasLayout({
                                         </span>
                                     )}
 
-                                    {/* Indikator Status Aktif (Hijau/Abu-abu) */}
+                                    {/* Indikator Status Aktif */}
                                     <span
                                         title={
                                             auth.user?.petugas?.is_aktif
@@ -185,7 +194,7 @@ export default function PetugasLayout({
                             {/* Isi Pop-up Dropdown Profil */}
                             {isProfileMenuOpen && (
                                 <>
-                                    {/* Invisible overlay untuk menutup pop-up saat klik di luar */}
+                                    {/* Invisible overlay */}
                                     <div
                                         className="fixed inset-0 z-40"
                                         onClick={() =>
@@ -227,7 +236,7 @@ export default function PetugasLayout({
                                                 strokeWidth={1.5}
                                             />
                                             <span className="text-sm font-semibold">
-                                                Profil
+                                                {t.petugasProfileMenu}
                                             </span>
                                         </Link>
 
@@ -241,7 +250,7 @@ export default function PetugasLayout({
                                                 strokeWidth={1.5}
                                             />
                                             <span className="text-sm font-semibold">
-                                                Beranda
+                                                {t.petugasHomeMenu}
                                             </span>
                                         </Link>
 
@@ -260,7 +269,7 @@ export default function PetugasLayout({
                                                 strokeWidth={1.5}
                                             />
                                             <span className="text-sm font-semibold">
-                                                Keluar
+                                                {t.logout}
                                             </span>
                                         </Link>
                                     </div>

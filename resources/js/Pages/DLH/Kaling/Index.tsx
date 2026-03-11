@@ -3,7 +3,8 @@ import { Head, useForm, router } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import DLHLayout from "@/Layouts/DLHLayout";
 import { Plus, Trash, Edit, UsersGroup, X } from "@mynaui/icons-react";
-import Swal from "sweetalert2"; // Import SweetAlert
+import Swal from "sweetalert2";
+import { landingDict } from "@/Lang/Landing";
 
 interface Kaling {
     id: number;
@@ -16,7 +17,6 @@ interface Kaling {
     };
 }
 
-// Tipe data untuk API Wilayah
 interface Region {
     id: string;
     name: string;
@@ -26,10 +26,19 @@ export default function Index({
     auth,
     kalings,
 }: PageProps<{ kalings: Kaling[] }>) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingId, setEditingId] = useState<number | null>(null); // State untuk mode Edit
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
 
-    // Setup Form Inertia (tambahkan 'put')
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingId, setEditingId] = useState<number | null>(null);
+
+    // Load bahasa dari localStorage
+    useEffect(() => {
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
+
     const { data, setData, post, put, processing, errors, reset, clearErrors } =
         useForm({
             name: "",
@@ -52,7 +61,7 @@ export default function Index({
     const [selectedVill, setSelectedVill] = useState({ id: "", name: "" });
     const [namaLingkungan, setNamaLingkungan] = useState("");
 
-    // 1. Ambil Data Provinsi saat Modal Dibuka
+    // 1. Ambil Data Provinsi
     useEffect(() => {
         if (isModalOpen) {
             fetch(
@@ -63,7 +72,7 @@ export default function Index({
         }
     }, [isModalOpen]);
 
-    // 2. Ambil Kabupaten saat Provinsi dipilih
+    // 2. Ambil Kabupaten
     useEffect(() => {
         if (selectedProv.id) {
             fetch(
@@ -72,13 +81,13 @@ export default function Index({
                 .then((res) => res.json())
                 .then((data) => {
                     setRegencies(data);
-                    setDistricts([]); // Reset kebawahnya
+                    setDistricts([]);
                     setVillages([]);
                 });
         }
     }, [selectedProv.id]);
 
-    // 3. Ambil Kecamatan saat Kabupaten dipilih
+    // 3. Ambil Kecamatan
     useEffect(() => {
         if (selectedReg.id) {
             fetch(
@@ -92,7 +101,7 @@ export default function Index({
         }
     }, [selectedReg.id]);
 
-    // 4. Ambil Kelurahan saat Kecamatan dipilih
+    // 4. Ambil Kelurahan
     useEffect(() => {
         if (selectedDist.id) {
             fetch(
@@ -103,17 +112,15 @@ export default function Index({
         }
     }, [selectedDist.id]);
 
-    // 5. GABUNGKAN SEMUA STRING MENJADI 'nama_wilayah' UNTUK DATABASE
+    // 5. Gabungkan nama wilayah
     useEffect(() => {
         if (namaLingkungan && selectedVill.name) {
             const combinedWilayah = `Lingkungan ${namaLingkungan}, Kel. ${selectedVill.name}, Kec. ${selectedDist.name}`;
             setData("nama_wilayah", combinedWilayah);
         }
-        // else dihilangkan agar saat Edit, nama_wilayah tidak terhapus otomatis
     }, [namaLingkungan, selectedVill, selectedDist]);
 
     // ================= FUNGSI AKSI =================
-
     const openAddModal = () => {
         setEditingId(null);
         reset();
@@ -124,11 +131,10 @@ export default function Index({
     const openEditModal = (kaling: Kaling) => {
         setEditingId(kaling.id);
         clearErrors();
-        // Isi form dengan data kaling yang ada
         setData({
             name: kaling.user.name,
             email: kaling.user.email,
-            password: "", // Dikosongkan, admin hanya isi jika ingin ubah password
+            password: "",
             nik: kaling.nik,
             nama_wilayah: kaling.nama_wilayah,
             no_telp: kaling.no_telp || "",
@@ -141,7 +147,6 @@ export default function Index({
         reset();
         clearErrors();
         setEditingId(null);
-        // Reset state API
         setSelectedProv({ id: "", name: "" });
         setSelectedReg({ id: "", name: "" });
         setSelectedDist({ id: "", name: "" });
@@ -157,8 +162,8 @@ export default function Index({
                 onSuccess: () => {
                     closeModal();
                     Swal.fire({
-                        title: "Berhasil!",
-                        text: "Data Kaling diperbarui.",
+                        title: t.saKmSavedTitle,
+                        text: t.saKmUpdatedText,
                         icon: "success",
                         timer: 1500,
                         showConfirmButton: false,
@@ -170,8 +175,8 @@ export default function Index({
                 onSuccess: () => {
                     closeModal();
                     Swal.fire({
-                        title: "Berhasil!",
-                        text: "Kaling baru ditambahkan.",
+                        title: t.saKmSavedTitle,
+                        text: t.saKmAddedText,
                         icon: "success",
                         timer: 1500,
                         showConfirmButton: false,
@@ -183,22 +188,22 @@ export default function Index({
 
     const handleDelete = (id: number, name: string) => {
         Swal.fire({
-            title: "Hapus Kaling?",
-            text: `Data ${name} dan akun loginnya akan dihapus permanen!`,
+            title: t.saKmDeleteTitle,
+            text: t.saKmDeleteText.replace("{name}", name),
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
             cancelButtonColor: "#94a3b8",
-            confirmButtonText: "Ya, Hapus!",
-            cancelButtonText: "Batal",
+            confirmButtonText: t.saKmDeleteConfirm,
+            cancelButtonText: t.kmCancel,
             reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route("kaling-management.destroy", id), {
                     onSuccess: () => {
                         Swal.fire(
-                            "Terhapus!",
-                            "Data Kaling telah dihapus.",
+                            t.saKmDeletedTitle,
+                            t.saKmDeletedText,
                             "success",
                         );
                     },
@@ -215,10 +220,10 @@ export default function Index({
                     <div>
                         <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
                             <UsersGroup className="w-7 h-7 text-[#86bf36]" />
-                            Manajemen Kaling
+                            {t.kmTitle}
                         </h2>
                         <p className="text-xs lg:text-sm text-slate-500 mt-1">
-                            Kelola data Kepala Lingkungan dan wilayahnya.
+                            {t.kmSubtitle}
                         </p>
                     </div>
                     <button
@@ -226,12 +231,12 @@ export default function Index({
                         className="bg-[#a7e94a] hover:bg-[#92ce40] text-slate-900 font-bold py-2 px-4 rounded-xl shadow-sm transition-all flex items-center gap-2 text-xs lg:text-sm"
                     >
                         <Plus className="w-5 h-5" />
-                        <span className="hidden sm:block">Tambah Kaling</span>
+                        <span className="hidden sm:block">{t.kmAddBtn}</span>
                     </button>
                 </div>
             }
         >
-            <Head title="Manajemen Kaling" />
+            <Head title={t.kmTitle} />
 
             {/* TABEL DATA */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -239,12 +244,12 @@ export default function Index({
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase font-bold text-slate-500">
                             <tr>
-                                <th className="px-6 py-4">
-                                    Nama Lengkap & Email
+                                <th className="px-6 py-4">{t.kmTableCol1}</th>
+                                <th className="px-6 py-4">{t.kmTableCol2}</th>
+                                <th className="px-6 py-4">{t.kmTableCol3}</th>
+                                <th className="px-6 py-4 text-center">
+                                    {t.kmTableCol4}
                                 </th>
-                                <th className="px-6 py-4">Wilayah & NIK</th>
-                                <th className="px-6 py-4">No. HP</th>
-                                <th className="px-6 py-4 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -255,7 +260,7 @@ export default function Index({
                                         className="px-6 py-12 text-center text-slate-400"
                                     >
                                         <UsersGroup className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                        <p>Belum ada data Kepala Lingkungan.</p>
+                                        <p>{t.kmEmptyData}</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -292,7 +297,7 @@ export default function Index({
                                                         openEditModal(kaling)
                                                     }
                                                     className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title="Edit"
+                                                    title={t.kmTooltipEdit}
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </button>
@@ -304,7 +309,7 @@ export default function Index({
                                                         )
                                                     }
                                                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Hapus"
+                                                    title={t.kmTooltipDelete}
                                                 >
                                                     <Trash className="w-4 h-4" />
                                                 </button>
@@ -318,7 +323,7 @@ export default function Index({
                 </div>
             </div>
 
-            {/* ================= MODAL TAMBAH & EDIT KALING DENGAN API WILAYAH ================= */}
+            {/* ================= MODAL TAMBAH & EDIT KALING ================= */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
                     <div
@@ -333,9 +338,7 @@ export default function Index({
                                 ) : (
                                     <Plus className="w-5 h-5 text-[#86bf36]" />
                                 )}
-                                {editingId
-                                    ? "Edit Kepala Lingkungan"
-                                    : "Tambah Kepala Lingkungan"}
+                                {editingId ? t.kmEditTitle : t.kmAddTitle}
                             </h3>
                             <button
                                 onClick={closeModal}
@@ -354,12 +357,12 @@ export default function Index({
                                 {/* Info Akun */}
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                                        Informasi Akun (Login)
+                                        {t.kmAccountInfo}
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Nama Lengkap
+                                                {t.kmFullNameLabel}
                                             </label>
                                             <input
                                                 type="text"
@@ -371,7 +374,9 @@ export default function Index({
                                                     )
                                                 }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
-                                                placeholder="Cth: Budi Santoso"
+                                                placeholder={
+                                                    t.kmFullNamePlaceholder
+                                                }
                                             />
                                             {errors.name && (
                                                 <p className="text-xs text-red-600 mt-1">
@@ -381,7 +386,7 @@ export default function Index({
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Email
+                                                {t.kmEmailLabel}
                                             </label>
                                             <input
                                                 type="email"
@@ -393,7 +398,9 @@ export default function Index({
                                                     )
                                                 }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
-                                                placeholder="Cth: budi@email.com"
+                                                placeholder={
+                                                    t.kmEmailPlaceholder
+                                                }
                                             />
                                             {errors.email && (
                                                 <p className="text-xs text-red-600 mt-1">
@@ -404,8 +411,8 @@ export default function Index({
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
                                                 {editingId
-                                                    ? "Password Baru (Opsional)"
-                                                    : "Password Sementara"}
+                                                    ? t.kmPasswordNew
+                                                    : t.kmPasswordTemp}
                                             </label>
                                             <input
                                                 type="password"
@@ -419,8 +426,8 @@ export default function Index({
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
                                                 placeholder={
                                                     editingId
-                                                        ? "Kosongkan jika tidak diganti"
-                                                        : "Minimal 8 karakter"
+                                                        ? t.kmPasswordPlaceholderEdit
+                                                        : t.kmPasswordPlaceholderAdd
                                                 }
                                             />
                                             {errors.password && (
@@ -431,7 +438,7 @@ export default function Index({
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Nomor Induk Kependudukan
+                                                {t.kmNIKLabel}
                                             </label>
                                             <input
                                                 type="text"
@@ -443,7 +450,7 @@ export default function Index({
                                                     )
                                                 }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
-                                                placeholder="16 Digit NIK"
+                                                placeholder={t.kmNIKPlaceholder}
                                             />
                                             {errors.nik && (
                                                 <p className="text-xs text-red-600 mt-1">
@@ -453,7 +460,7 @@ export default function Index({
                                         </div>
                                         <div className="sm:col-span-2">
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Nomor WhatsApp/HP
+                                                {t.kmPhoneLabel}
                                             </label>
                                             <input
                                                 type="text"
@@ -465,7 +472,9 @@ export default function Index({
                                                     )
                                                 }
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
-                                                placeholder="Cth: 081234567890"
+                                                placeholder={
+                                                    t.kmPhonePlaceholder
+                                                }
                                             />
                                             {errors.no_telp && (
                                                 <p className="text-xs text-red-600 mt-1">
@@ -479,31 +488,27 @@ export default function Index({
                                 {/* Profil Wilayah (API Emsifa) */}
                                 <div className="pt-2 border-t border-dashed border-slate-200">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 mt-2">
-                                        Cakupan Wilayah (API Otomatis)
+                                        {t.kmRegionCoverage}
                                     </p>
 
-                                    {/* INFO: Jika Edit, berikan keterangan wilayah lama */}
                                     {editingId && (
                                         <div className="mb-4 bg-blue-50 border border-blue-100 p-3 rounded-xl">
                                             <p className="text-xs text-blue-600 font-bold mb-1">
-                                                Data Wilayah Saat Ini:
+                                                {t.kmCurrentRegion}
                                             </p>
                                             <p className="text-sm font-semibold text-slate-800">
                                                 {data.nama_wilayah}
                                             </p>
                                             <p className="text-[10px] text-blue-500 mt-1">
-                                                *Gunakan dropdown di bawah HANYA
-                                                JIKA Anda ingin mengubah
-                                                wilayahnya.
+                                                {t.kmRegionNote}
                                             </p>
                                         </div>
                                     )}
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {/* Dropdown Provinsi */}
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Provinsi
+                                                {t.kmProvinceLabel}
                                             </label>
                                             <select
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
@@ -523,7 +528,7 @@ export default function Index({
                                                 }}
                                             >
                                                 <option value="">
-                                                    Pilih Provinsi
+                                                    {t.kmProvinceSelect}
                                                 </option>
                                                 {provinces.map((prov) => (
                                                     <option
@@ -536,10 +541,9 @@ export default function Index({
                                             </select>
                                         </div>
 
-                                        {/* Dropdown Kabupaten */}
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Kabupaten / Kota
+                                                {t.kmRegencyLabel}
                                             </label>
                                             <select
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 disabled:opacity-50"
@@ -562,7 +566,7 @@ export default function Index({
                                                 }}
                                             >
                                                 <option value="">
-                                                    Pilih Kabupaten
+                                                    {t.kmRegencySelect}
                                                 </option>
                                                 {regencies.map((reg) => (
                                                     <option
@@ -575,10 +579,9 @@ export default function Index({
                                             </select>
                                         </div>
 
-                                        {/* Dropdown Kecamatan */}
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Kecamatan
+                                                {t.kmDistrictLabel}
                                             </label>
                                             <select
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 disabled:opacity-50"
@@ -601,7 +604,7 @@ export default function Index({
                                                 }}
                                             >
                                                 <option value="">
-                                                    Pilih Kecamatan
+                                                    {t.kmDistrictSelect}
                                                 </option>
                                                 {districts.map((dist) => (
                                                     <option
@@ -614,10 +617,9 @@ export default function Index({
                                             </select>
                                         </div>
 
-                                        {/* Dropdown Kelurahan */}
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Kelurahan / Desa
+                                                {t.kmVillageLabel}
                                             </label>
                                             <select
                                                 className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 disabled:opacity-50"
@@ -638,7 +640,7 @@ export default function Index({
                                                 }}
                                             >
                                                 <option value="">
-                                                    Pilih Kelurahan
+                                                    {t.kmVillageSelect}
                                                 </option>
                                                 {villages.map((vill) => (
                                                     <option
@@ -651,10 +653,9 @@ export default function Index({
                                             </select>
                                         </div>
 
-                                        {/* Input Lingkungan Manual */}
                                         <div className="sm:col-span-2">
                                             <label className="block text-sm font-bold text-slate-700 mb-1">
-                                                Nama Lingkungan / Dusun
+                                                {t.kmHamletLabel}
                                             </label>
                                             <div className="flex">
                                                 <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-500 sm:text-sm font-bold">
@@ -669,7 +670,9 @@ export default function Index({
                                                         )
                                                     }
                                                     className="flex-1 min-w-0 block w-full rounded-none rounded-r-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 disabled:opacity-50"
-                                                    placeholder="Cth: Ampenan"
+                                                    placeholder={
+                                                        t.kmHamletPlaceholder
+                                                    }
                                                     disabled={!selectedVill.id}
                                                 />
                                             </div>
@@ -677,7 +680,7 @@ export default function Index({
                                             {namaLingkungan &&
                                                 selectedVill.name && (
                                                     <p className="text-xs text-green-600 font-semibold mt-2 bg-green-50 border border-green-100 p-2 rounded-lg">
-                                                        Preview Update Wilayah:{" "}
+                                                        {t.kmRegionPreview}{" "}
                                                         <br />{" "}
                                                         {data.nama_wilayah}
                                                     </p>
@@ -699,13 +702,12 @@ export default function Index({
                                 onClick={closeModal}
                                 className="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
                             >
-                                Batal
+                                {t.kmCancel}
                             </button>
                             <button
                                 type="submit"
                                 form="kaling-form"
                                 disabled={processing || !data.nama_wilayah}
-                                // PERBAIKAN: Tambahkan flex, items-center, dan gap-2
                                 className={`flex items-center justify-center gap-2 text-white text-sm font-bold py-2 px-6 rounded-xl shadow-md disabled:opacity-50 transition-all ${
                                     editingId
                                         ? "bg-blue-500 hover:bg-blue-600"
@@ -734,12 +736,12 @@ export default function Index({
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                             ></path>
                                         </svg>
-                                        Memproses...
+                                        {t.kmProcessing}
                                     </>
                                 ) : editingId ? (
-                                    "Update Data"
+                                    t.kmUpdateData
                                 ) : (
-                                    "Simpan Data"
+                                    t.kmSaveData
                                 )}
                             </button>
                         </div>

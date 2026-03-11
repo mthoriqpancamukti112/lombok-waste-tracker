@@ -1,12 +1,19 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "@inertiajs/react";
-import { MapPinUserInside, X } from "@mynaui/icons-react";
+import {
+    MapPinUserInside,
+    X,
+    CheckCircleSolid,
+    DangerTriangleSolid,
+    Danger,
+} from "@mynaui/icons-react";
 import Map, { Marker, NavigationControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import imageCompression from "browser-image-compression";
 import { MapPinned } from "lucide-react";
 import toast from "react-hot-toast";
+import { landingDict } from "@/Lang/Landing";
 
 interface ReportModalProps {
     isOpen: boolean;
@@ -14,6 +21,7 @@ interface ReportModalProps {
     onSubmit: (data: any) => void;
     isDark?: boolean;
     initialLocation?: { lat: number; lng: number; address: string } | null;
+    lang: "id" | "en";
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -24,7 +32,11 @@ const ReportModal: React.FC<ReportModalProps> = ({
     onSubmit,
     isDark = false,
     initialLocation,
+    lang,
 }) => {
+    // Memanggil dictionary berdasarkan bahasa yang aktif
+    const t = landingDict[lang];
+
     // ── Form State (Inertia) ──────────────────────
     const {
         data,
@@ -150,30 +162,27 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 body: formData,
             });
 
-            if (!response.ok) throw new Error("Gagal memproses gambar");
+            if (!response.ok) throw new Error("API Error");
             const aiData = await response.json();
 
             if (aiData.jumlah_deteksi === 0) {
                 setIsAiRejected(true);
-                toast.error(
-                    "AI Scanner: No waste detected! Please use a valid photo.",
-                    {
-                        duration: 5000,
-                        style: {
-                            border: "1px solid #ef4444",
-                            background: "#fef2f2",
-                            color: "#991b1b",
-                            fontWeight: "bold",
-                        },
+                toast.error(t.aiNoWasteToast, {
+                    duration: 5000,
+                    style: {
+                        border: "1px solid #ef4444",
+                        background: "#fef2f2",
+                        color: "#991b1b",
+                        fontWeight: "bold",
                     },
-                );
+                });
             } else {
                 setAiDetectedCount(aiData.jumlah_deteksi);
                 setAiResultImage(
                     "data:image/jpeg;base64," + aiData.gambar_base64,
                 );
                 toast.success(
-                    `AI Scanner: Validated! ${aiData.jumlah_deteksi} waste object(s) found.`,
+                    `${t.aiValidatedToast} ${aiData.jumlah_deteksi} ${t.objectsDetected.toLowerCase()}.`,
                     {
                         duration: 4000,
                         style: {
@@ -187,7 +196,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
             }
         } catch (error) {
             console.error("AI Error:", error);
-            toast("AI Server offline. Proceeding with manual validation.", {
+            toast(t.aiOfflineToast, {
                 icon: "⚠️",
             });
         } finally {
@@ -210,6 +219,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
     const handleFiles = async (files: FileList | null) => {
         if (!files) return;
 
+        // BAGAIMANA JUGA HANYA MENGAMBIL 1 GAMBAR
         const validFiles = Array.from(files)
             .filter((f) => f.type.startsWith("image/"))
             .slice(0, 1);
@@ -242,22 +252,19 @@ const ReportModal: React.FC<ReportModalProps> = ({
         updateImagesInForm(newImagesList);
 
         // Langsung panggil AI Scanner
-        scanImageWithAI(newImagesList[0].file);
+        if (newImagesList.length > 0) {
+            scanImageWithAI(newImagesList[0].file);
+        }
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) =>
         handleFiles(e.target.files);
 
     const removeImage = (index: number) => {
-        // Reset AI state jika foto utama dihapus
         if (index === 0) {
             setAiResultImage(null);
             setAiDetectedCount(null);
             setIsAiRejected(false);
-            // Scan foto berikutnya jika ada
-            if (images.length > 1) {
-                scanImageWithAI(images[1].file);
-            }
         }
 
         setImages((prev) => {
@@ -294,10 +301,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 setViewState({ longitude, latitude, zoom: 15 });
                 await reverseGeocode(longitude, latitude);
             },
-            () =>
-                alert(
-                    "Could not get your location. Please enable location access.",
-                ),
+            () => alert("Location access denied."),
             { enableHighAccuracy: true },
         );
     };
@@ -305,7 +309,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
     const reverseGeocode = async (lng: number, lat: number) => {
         try {
             const res = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=id`,
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=${lang}`,
             );
             const json = await res.json();
             if (json.features?.[0]) {
@@ -335,7 +339,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
         setIsSearching(true);
         try {
             const res = await fetch(
-                `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&access_token=${MAPBOX_TOKEN}&proximity=116.1165,-8.5833&language=id&limit=5&session_token=${sessionTokenRef.current}`,
+                `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&access_token=${MAPBOX_TOKEN}&proximity=116.1165,-8.5833&language=${lang}&limit=5&session_token=${sessionTokenRef.current}`,
             );
             const json = await res.json();
             if (json.suggestions?.length) {
@@ -433,22 +437,21 @@ const ReportModal: React.FC<ReportModalProps> = ({
     // ── Submit ─────────────────────────────────────
     const handleSubmit = () => {
         if (!data.photo || !data.description || !selectedLocation) {
-            if (!data.photo) toast.error("Please upload a photo evidence.");
-            if (!data.description) toast.error("Please provide a description.");
-            if (!selectedLocation)
-                toast.error("Please select a location on the map.");
+            if (!data.photo) toast.error(t.pleaseUploadPhoto);
+            if (!data.description) toast.error(t.pleaseProvideDesc);
+            if (!selectedLocation) toast.error(t.pleaseSelectLoc);
             return;
         }
 
         if (isAiRejected) {
-            toast.error("Cannot submit. Your photo was rejected by our AI.");
+            toast.error(t.cannotSubmitRejected);
             return;
         }
 
         post(route("report.store"), {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success("Report Submitted successfully!", {
+                toast.success(t.reportSubmittedSuccess, {
                     duration: 4000,
                     position: "top-center",
                 });
@@ -462,9 +465,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                         toast.error(errMsg as string);
                     });
                 } else {
-                    toast.error(
-                        "Failed to submit report. Ensure the file isn't too large.",
-                    );
+                    toast.error(t.submitFailedCheck);
                 }
             },
         });
@@ -503,7 +504,6 @@ const ReportModal: React.FC<ReportModalProps> = ({
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: "100%", opacity: 0.5 }}
                     transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                    // KITA UBAH UKURAN MODAL MENJADI max-w-4xl (Sangat Lebar)
                     className={`relative w-full max-w-4xl ${bg} rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] font-poppins`}
                 >
                     <div className="flex justify-center pt-3 pb-1 sm:hidden">
@@ -524,7 +524,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                         <h2
                             className={`text-lg font-bold tracking-tight ${textPrimary} flex items-center gap-2`}
                         >
-                            Smart AI Report
+                            {t.modalTitle}
                         </h2>
                         <div className="w-10" />
                     </div>
@@ -533,25 +533,25 @@ const ReportModal: React.FC<ReportModalProps> = ({
                         ref={scrollRef}
                         className="flex-1 overflow-y-auto px-6 py-6"
                     >
-                        {/* KITA BUAT GRID 2 KOLOM UNTUK DESKTOP */}
+                        {/* GRID 2 KOLOM UNTUK DESKTOP */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* ========================================================= */}
                             {/* KOLOM KIRI (GAMBAR & PETA) */}
                             {/* ========================================================= */}
                             <div className="space-y-6">
-                                {/* 1. IMAGE UPLOAD & AI PREVIEW */}
+                                {/* 1. IMAGE UPLOAD & AI PREVIEW (TUNGGAL / 1 FOTO) */}
                                 <section>
                                     <div className="flex justify-between items-end mb-2.5">
                                         <label
                                             className={`block text-xs font-semibold uppercase tracking-wider ${textSecondary}`}
                                         >
-                                            Image Evidence
+                                            {t.imageEvidence}
                                         </label>
                                         {aiDetectedCount !== null &&
                                             !isAiRejected && (
-                                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-bold">
-                                                    {aiDetectedCount} Objects
-                                                    Detected
+                                                <span className="text-[10px] bg-[#a7e94a]/20 text-[#4c7017] px-2 py-0.5 rounded-md font-bold">
+                                                    {aiDetectedCount}{" "}
+                                                    {t.objectsDetected}
                                                 </span>
                                             )}
                                     </div>
@@ -574,16 +574,16 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                         aiResultImage ||
                                                         images[0].preview
                                                     }
-                                                    alt="Primary"
-                                                    className={`w-full h-[220px] object-contain bg-black/5 rounded-2xl border-2 ${isAiRejected ? "border-red-400" : aiResultImage ? "border-emerald-400" : "border-transparent"}`}
+                                                    alt="Utama"
+                                                    className={`w-full h-[220px] object-contain bg-black/5 rounded-2xl border-2 ${isAiRejected ? "border-red-400" : aiResultImage ? "border-[#a7e94a]" : "border-transparent"}`}
                                                 />
 
                                                 {/* Animasi Scanner AI */}
                                                 {isScanningAI && (
                                                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex flex-col items-center justify-center z-20 rounded-2xl overflow-hidden">
-                                                        <div className="w-full h-1.5 bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,1)] absolute animate-[scan_1.5s_ease-in-out_infinite]" />
+                                                        <div className="w-full h-1.5 bg-[#a7e94a] shadow-[0_0_15px_rgba(167,233,74,1)] absolute animate-[scan_1.5s_ease-in-out_infinite]" />
                                                         <svg
-                                                            className="w-8 h-8 text-emerald-400 mb-2 animate-pulse"
+                                                            className="w-8 h-8 text-[#a7e94a] mb-2 animate-pulse"
                                                             fill="none"
                                                             viewBox="0 0 24 24"
                                                             stroke="currentColor"
@@ -596,7 +596,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                             />
                                                         </svg>
                                                         <span className="text-white font-mono text-[10px] font-bold bg-black/60 px-2 py-1 rounded tracking-wider">
-                                                            SCANNING...
+                                                            {t.scanningAI}
                                                         </span>
                                                     </div>
                                                 )}
@@ -605,14 +605,14 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        removeImage(0); // Menghapus satu-satunya foto
+                                                        removeImage(0);
                                                     }}
                                                     className="absolute top-3 right-3 w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg z-30 transition-transform hover:scale-110"
                                                 >
                                                     <X className="w-4 h-4 text-white" />
                                                 </button>
 
-                                                {/* Overlay Ganti Foto saat di hover (hanya muncul jika tidak sedang scan) */}
+                                                {/* Overlay Ganti Foto saat hover */}
                                                 {!isScanningAI && (
                                                     <div
                                                         onClick={() =>
@@ -621,8 +621,9 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                         className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl z-20"
                                                     >
                                                         <p className="text-white font-semibold text-sm drop-shadow-md">
-                                                            Click to Change
-                                                            Photo
+                                                            {
+                                                                t.clickToChangePhoto
+                                                            }
                                                         </p>
                                                     </div>
                                                 )}
@@ -630,7 +631,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                         ) : (
                                             <div className="text-center">
                                                 <svg
-                                                    className={`w-12 h-12 mx-auto mb-3 text-emerald-500 opacity-80`}
+                                                    className={`w-12 h-12 mx-auto mb-3 text-[#a7e94a] opacity-90`}
                                                     fill="none"
                                                     viewBox="0 0 24 24"
                                                     stroke="currentColor"
@@ -645,12 +646,12 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 <p
                                                     className={`text-sm font-semibold ${textPrimary}`}
                                                 >
-                                                    Click or drag to upload
+                                                    {t.clickOrDragUpload}
                                                 </p>
                                                 <p
                                                     className={`text-xs mt-1 ${textSecondary}`}
                                                 >
-                                                    AI will auto-scan your photo
+                                                    {t.aiWillAutoScan}
                                                 </p>
                                             </div>
                                         )}
@@ -658,13 +659,12 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                             ref={fileInputRef}
                                             type="file"
                                             accept="image/png,image/jpeg,image/jpg,image/webp"
-                                            /* ATRIBUT MULTIPLE DIHILANGKAN */
                                             className="hidden"
                                             onChange={handleImageChange}
                                         />
                                     </div>
 
-                                    {/* PESAN PENOLAKAN AI DI BAWAH KOTAK */}
+                                    {/* PESAN PENOLAKAN AI */}
                                     {isAiRejected && (
                                         <p className="text-xs text-red-600 mt-2 font-bold bg-red-50 p-2 rounded-lg border border-red-200 flex items-center gap-1.5">
                                             <svg
@@ -680,8 +680,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                                                 />
                                             </svg>
-                                            AI Rejected: No waste detected in
-                                            this image.
+                                            {t.aiRejectedMsg}
                                         </p>
                                     )}
 
@@ -697,7 +696,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                     <label
                                         className={`block text-xs font-semibold uppercase tracking-wider ${textSecondary} mb-2.5`}
                                     >
-                                        Location
+                                        {t.locationPin}
                                     </label>
                                     <div
                                         className={`flex rounded-xl border p-1 mb-3 ${isDark ? "bg-ds-bg-inverse border-ds-border-bold" : "bg-ds-bg border-ds-border"}`}
@@ -715,7 +714,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                             }`}
                                         >
                                             <MapPinUserInside className="w-3.5 h-3.5" />{" "}
-                                            Current Location
+                                            {t.currentLocation}
                                         </button>
                                         <button
                                             type="button"
@@ -729,7 +728,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                             }`}
                                         >
                                             <MapPinned className="w-3.5 h-3.5" />{" "}
-                                            Pick on map
+                                            {t.pickOnMap}
                                         </button>
                                     </div>
 
@@ -756,7 +755,9 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                             0 &&
                                                         setShowResults(true)
                                                     }
-                                                    placeholder="Search Location"
+                                                    placeholder={
+                                                        t.searchLocationModal
+                                                    }
                                                     className={`w-full rounded-xl border ${inputBg} py-2.5 px-3.5 text-sm ${textPrimary} placeholder:text-ds-mono focus:border-ds-primary focus:ring-1 focus:ring-ds-primary/40 outline-none transition-colors`}
                                                 />
                                             </div>
@@ -919,7 +920,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                     anchor="bottom"
                                                 >
                                                     <div className="flex flex-col items-center">
-                                                        <div className="w-8 h-8 bg-ds-primary rounded-full border-[3px] border-white shadow-lg flex items-center justify-center">
+                                                        <div className="w-8 h-8 bg-red-500 rounded-full border-[3px] border-white shadow-lg flex items-center justify-center">
                                                             <svg
                                                                 className="w-4 h-4 text-white"
                                                                 fill="currentColor"
@@ -951,7 +952,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 <p
                                                     className={`text-xs font-bold ${textPrimary}`}
                                                 >
-                                                    Selected Location
+                                                    {t.selectedLocation}
                                                 </p>
                                                 <p
                                                     className={`text-[11px] ${textSecondary} truncate`}
@@ -970,7 +971,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                     )}
                                     {(errors.latitude || errors.longitude) && (
                                         <p className="text-xs text-ds-negative mt-1 font-medium">
-                                            Please select a location on the map.
+                                            {t.pleaseSelectLocationMap}
                                         </p>
                                     )}
                                 </section>
@@ -985,7 +986,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                     <label
                                         className={`block text-xs font-semibold uppercase tracking-wider ${textSecondary} mb-2.5`}
                                     >
-                                        Location Description
+                                        {t.additionalDesc}
                                     </label>
                                     <textarea
                                         value={data.description}
@@ -995,7 +996,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 e.target.value,
                                             )
                                         }
-                                        placeholder="Describe the waste location in detail (e.g. Blocking the road)..."
+                                        placeholder={t.descPlaceholder}
                                         rows={4}
                                         className={`w-full rounded-xl border ${inputBg} p-4 text-sm ${textPrimary} placeholder:text-ds-mono focus:border-ds-primary focus:ring-1 focus:ring-ds-primary/40 outline-none resize-none transition-colors`}
                                     />
@@ -1011,7 +1012,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                     <label
                                         className={`block text-xs font-semibold uppercase tracking-wider ${textSecondary} mb-2.5`}
                                     >
-                                        Urgency Level
+                                        {t.severityLevel}
                                     </label>
                                     <div className="flex gap-2">
                                         {(
@@ -1021,48 +1022,40 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                             let colorClasses = "";
                                             let icon = null;
 
+                                            // Penamaan berdasarkan bahasa
+                                            const labelTranslation =
+                                                level === "low"
+                                                    ? t.severityLow
+                                                    : level === "moderate"
+                                                      ? t.severityModerate
+                                                      : t.severityHigh;
+
                                             if (level === "low") {
                                                 colorClasses = isActive
                                                     ? "bg-ds-positive-subtle border-ds-positive text-ds-positive-pressed"
                                                     : "";
                                                 icon = (
-                                                    <svg
+                                                    <CheckCircleSolid
                                                         className={`w-4 h-4 ${isActive ? "text-ds-positive" : isDark ? "text-ds-border-bold" : "text-ds-disabled"}`}
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                        strokeWidth={2}
-                                                    >
-                                                        <path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
+                                                    />
                                                 );
                                             } else if (level === "moderate") {
                                                 colorClasses = isActive
                                                     ? "bg-ds-notice-subtle border-ds-notice text-ds-notice-pressed"
                                                     : "";
                                                 icon = (
-                                                    <svg
+                                                    <DangerTriangleSolid
                                                         className={`w-4 h-4 ${isActive ? "text-ds-notice" : isDark ? "text-ds-border-bold" : "text-ds-disabled"}`}
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                        strokeWidth={2}
-                                                    >
-                                                        <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                                                    </svg>
+                                                    />
                                                 );
                                             } else {
                                                 colorClasses = isActive
                                                     ? "bg-ds-negative-subtle border-ds-negative text-ds-negative-pressed"
                                                     : "";
                                                 icon = (
-                                                    <svg
+                                                    <DangerTriangleSolid
                                                         className={`w-4 h-4 ${isActive ? "text-ds-negative" : isDark ? "text-ds-border-bold" : "text-ds-disabled"}`}
-                                                        fill="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-                                                    </svg>
+                                                    />
                                                 );
                                             }
 
@@ -1077,7 +1070,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 >
                                                     {icon}
                                                     <span className="text-[11px] font-bold uppercase tracking-widest">
-                                                        {level}
+                                                        {labelTranslation}
                                                     </span>
                                                 </button>
                                             );
@@ -1090,7 +1083,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                     <label
                                         className={`block text-xs font-semibold uppercase tracking-wider ${textSecondary} mb-2.5`}
                                     >
-                                        Report Needs / Tags
+                                        {t.helpNeeds}
                                     </label>
                                     <div className="flex gap-2 mb-3">
                                         <input
@@ -1103,7 +1096,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 e.key === "Enter" &&
                                                 (e.preventDefault(), addNeed())
                                             }
-                                            placeholder="Add needs (e.g. Trash bin, Truck)..."
+                                            placeholder={t.needsPlaceholder}
                                             className={`flex-1 rounded-xl border ${inputBg} py-3 px-3.5 text-sm ${textPrimary} placeholder:text-ds-mono focus:border-ds-primary focus:ring-1 focus:ring-ds-primary/40 outline-none transition-colors`}
                                         />
                                         <button
@@ -1155,7 +1148,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                             onClick={onClose}
                             className="px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-slate-800 transition-colors"
                         >
-                            Cancel
+                            {t.cancel}
                         </button>
                         <button
                             type="button"
@@ -1165,8 +1158,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
                             }
                             className={`py-3 px-8 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
                                 isScanningAI || isAiRejected || isSubmitting
-                                    ? `bg-slate-300 text-white cursor-not-allowed shadow-none`
-                                    : "bg-emerald-500 text-white hover:bg-emerald-600 hover:shadow-lg hover:-translate-y-0.5"
+                                    ? `bg-slate-300 text-slate-500 cursor-not-allowed shadow-none`
+                                    : "bg-[#a7e94a] text-slate-900 hover:bg-[#92d03b] hover:shadow-lg hover:-translate-y-0.5"
                             }`}
                         >
                             {isScanningAI ? (
@@ -1190,7 +1183,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                                         />
                                     </svg>{" "}
-                                    AI Scanning...
+                                    {t.scanningAI}
                                 </>
                             ) : isSubmitting ? (
                                 <>
@@ -1213,7 +1206,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                                         />
                                     </svg>{" "}
-                                    Submitting...
+                                    {t.submitting}
                                 </>
                             ) : (
                                 <>
@@ -1224,7 +1217,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                     >
                                         <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                                     </svg>
-                                    Submit Report
+                                    {t.submitReport}
                                 </>
                             )}
                         </button>

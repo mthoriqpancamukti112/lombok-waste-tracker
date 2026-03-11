@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import PetugasLayout from "@/Layouts/PetugasLayout";
 import { Head } from "@inertiajs/react";
 import { PageProps } from "@/types";
@@ -11,6 +11,7 @@ import {
     Calendar,
     Sparkles,
 } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface Report {
     id: number;
@@ -29,19 +30,30 @@ interface Props extends PageProps {
 }
 
 export default function PetugasRiwayat({ auth, reports }: Props) {
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
+
     useEffect(() => {
+        // Ambil bahasa dari localStorage jika ada
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+
         AOS.init({ duration: 800, once: true, easing: "ease-out-cubic" });
     }, []);
 
     const formatDateTime = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("id-ID", {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        return new Date(dateString).toLocaleDateString(
+            lang === "id" ? "id-ID" : "en-US",
+            {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+            },
+        );
     };
 
     return (
@@ -50,11 +62,11 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
             header={
                 <h2 className="text-xl font-bold leading-tight text-slate-800 flex items-center gap-2">
                     <CheckCircleSolid className="w-6 h-6 text-green-500" />
-                    Riwayat Pekerjaan Selesai
+                    {t.petugasHistoryTitle}
                 </h2>
             }
         >
-            <Head title="Riwayat Pekerjaan" />
+            <Head title={t.petugasHistoryTitle} />
 
             <div className="space-y-6">
                 {/* Header Statistik Pencapaian */}
@@ -64,16 +76,15 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                 >
                     <div>
                         <h3 className="text-2xl font-extrabold text-slate-800 flex items-center gap-3">
-                            Catatan Kinerja Anda
+                            {t.petugasHistoryHeader}
                             <Sparkles className="w-7 h-7 text-yellow-500" />
                         </h3>
                         <p className="text-slate-500 mt-2">
-                            Total Anda telah membersihkan{" "}
+                            {t.petugasTotalCleaned}{" "}
                             <strong className="text-green-600 text-lg">
-                                {reports.length} titik
+                                {reports.length} {t.petugasPointsCleaned}
                             </strong>{" "}
-                            tumpukan sampah. Terima kasih atas dedikasi Anda
-                            menjaga kebersihan lingkungan!
+                            {t.petugasThanksDedication}
                         </p>
                     </div>
                 </div>
@@ -88,11 +99,10 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                             <CheckCircleSolid className="w-12 h-12 text-slate-300" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-800 mb-2">
-                            Belum Ada Riwayat
+                            {t.petugasNoHistoryTitle}
                         </h3>
                         <p className="text-slate-500">
-                            Anda belum menyelesaikan tugas apa pun. Mulai
-                            kerjakan tugas di menu Daftar Tugas.
+                            {t.petugasNoHistoryDesc}
                         </p>
                     </div>
                 ) : (
@@ -116,7 +126,7 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
 
                                     <div className="absolute top-3 right-3 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md backdrop-blur-sm bg-green-500 text-white flex items-center gap-1">
                                         <CheckCircleSolid className="w-3 h-3" />{" "}
-                                        Tuntas
+                                        {t.petugasDoneBadge}
                                     </div>
 
                                     <div className="absolute bottom-3 left-3 bg-black/50 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
@@ -135,21 +145,21 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                         className="font-bold text-slate-800 line-clamp-2 mb-4"
                                         title={report.description}
                                     >
-                                        {report.description ||
-                                            "Lokasi tumpukan sampah."}
+                                        {report.description || t.petugasNoDesc}
                                     </h4>
 
                                     <div className="mt-auto space-y-2 text-sm text-slate-600 bg-green-50 border border-green-100 p-4 rounded-xl">
                                         <div className="flex items-center gap-2">
                                             <UsersGroup className="w-4 h-4 text-green-600" />
                                             <p className="font-medium line-clamp-1">
-                                                Dilaporkan: {report.user.name}
+                                                {t.petugasReportedBy}{" "}
+                                                {report.user.name}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Calendar className="w-4 h-4 text-green-600" />
                                             <p className="font-medium">
-                                                Selesai:{" "}
+                                                {t.petugasFinishedAt}{" "}
                                                 {formatDateTime(
                                                     report.updated_at,
                                                 )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Head, Link } from "@inertiajs/react";
 import {
     BarChart,
@@ -22,6 +22,7 @@ import {
     UsersGroup,
     ChevronRight,
 } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface Props extends PageProps {
     stats: {
@@ -46,19 +47,32 @@ export default function DLHDashboard({
     chartData,
     recentReports,
 }: Props) {
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
+
+    useEffect(() => {
+        // Ambil bahasa dari localStorage jika ada
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+    }, []);
+
     // State untuk Filter Log Aktivitas
     const [logFilter, setLogFilter] = useState<
         "semua" | "menunggu" | "proses" | "selesai"
     >("semua");
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        return new Date(dateString).toLocaleDateString(
+            lang === "id" ? "id-ID" : "en-US",
+            {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+            },
+        );
     };
 
     // Logika Filtering Log
@@ -72,28 +86,27 @@ export default function DLHDashboard({
             header={
                 <div className="flex justify-between items-center w-full animate-in fade-in slide-in-from-top-4 duration-500">
                     <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight">
-                        Executive Dashboard
+                        {t.dlhHeader}
                     </h2>
                     <div className="hidden sm:flex items-center gap-2 bg-green-50 border border-green-100 px-4 py-2 rounded-full shadow-sm">
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                         <span className="text-xs font-bold text-green-700">
-                            Sistem Online
+                            {t.dlhSystemOnline}
                         </span>
                     </div>
                 </div>
             }
         >
-            <Head title="Dashboard Executive DLH" />
+            <Head title={t.dlhTitle} />
 
             <div className="space-y-8">
                 {/* Ucapan Selamat Datang */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 animate-in fade-in zoom-in-95 duration-500">
                     <h3 className="text-xl font-bold text-slate-800">
-                        Ringkasan Performa, {auth.user?.name}
+                        {t.dlhWelcome} {auth.user?.name}
                     </h3>
                     <p className="text-sm text-slate-500 mt-1">
-                        Berikut adalah pantauan harian penanganan persampahan di
-                        seluruh wilayah Kota secara real-time.
+                        {t.dlhSubtitle}
                     </p>
                 </div>
 
@@ -103,7 +116,7 @@ export default function DLHDashboard({
                     <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center justify-between hover:shadow-lg transition-all hover:-translate-y-1 group animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
                         <div>
                             <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">
-                                Total Laporan Masuk
+                                {t.dlhTotalReports}
                             </p>
                             <p className="text-4xl font-black text-slate-800">
                                 {stats.total}
@@ -118,7 +131,7 @@ export default function DLHDashboard({
                     <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center justify-between hover:shadow-lg transition-all hover:-translate-y-1 group animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
                         <div>
                             <p className="text-xs text-red-500 font-bold uppercase tracking-wider mb-1">
-                                Menunggu Validasi
+                                {t.dlhWaitingValidation}
                             </p>
                             <p className="text-4xl font-black text-slate-800">
                                 {stats.menunggu}
@@ -133,7 +146,7 @@ export default function DLHDashboard({
                     <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center justify-between hover:shadow-lg transition-all hover:-translate-y-1 group animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
                         <div>
                             <p className="text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">
-                                Sedang Diproses
+                                {t.dlhInProcess}
                             </p>
                             <p className="text-4xl font-black text-slate-800">
                                 {stats.proses}
@@ -148,7 +161,7 @@ export default function DLHDashboard({
                     <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex items-center justify-between hover:shadow-lg transition-all hover:-translate-y-1 group animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
                         <div>
                             <p className="text-xs text-green-600 font-bold uppercase tracking-wider mb-1">
-                                Tuntas / Bersih
+                                {t.dlhCompletedClean}
                             </p>
                             <p className="text-4xl font-black text-slate-800">
                                 {stats.selesai}
@@ -171,11 +184,10 @@ export default function DLHDashboard({
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-800">
-                                        Distribusi Penanganan
+                                        {t.dlhChartTitle}
                                     </h3>
                                     <p className="text-xs text-slate-500">
-                                        Grafik berdasarkan status laporan saat
-                                        ini
+                                        {t.dlhChartSubtitle}
                                     </p>
                                 </div>
                             </div>
@@ -183,7 +195,7 @@ export default function DLHDashboard({
                                 href={route("laporan.index")}
                                 className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 group"
                             >
-                                Lihat Analitik Lengkap{" "}
+                                {t.dlhViewFullAnalytics}{" "}
                                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </Link>
                         </div>
@@ -255,10 +267,10 @@ export default function DLHDashboard({
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-800">
-                                    Radar Aktivitas
+                                    {t.dlhActivityRadar}
                                 </h3>
                                 <p className="text-xs text-slate-500">
-                                    Update langsung dari lapangan
+                                    {t.dlhActivitySubtitle}
                                 </p>
                             </div>
                         </div>
@@ -269,19 +281,19 @@ export default function DLHDashboard({
                                 onClick={() => setLogFilter("semua")}
                                 className={`flex-1 text-[10px] font-bold py-1.5 rounded-md transition-colors ${logFilter === "semua" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
                             >
-                                Semua
+                                {t.dlhFilterAll}
                             </button>
                             <button
                                 onClick={() => setLogFilter("menunggu")}
                                 className={`flex-1 text-[10px] font-bold py-1.5 rounded-md transition-colors ${logFilter === "menunggu" ? "bg-red-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
                             >
-                                Menunggu
+                                {t.dlhFilterWaiting}
                             </button>
                             <button
                                 onClick={() => setLogFilter("proses")}
                                 className={`flex-1 text-[10px] font-bold py-1.5 rounded-md transition-colors ${logFilter === "proses" ? "bg-blue-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
                             >
-                                Proses
+                                {t.dlhFilterProcess}
                             </button>
                         </div>
 
@@ -308,7 +320,7 @@ export default function DLHDashboard({
                                         title={report.description}
                                     >
                                         {report.description ||
-                                            "Laporan Tanpa Keterangan"}
+                                            t.dlhNoDescription}
                                     </p>
 
                                     <div className="flex flex-col mt-2 gap-1.5">
@@ -345,10 +357,10 @@ export default function DLHDashboard({
                                         <CheckCircleSolid className="w-6 h-6 text-slate-300" />
                                     </div>
                                     <p className="text-sm font-bold text-slate-500">
-                                        Log Kosong
+                                        {t.dlhEmptyLogTitle}
                                     </p>
                                     <p className="text-xs text-center mt-1">
-                                        Tidak ada data untuk filter ini.
+                                        {t.dlhEmptyLogDesc}
                                     </p>
                                 </div>
                             )}

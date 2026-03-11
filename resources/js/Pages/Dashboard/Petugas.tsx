@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import PetugasLayout from "@/Layouts/PetugasLayout";
 import { Head, router } from "@inertiajs/react";
 import { PageProps } from "@/types";
@@ -16,6 +16,7 @@ import {
     DangerTriangle,
     Archive,
 } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface Report {
     id: number;
@@ -46,7 +47,15 @@ export default function PetugasDashboard({
     reports,
     petugasProfile,
 }: Props) {
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
+
     useEffect(() => {
+        // Ambil bahasa dari localStorage jika ada
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+
         AOS.init({ duration: 800, once: true, easing: "ease-out-cubic" });
     }, []);
 
@@ -60,10 +69,13 @@ export default function PetugasDashboard({
     const getSeverityColor = (severity: string) => {
         switch (severity?.toLowerCase()) {
             case "tinggi":
+            case "high":
                 return "bg-red-100 text-red-700 border-red-200";
             case "sedang":
+            case "moderate":
                 return "bg-orange-100 text-orange-700 border-orange-200";
             case "rendah":
+            case "low":
                 return "bg-emerald-100 text-emerald-700 border-emerald-200";
             default:
                 return "bg-slate-100 text-slate-700 border-slate-200";
@@ -79,29 +91,36 @@ export default function PetugasDashboard({
         let icon: any = "";
 
         if (isProses) {
-            title = "Mulai Pengerjaan?";
+            title = t.saPetugasStartTitle;
 
             // Logika Cerdas Peringatan Kapasitas
             if (
-                report.severity_level?.toLowerCase() === "tinggi" &&
+                (report.severity_level?.toLowerCase() === "tinggi" ||
+                    report.severity_level?.toLowerCase() === "high") &&
                 petugasProfile?.jenis_kendaraan === "motor_gerobak"
             ) {
-                text = `PERHATIAN: Laporan ini berskala TINGGI. Kendaraan Anda (Motor Gerobak - ${petugasProfile?.kapasitas_kg}kg) mungkin tidak cukup. Yakin ingin mengambil tugas ini?`;
+                text = t.saPetugasHighWarningMotor.replace(
+                    "{kapasitas}",
+                    petugasProfile?.kapasitas_kg.toString() || "0",
+                );
                 icon = "warning";
             } else if (
-                report.severity_level?.toLowerCase() === "tinggi" &&
+                (report.severity_level?.toLowerCase() === "tinggi" ||
+                    report.severity_level?.toLowerCase() === "high") &&
                 petugasProfile?.jenis_kendaraan === "pickup"
             ) {
-                text = `Laporan berskala TINGGI. Pastikan bak Pickup Anda (${petugasProfile?.kapasitas_kg}kg) dalam keadaan kosong. Lanjutkan?`;
+                text = t.saPetugasHighWarningPickup.replace(
+                    "{kapasitas}",
+                    petugasProfile?.kapasitas_kg.toString() || "0",
+                );
                 icon = "warning";
             } else {
-                text =
-                    "Anda akan ditugaskan untuk membersihkan titik ini. Pastikan Anda menuju lokasi.";
+                text = t.saPetugasStartInfo;
                 icon = "info";
             }
         } else {
-            title = "Tandai Selesai?";
-            text = "Pastikan tumpukan sampah sudah benar-benar bersih!";
+            title = t.saPetugasFinishTitle;
+            text = t.saPetugasFinishText;
             icon = "success";
         }
 
@@ -113,9 +132,9 @@ export default function PetugasDashboard({
             confirmButtonColor: isProses ? "#3b82f6" : "#a7e94a",
             cancelButtonColor: "#94a3b8",
             confirmButtonText: isProses
-                ? "Ya, Mulai Angkut!"
-                : "Ya, Sudah Bersih!",
-            cancelButtonText: "Batal",
+                ? t.saPetugasStartConfirm
+                : t.saPetugasFinishConfirm,
+            cancelButtonText: t.cancel || "Batal",
             reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
@@ -127,10 +146,10 @@ export default function PetugasDashboard({
                         preserveState: true,
                         onSuccess: () => {
                             Swal.fire({
-                                title: "Berhasil!",
+                                title: t.saPetugasSuccessTitle,
                                 text: isProses
-                                    ? "Status: Sedang Dikerjakan"
-                                    : "Laporan ditutup. Terima kasih!",
+                                    ? t.saPetugasSuccessProcess
+                                    : t.saPetugasSuccessFinish,
                                 icon: "success",
                                 timer: 2000,
                                 showConfirmButton: false,
@@ -143,18 +162,21 @@ export default function PetugasDashboard({
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("id-ID", {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        return new Date(dateString).toLocaleDateString(
+            lang === "id" ? "id-ID" : "en-US",
+            {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+            },
+        );
     };
 
     const openGoogleMaps = (lat: string, lng: string) => {
         window.open(
-            `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+            `http://googleusercontent.com/maps.google.com/?q=${lat},${lng}`,
             "_blank",
         );
     };
@@ -165,11 +187,11 @@ export default function PetugasDashboard({
             header={
                 <h2 className="text-xl font-bold leading-tight text-slate-800 flex items-center gap-2">
                     <Truck className="w-6 h-6 text-amber-500" />
-                    Dashboard Operasional
+                    {t.petugasHeader}
                 </h2>
             }
         >
-            <Head title="Dashboard Petugas" />
+            <Head title={t.petugasTitle} />
 
             <div className="space-y-6">
                 {/* Header Sapaan dgn Animasi */}
@@ -179,15 +201,15 @@ export default function PetugasDashboard({
                 >
                     <div>
                         <h3 className="text-2xl font-extrabold text-slate-800 flex items-center gap-3">
-                            Semangat bertugas, {auth.user?.name}!
+                            {t.petugasWelcome} {auth.user?.name}!
                             <Sparkles className="w-6 h-6 text-amber-500" />
                         </h3>
                         <p className="text-slate-500 mt-2">
-                            Terdapat{" "}
+                            {t.petugasCurrentReports}{" "}
                             <strong className="text-blue-500">
-                                {reports.length} titik lokasi
+                                {reports.length} {t.petugasLocationPoints}
                             </strong>{" "}
-                            yang menunggu untuk diangkut hari ini.
+                            {t.petugasWaitingToClean}
                         </p>
                     </div>
                     {petugasProfile && (
@@ -195,7 +217,7 @@ export default function PetugasDashboard({
                             <Truck className="w-8 h-8 text-slate-400" />
                             <div>
                                 <p className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
-                                    Armada Anda
+                                    {t.petugasYourFleet}
                                 </p>
                                 <p className="text-sm font-bold text-slate-800 capitalize">
                                     {petugasProfile.jenis_kendaraan.replace(
@@ -223,11 +245,10 @@ export default function PetugasDashboard({
                             <CheckCircleSolid className="w-12 h-12 text-green-500" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-800 mb-2">
-                            Pekerjaan Selesai!
+                            {t.petugasAllCleanTitle}
                         </h3>
                         <p className="text-slate-500">
-                            Luar biasa! Semua titik tumpukan sampah sudah
-                            dibersihkan. Anda bisa beristirahat sejenak.
+                            {t.petugasAllCleanDesc}
                         </p>
                     </div>
                 ) : (
@@ -257,8 +278,8 @@ export default function PetugasDashboard({
                                         }`}
                                     >
                                         {report.status === "proses"
-                                            ? "Sedang Dikerjakan"
-                                            : "Siap Diangkut"}
+                                            ? t.petugasStatusProcess
+                                            : t.petugasStatusReady}
                                     </div>
                                     <div className="absolute bottom-3 left-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
                                         <Map className="w-3 h-3" />{" "}
@@ -277,8 +298,22 @@ export default function PetugasDashboard({
                                             className={`text-[10px] font-bold border px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide ${getSeverityColor(report.severity_level)}`}
                                         >
                                             <DangerTriangle className="w-3 h-3" />{" "}
-                                            {report.severity_level ||
-                                                "Tidak Diketahui"}
+                                            {report.severity_level ===
+                                                "tinggi" ||
+                                            report.severity_level === "high"
+                                                ? t.urgencyHigh
+                                                : report.severity_level ===
+                                                        "sedang" ||
+                                                    report.severity_level ===
+                                                        "moderate"
+                                                  ? t.urgencyModerate
+                                                  : report.severity_level ===
+                                                          "rendah" ||
+                                                      report.severity_level ===
+                                                          "low"
+                                                    ? t.urgencyLow
+                                                    : report.severity_level ||
+                                                      t.kalingUnknownSeverity}
                                         </span>
 
                                         {report.waste_type ? (
@@ -298,7 +333,7 @@ export default function PetugasDashboard({
                                         ) : (
                                             <span className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide">
                                                 <Archive className="w-3 h-3" />{" "}
-                                                Umum
+                                                {t.kalingGeneralWaste}
                                             </span>
                                         )}
                                     </div>
@@ -307,8 +342,7 @@ export default function PetugasDashboard({
                                         className="font-bold text-slate-800 line-clamp-2 mb-4"
                                         title={report.description}
                                     >
-                                        {report.description ||
-                                            "Lokasi tumpukan sampah."}
+                                        {report.description || t.petugasNoDesc}
                                     </h4>
 
                                     <div className="mt-auto space-y-2 text-sm text-slate-500 bg-slate-50 p-4 rounded-xl">
@@ -337,7 +371,7 @@ export default function PetugasDashboard({
                                             className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2"
                                         >
                                             <Navigation className="w-5 h-5 text-blue-500" />{" "}
-                                            Lihat Rute G-Maps
+                                            {t.petugasOpenMaps}
                                         </button>
 
                                         {report.status === "divalidasi" ? (
@@ -347,18 +381,20 @@ export default function PetugasDashboard({
                                                         report,
                                                         "proses",
                                                     )
-                                                } // MENGIRIM OBJECT REPORT PENUH
+                                                }
                                                 className={`w-full flex items-center justify-center gap-2 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-transform hover:-translate-y-0.5 ${
-                                                    report.severity_level?.toLowerCase() ===
-                                                        "tinggi" &&
+                                                    (report.severity_level?.toLowerCase() ===
+                                                        "tinggi" ||
+                                                        report.severity_level?.toLowerCase() ===
+                                                            "high") &&
                                                     petugasProfile?.jenis_kendaraan ===
                                                         "motor_gerobak"
-                                                        ? "bg-red-600 hover:bg-red-700" // Jika motor ambil yg tinggi, tombol jadi MERAH peringatan
+                                                        ? "bg-red-600 hover:bg-red-700"
                                                         : "bg-blue-600 hover:bg-blue-700"
                                                 }`}
                                             >
                                                 <Truck className="w-5 h-5" />{" "}
-                                                Mulai Kerjakan
+                                                {t.petugasStartWork}
                                             </button>
                                         ) : (
                                             <button
@@ -374,7 +410,7 @@ export default function PetugasDashboard({
                                                     className="w-5 h-5"
                                                     strokeWidth={2.5}
                                                 />{" "}
-                                                Tandai Bersih
+                                                {t.petugasMarkClean}
                                             </button>
                                         )}
                                     </div>

@@ -20,6 +20,7 @@ import {
     MapPin,
     Ribbon,
 } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 interface Report {
     id: number;
@@ -49,23 +50,31 @@ interface Props extends PageProps {
 }
 
 export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
+    // === STATE UNTUK BAHASA ===
+    const [lang, setLang] = useState<"id" | "en">("id");
+    const t = landingDict[lang];
+
     // === STATE UNTUK MODAL ===
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
     useEffect(() => {
+        // Ambil bahasa dari localStorage jika ada
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) setLang(savedLang);
+
         AOS.init({ duration: 800, once: true, easing: "ease-out-cubic" });
     }, []);
 
     const handleValidate = (id: number) => {
         Swal.fire({
-            title: "Validasi Laporan?",
-            text: "Laporan ini akan diteruskan ke Petugas Pengangkut Sampah.",
+            title: t.saValidateTitle,
+            text: t.saValidateText,
             icon: "question",
             showCancelButton: true,
             confirmButtonColor: "#6366f1",
             cancelButtonColor: "#94a3b8",
-            confirmButtonText: "Ya, Validasi!",
-            cancelButtonText: "Batal",
+            confirmButtonText: t.saValidateConfirm,
+            cancelButtonText: t.saValidateCancel,
             reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
@@ -76,8 +85,8 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                         preserveScroll: true,
                         onSuccess: () => {
                             Swal.fire({
-                                title: "Divalidasi!",
-                                text: "Laporan diteruskan ke petugas.",
+                                title: t.saValidatedTitle,
+                                text: t.saValidatedText,
                                 icon: "success",
                                 timer: 1500,
                                 showConfirmButton: false,
@@ -92,14 +101,14 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
 
     const handleReject = (id: number) => {
         Swal.fire({
-            title: "Tolak Laporan?",
-            text: "Laporan akan ditandai sebagai ditolak/tidak valid dan poin pelapor akan dikurangi.",
+            title: t.saRejectTitle,
+            text: t.saRejectText,
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
             cancelButtonColor: "#94a3b8",
-            confirmButtonText: "Ya, Tolak!",
-            cancelButtonText: "Batal",
+            confirmButtonText: t.saRejectConfirm,
+            cancelButtonText: t.saValidateCancel,
             reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
@@ -110,8 +119,8 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                         preserveScroll: true,
                         onSuccess: () => {
                             Swal.fire({
-                                title: "Ditolak!",
-                                text: "Laporan telah ditolak dan tidak akan diteruskan.",
+                                title: t.saRejectedTitle,
+                                text: t.saRejectedText,
                                 icon: "info",
                                 timer: 2000,
                                 showConfirmButton: false,
@@ -125,22 +134,28 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        return new Date(dateString).toLocaleDateString(
+            lang === "id" ? "id-ID" : "en-US",
+            {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+            },
+        );
     };
 
     const getSeverityColor = (severity: string) => {
         switch (severity?.toLowerCase()) {
             case "tinggi":
+            case "high":
                 return "bg-red-100 text-red-700 border-red-200";
             case "sedang":
+            case "moderate":
                 return "bg-orange-100 text-orange-700 border-orange-200";
             case "rendah":
+            case "low":
                 return "bg-emerald-100 text-emerald-700 border-emerald-200";
             default:
                 return "bg-slate-100 text-slate-700 border-slate-200";
@@ -153,11 +168,12 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
             header={
                 <h2 className="text-xl font-bold leading-tight text-slate-800 flex items-center gap-2">
                     <ShieldCheck className="w-6 h-6 text-indigo-500" />
-                    Validasi Wilayah {namaWilayah ? `- ${namaWilayah}` : ""}
+                    {t.kalingValidateRegion}{" "}
+                    {namaWilayah ? `- ${namaWilayah}` : ""}
                 </h2>
             }
         >
-            <Head title="Dashboard Kaling" />
+            <Head title={t.kalingTitle} />
 
             <div className="space-y-6">
                 <div
@@ -166,14 +182,14 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                 >
                     <div>
                         <h3 className="text-2xl font-extrabold text-slate-800">
-                            Selamat Bertugas, Bapak/Ibu {auth.user?.name}!
+                            {t.kalingWelcome} {auth.user?.name}!
                         </h3>
                         <p className="text-slate-500 mt-2">
-                            Saat ini terdapat{" "}
+                            {t.kalingCurrentReports}{" "}
                             <strong className="text-red-500 text-lg">
-                                {reports.length} laporan
+                                {reports.length} {t.kalingReportsCount}
                             </strong>{" "}
-                            warga di wilayah Anda yang membutuhkan verifikasi.
+                            {t.kalingNeedsVerification}
                         </p>
                     </div>
                 </div>
@@ -187,12 +203,9 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                             <CheckCircleSolid className="w-12 h-12 text-green-500" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-800 mb-2">
-                            Wilayah Anda Terpantau Bersih!
+                            {t.kalingAllCleanTitle}
                         </h3>
-                        <p className="text-slate-500">
-                            Hebat, tidak ada antrean laporan tumpukan sampah
-                            yang menunggu validasi saat ini.
-                        </p>
+                        <p className="text-slate-500">{t.kalingAllCleanDesc}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -210,7 +223,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
                                     <div className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md backdrop-blur-sm animate-pulse">
-                                        Perlu Validasi
+                                        {t.kalingNeedValidationBadge}
                                     </div>
 
                                     {/* Tombol Buka Modal Info Detail */}
@@ -219,7 +232,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                             setSelectedReport(report)
                                         }
                                         className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-indigo-600 p-1.5 rounded-full shadow-md hover:bg-indigo-50 hover:scale-110 transition-all border border-indigo-100"
-                                        title="Lihat Detail Pelapor"
+                                        title={t.kalingDetailTooltip}
                                     >
                                         <InfoCircle className="w-5 h-5" />
                                     </button>
@@ -244,8 +257,22 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                             className={`text-[10px] font-bold border px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide ${getSeverityColor(report.severity_level)}`}
                                         >
                                             <DangerTriangle className="w-3 h-3" />{" "}
-                                            {report.severity_level ||
-                                                "Tidak Diketahui"}
+                                            {report.severity_level ===
+                                                "tinggi" ||
+                                            report.severity_level === "high"
+                                                ? t.urgencyHigh
+                                                : report.severity_level ===
+                                                        "sedang" ||
+                                                    report.severity_level ===
+                                                        "moderate"
+                                                  ? t.urgencyModerate
+                                                  : report.severity_level ===
+                                                          "rendah" ||
+                                                      report.severity_level ===
+                                                          "low"
+                                                    ? t.urgencyLow
+                                                    : report.severity_level ||
+                                                      t.kalingUnknownSeverity}
                                         </span>
                                         {report.waste_type ? (
                                             report.waste_type
@@ -264,7 +291,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                         ) : (
                                             <span className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide">
                                                 <Archive className="w-3 h-3" />{" "}
-                                                Umum
+                                                {t.kalingGeneralWaste}
                                             </span>
                                         )}
                                     </div>
@@ -273,8 +300,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                         className="font-bold text-slate-800 line-clamp-2 mb-4"
                                         title={report.description}
                                     >
-                                        {report.description ||
-                                            "Tanpa keterangan tambahan dari pelapor."}
+                                        {report.description || t.kalingNoDesc}
                                     </h4>
 
                                     <div
@@ -303,7 +329,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                                 handleReject(report.id)
                                             }
                                             className="p-3 text-slate-400 bg-slate-100 hover:bg-red-100 hover:text-red-600 rounded-xl transition-colors"
-                                            title="Tolak Laporan"
+                                            title={t.kalingRejectReport}
                                         >
                                             <X className="w-5 h-5" />
                                         </button>
@@ -317,7 +343,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                                 className="w-5 h-5"
                                                 strokeWidth={2.5}
                                             />{" "}
-                                            Validasi & Teruskan
+                                            {t.kalingValidateAndForward}
                                         </button>
                                     </div>
                                 </div>
@@ -340,7 +366,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
                             <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                                 <UserSquare className="w-6 h-6 text-indigo-500" />{" "}
-                                Detail Laporan & Warga
+                                {t.kalingModalTitle}
                             </h3>
                             <button
                                 onClick={() => setSelectedReport(null)}
@@ -361,7 +387,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                         ?.is_terverifikasi && (
                                         <div
                                             className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full border-2 border-white"
-                                            title="Akun Terverifikasi"
+                                            title={t.verifiedAccount}
                                         >
                                             <ShieldCheck className="w-4 h-4" />
                                         </div>
@@ -376,18 +402,17 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
 
                                 {/* Info Kontak & Reputasi */}
                                 <div className="flex flex-wrap justify-center gap-3 mt-4">
-                                    {/* Tampilkan Telepon jika ada, jika tidak, tampilkan "Belum diatur" */}
                                     <span className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full">
                                         <Telephone className="w-3.5 h-3.5" />{" "}
                                         {selectedReport.user.warga?.no_telp ||
-                                            "No. HP Belum Diatur"}
+                                            t.kalingNoPhone}
                                     </span>
 
                                     <span className="flex items-center gap-1.5 text-xs font-bold bg-amber-50 text-amber-600 px-3 py-1.5 rounded-full">
                                         <Ribbon className="w-3.5 h-3.5" />{" "}
                                         {selectedReport.user.warga
                                             ?.poin_kepercayaan || 0}{" "}
-                                        Poin
+                                        {t.point}
                                     </span>
                                 </div>
                             </div>
@@ -395,12 +420,12 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                             {/* Alamat Warga */}
                             <div className="mb-4">
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                    <MapPin className="w-3.5 h-3.5" /> Alamat
-                                    Pelapor
+                                    <MapPin className="w-3.5 h-3.5" />{" "}
+                                    {t.kalingReporterAddress}
                                 </p>
                                 <p className="text-sm font-medium text-slate-700 bg-slate-50 px-3 py-2 rounded-lg">
                                     {selectedReport.user.warga?.alamat ||
-                                        "Alamat belum dilengkapi oleh pelapor."}
+                                        t.kalingNoAddress}
                                 </p>
                             </div>
 
@@ -408,7 +433,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                             <div className="space-y-4">
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-                                        Waktu Dilaporkan
+                                        {t.kalingReportTime}
                                     </p>
                                     <p className="text-sm font-semibold text-slate-700">
                                         {formatDate(selectedReport.created_at)}
@@ -416,28 +441,43 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-                                        Deskripsi Lengkap
+                                        {t.kalingFullDesc}
                                     </p>
                                     <p className="text-sm text-slate-700 bg-indigo-50/50 p-3 rounded-xl border border-indigo-50 whitespace-pre-wrap">
                                         {selectedReport.description ||
-                                            "Tidak ada deskripsi tambahan dari pelapor."}
+                                            t.kalingNoDesc}
                                     </p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-                                            Keparahan
+                                            {t.kalingSeverity}
                                         </p>
                                         <span
                                             className={`text-[10px] font-bold border px-2 py-0.5 rounded flex items-center w-fit uppercase ${getSeverityColor(selectedReport.severity_level)}`}
                                         >
-                                            {selectedReport.severity_level ||
-                                                "Tidak Diketahui"}
+                                            {selectedReport.severity_level ===
+                                                "tinggi" ||
+                                            selectedReport.severity_level ===
+                                                "high"
+                                                ? t.urgencyHigh
+                                                : selectedReport.severity_level ===
+                                                        "sedang" ||
+                                                    selectedReport.severity_level ===
+                                                        "moderate"
+                                                  ? t.urgencyModerate
+                                                  : selectedReport.severity_level ===
+                                                          "rendah" ||
+                                                      selectedReport.severity_level ===
+                                                          "low"
+                                                    ? t.urgencyLow
+                                                    : selectedReport.severity_level ||
+                                                      t.kalingUnknownSeverity}
                                         </span>
                                     </div>
                                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-                                            Jenis Sampah
+                                            {t.kalingWasteType}
                                         </p>
                                         <div className="flex flex-wrap gap-1.5">
                                             {selectedReport.waste_type ? (
@@ -453,7 +493,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                                     ))
                                             ) : (
                                                 <span className="text-[10px] font-bold bg-white text-slate-600 border border-slate-200 px-2 py-0.5 rounded flex items-center w-fit uppercase">
-                                                    Umum
+                                                    {t.kalingGeneralWaste}
                                                 </span>
                                             )}
                                         </div>
@@ -468,7 +508,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                 onClick={() => setSelectedReport(null)}
                                 className="flex-1 py-2.5 font-bold text-slate-500 hover:text-slate-700 transition-colors"
                             >
-                                Tutup
+                                {t.kalingCloseModal}
                             </button>
                             <button
                                 onClick={() =>
@@ -476,8 +516,8 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                 }
                                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl shadow-sm transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
                             >
-                                <ShieldCheck className="w-5 h-5" /> Validasi
-                                Laporan
+                                <ShieldCheck className="w-5 h-5" />{" "}
+                                {t.kalingValidateBtn}
                             </button>
                         </div>
                     </div>

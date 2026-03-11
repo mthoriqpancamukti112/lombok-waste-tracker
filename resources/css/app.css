@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+body,
+html {
+    font-family: "Poppins", ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.mapboxgl-popup,
+.mapboxgl-popup-content,
+.mapboxgl-ctrl {
+    font-family: "Poppins", ui-sans-serif, system-ui, sans-serif !important;
+}
+
 /* Hide Mapbox watermark */
 .mapboxgl-ctrl-bottom-left,
 .mapboxgl-ctrl-bottom-right {
