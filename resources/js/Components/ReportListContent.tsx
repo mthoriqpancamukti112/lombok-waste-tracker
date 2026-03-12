@@ -28,6 +28,7 @@ interface ReportListContentProps {
     onAuthRequired?: () => void;
     onSelectReport?: (id: number) => void;
     lang?: "id" | "en";
+    currentUserLocation?: { lat: number; lng: number } | null;
 }
 
 const AvatarImage = ({
@@ -56,9 +57,9 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
     onClose,
     isDark,
     currentUserId,
-    onAuthRequired,
     onSelectReport,
     lang = "id", // Menerima prop lang
+    currentUserLocation,
 }) => {
     // Ambil kamus terjemahan berdasarkan bahasa yang sedang aktif
     const t = landingDict[lang];
@@ -96,9 +97,9 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                            className={`p-2 rounded-full transition-colors ${isDark ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}
                         >
-                            <X className="w-5 h-5 text-slate-400" />
+                            <X className={`w-5 h-5 ${isDark ? "text-slate-400" : "text-slate-400"}`} />
                         </button>
                     )}
                 </div>
@@ -116,13 +117,12 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                             <button
                                 key={opt.value}
                                 onClick={() => setActiveFilter(opt.value)}
-                                className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
-                                    activeFilter === opt.value
-                                        ? "bg-[#a7e94a] text-slate-900 shadow-lg shadow-[#a7e94a]/30"
-                                        : isDark
-                                          ? "bg-slate-800 text-slate-400"
-                                          : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                                }`}
+                                className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeFilter === opt.value
+                                    ? "bg-[#a7e94a] text-slate-900 shadow-lg shadow-[#a7e94a]/30"
+                                    : isDark
+                                        ? "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                                        : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                                    }`}
                             >
                                 {opt.label}
                             </button>
@@ -131,18 +131,17 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
 
                     {/* Search Bar */}
                     <div
-                        className={`relative flex items-center min-w-[300px] px-4 py-2.5 rounded-2xl border transition-all ${
-                            isDark
-                                ? "bg-slate-800 border-slate-700 focus-within:border-[#a7e94a]/50"
-                                : "bg-slate-50 border-slate-100 focus-within:bg-white focus-within:border-[#a7e94a]/50"
-                        }`}
+                        className={`relative flex items-center min-w-[300px] px-4 py-2.5 rounded-2xl border transition-all ${isDark
+                            ? "bg-slate-800 border-slate-700 focus-within:border-[#a7e94a]/50"
+                            : "bg-slate-50 border-slate-100 focus-within:bg-white focus-within:border-[#a7e94a]/50 shadow-sm"
+                            }`}
                     >
                         <input
                             type="text"
                             placeholder={t.searchFallback}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-slate-400"
+                            className={`flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-slate-400 ${isDark ? "text-slate-100" : "text-slate-900"}`}
                         />
                         <Search className="w-4 h-4 text-slate-400" />
                     </div>
@@ -167,7 +166,7 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                                 {/* Card Header: User Info */}
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-100 group-hover:border-[#a7e94a] transition-colors">
+                                        <div className={`w-10 h-10 rounded-full overflow-hidden shrink-0 border transition-colors ${isDark ? "bg-slate-800 border-slate-700 group-hover:border-[#a7e94a]" : "bg-slate-100 border-slate-100 group-hover:border-[#a7e94a]"}`}>
                                             <AvatarImage user={report.user} />
                                         </div>
                                         <div className="flex flex-col">
@@ -177,13 +176,37 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                                             </span>
                                         </div>
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                        {formatDate(report.created_at)}
-                                    </span>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                            {formatDate(report.created_at)}
+                                        </span>
+                                        {(() => {
+                                            if (!currentUserLocation) return null;
+                                            const R = 6371e3; // metres
+                                            const φ1 = (currentUserLocation.lat * Math.PI) / 180;
+                                            const φ2 = (parseFloat(report.latitude) * Math.PI) / 180;
+                                            const Δφ = ((parseFloat(report.latitude) - currentUserLocation.lat) * Math.PI) / 180;
+                                            const Δλ = ((parseFloat(report.longitude) - currentUserLocation.lng) * Math.PI) / 180;
+
+                                            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                                                Math.cos(φ1) * Math.cos(φ2) *
+                                                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                                            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                                            const d = R * c; // in metres
+                                            const dist = d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1)} km`;
+                                            return (
+                                                <span className="text-[9px] font-black text-[#a7e94a] uppercase tracking-tight flex items-center gap-1">
+                                                    <MapPin className="w-2.5 h-2.5" />
+                                                    {dist}
+                                                </span>
+                                            );
+                                        })()}
+                                    </div>
                                 </div>
 
                                 {/* Card Body: Image */}
-                                <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-200">
+                                <div className={`aspect-[4/3] w-full rounded-2xl overflow-hidden ${isDark ? "bg-slate-800" : "bg-slate-200"}`}>
                                     <img
                                         src={`/storage/${report.photo_path}`}
                                         alt="Waste"
@@ -221,37 +244,34 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                                     <div className="flex flex-wrap gap-2">
                                         <span
                                             className={`px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border
-                                            ${
-                                                report.severity_level === "high"
-                                                    ? "bg-red-50 text-red-500 border-red-100"
-                                                    : report.severity_level ===
-                                                        "moderate"
-                                                      ? "bg-orange-50 text-orange-500 border-orange-100"
-                                                      : "bg-[#a7e94a]/10 text-ds-primary border-[#a7e94a]/20"
-                                            }`}
+                                            ${report.severity_level === "high"
+                                                    ? (isDark ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-red-50 text-red-500 border-red-100")
+                                                    : report.severity_level === "moderate"
+                                                        ? (isDark ? "bg-orange-500/20 text-orange-400 border-orange-500/30" : "bg-orange-50 text-orange-500 border-orange-100")
+                                                        : (isDark ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-[#a7e94a]/10 text-ds-primary border-[#a7e94a]/20")
+                                                }`}
                                         >
                                             {report.severity_level === "high"
                                                 ? t.urgencyHigh
                                                 : report.severity_level ===
                                                     "moderate"
-                                                  ? t.urgencyModerate
-                                                  : t.urgencyLow}
+                                                    ? t.urgencyModerate
+                                                    : t.urgencyLow}
                                         </span>
                                         <span
                                             className={`px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border
-                                            ${
-                                                report.status === "selesai"
-                                                    ? "bg-[#a7e94a]/20 text-slate-800 dark:text-slate-200 border-[#a7e94a]/30"
+                                            ${report.status === "selesai"
+                                                    ? (isDark ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-[#a7e94a]/20 text-slate-800 border-[#a7e94a]/30")
                                                     : report.status === "proses"
-                                                      ? "bg-blue-50 text-blue-500 border-blue-100"
-                                                      : "bg-red-50 text-red-500 border-red-100"
-                                            }`}
+                                                        ? (isDark ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-blue-50 text-blue-500 border-blue-100")
+                                                        : (isDark ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-red-50 text-red-500 border-red-100")
+                                                }`}
                                         >
                                             {report.status === "selesai"
                                                 ? t.statusCompleted
                                                 : report.status === "proses"
-                                                  ? t.statusInProcess
-                                                  : t.statusWaiting}
+                                                    ? t.statusInProcess
+                                                    : t.statusWaiting}
                                         </span>
                                     </div>
 

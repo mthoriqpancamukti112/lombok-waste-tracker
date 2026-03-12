@@ -67,6 +67,7 @@ interface MapProps {
     searchedLocation?: { lat: number; lng: number; address: string } | null;
     onClearSearchLocation?: () => void;
     onReportSearchedLocation?: () => void;
+    onGeolocate?: (lat: number, lng: number) => void;
     lang?: "id" | "en";
 }
 
@@ -110,6 +111,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
         searchedLocation,
         onClearSearchLocation,
         onReportSearchedLocation,
+        onGeolocate,
         lang = "id",
     }, ref) {
         const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -396,6 +398,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                         positionOptions={{ enableHighAccuracy: true }}
                         trackUserLocation
                         showUserHeading
+                        onGeolocate={(e: any) => onGeolocate?.(e.coords.latitude, e.coords.longitude)}
                     />
                 </div>
 
@@ -421,7 +424,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                             {/* Collapse button (shows on hover or when collapsed) */}
                             <button
                                 onClick={() => setIsLegendCollapsed(true)}
-                                className="absolute top-0 right-0 bottom-0 w-8 flex items-center justify-center bg-slate-50/50 hover:bg-[#a7e94a] hover:text-white text-slate-400 opacity-0 group-hover:opacity-100 transition-all border-l border-slate-100"
+                                className="absolute top-0 right-0 bottom-0 w-8 flex items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 hover:bg-[#a7e94a] dark:hover:bg-[#a7e94a] hover:text-white text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-all border-l border-slate-100 dark:border-slate-700"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
@@ -431,7 +434,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                         {isLegendCollapsed && (
                             <button
                                 onClick={() => setIsLegendCollapsed(false)}
-                                className="absolute left-full bottom-0 top-0 w-10 flex items-center justify-center bg-white shadow-xl border border-slate-100 rounded-r-2xl text-slate-500 hover:text-[#a7e94a] transition-all animate-in slide-in-from-left duration-300 pointer-events-auto"
+                                className="absolute left-full bottom-0 top-0 w-10 flex items-center justify-center bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 rounded-r-2xl text-slate-500 dark:text-slate-400 hover:text-[#a7e94a] transition-all animate-in slide-in-from-left duration-300 pointer-events-auto"
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>
@@ -497,8 +500,8 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                             <div className="relative flex items-center justify-center w-10 h-10 cursor-pointer hover:scale-110 transition-transform duration-300 group">
                                 <span className={`absolute w-10 h-10 opacity-50 rounded-full animate-ping ${ping}`} />
                                 <span className={`absolute w-4 h-4 rounded-full border-2 border-white shadow-md ${dot}`} />
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white px-2 py-1 rounded-lg shadow-xl border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                                    <span className="text-[10px] font-bold text-slate-700">{report.severity_level?.toUpperCase()}</span>
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">{report.severity_level?.toUpperCase()}</span>
                                 </div>
                             </div>
                         </Marker>

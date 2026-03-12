@@ -64,10 +64,10 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
         activeTab === "all"
             ? reports
             : activeTab === "high-upvote"
-              ? [...reports]
+                ? [...reports]
                     .sort((a, b) => b.likes_count - a.likes_count)
                     .slice(0, 6)
-              : reports.filter((r) => r.status === "selesai");
+                : reports.filter((r) => r.status === "selesai");
 
     const totalLikes = reports.reduce((sum, r) => sum + r.likes_count, 0);
     const totalComments = reports.reduce((sum, r) => sum + r.comments_count, 0);
@@ -112,7 +112,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                             },
                         );
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-xs font-bold hover:bg-red-100 transition-all"
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${isDark ? "bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-red-50 text-red-500 hover:bg-red-100"}`}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -142,7 +142,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                     >
                         {/* Avatar */}
                         <div className="flex flex-col items-center gap-3">
-                            <div className="w-28 h-28 rounded-[28px] overflow-hidden shadow-lg ring-4 ring-[#a7e94a]/20">
+                            <div className={`w-28 h-28 rounded-[28px] overflow-hidden shadow-lg ring-4 ${isDark ? "ring-[#a7e94a]/10" : "ring-[#a7e94a]/20"}`}>
                                 <img
                                     src={avatarSrc}
                                     alt={user.name}
@@ -207,7 +207,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 >
                                     <div className="flex items-center gap-3">
                                         <div
-                                            className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm ${user.warga?.is_terverifikasi ? "bg-[#a7e94a]" : "bg-slate-200"}`}
+                                            className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm ${user.warga?.is_terverifikasi ? "bg-[#a7e94a]" : isDark ? "bg-slate-800" : "bg-slate-200"}`}
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -234,7 +234,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             </p>
                                             <div className="flex items-center gap-1">
                                                 <div
-                                                    className={`w-1.5 h-1.5 rounded-full ${user.warga?.is_terverifikasi ? "bg-[#a7e94a]" : "bg-slate-300"}`}
+                                                    className={`w-1.5 h-1.5 rounded-full ${user.warga?.is_terverifikasi ? "bg-[#a7e94a]" : isDark ? "bg-slate-700" : "bg-slate-300"}`}
                                                 />
                                                 <span
                                                     className={`text-[10px] font-bold ${user.warga?.is_terverifikasi ? "text-[#a7e94a]" : subtle}`}
@@ -296,7 +296,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 {filteredReports.slice(0, 6).map((report) => (
                                     <div
                                         key={report.id}
-                                        className="aspect-square rounded-2xl overflow-hidden bg-slate-200 group relative"
+                                        className={`aspect-square rounded-2xl overflow-hidden group relative ${isDark ? "bg-slate-800" : "bg-slate-200"}`}
                                     >
                                         <img
                                             src={`/storage/${report.photo_path}`}
@@ -316,8 +316,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 {report.status === "selesai"
                                                     ? t.statusCompleted
                                                     : report.status === "proses"
-                                                      ? t.statusInProcess
-                                                      : t.statusWaiting}
+                                                        ? t.statusInProcess
+                                                        : t.statusWaiting}
                                             </span>
                                             <p className="text-white text-[10px] font-semibold line-clamp-2">
                                                 {report.description}
@@ -350,7 +350,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 Photo
                             </span>
                             <div className="mt-4 flex items-center gap-5">
-                                <div className="w-28 h-28 rounded-3xl overflow-hidden shadow-xl ring-4 ring-[#a7e94a]/20 shrink-0">
+                                <div className={`w-28 h-28 rounded-3xl overflow-hidden shadow-xl ring-4 shrink-0 ${isDark ? "ring-[#a7e94a]/10" : "ring-[#a7e94a]/20"}`}>
                                     <img
                                         src={avatarSrc}
                                         alt={user.name}
@@ -439,7 +439,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             </p>
                                             <div className="flex items-center gap-1">
                                                 <div
-                                                    className={`w-1.5 h-1.5 rounded-full ${user.warga?.is_terverifikasi ? "bg-[#a7e94a]" : "bg-slate-300"}`}
+                                                    className={`w-1.5 h-1.5 rounded-full ${user.warga?.is_terverifikasi ? "bg-[#a7e94a]" : isDark ? "bg-slate-700" : "bg-slate-300"}`}
                                                 />
                                                 <span
                                                     className={`text-[10px] font-bold ${user.warga?.is_terverifikasi ? "text-[#a7e94a]" : subtle}`}
@@ -501,7 +501,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 {filteredReports.slice(0, 4).map((report) => (
                                     <div
                                         key={report.id}
-                                        className="aspect-[4/5] rounded-[28px] overflow-hidden bg-slate-100 group hover:shadow-xl hover:-translate-y-1 transition-all duration-500 relative"
+                                        className={`aspect-[4/5] rounded-[28px] overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-500 relative ${isDark ? "bg-slate-800 border border-slate-700" : "bg-slate-100"}`}
                                     >
                                         <img
                                             src={`/storage/${report.photo_path}`}
@@ -521,8 +521,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 {report.status === "selesai"
                                                     ? t.statusCompleted
                                                     : report.status === "proses"
-                                                      ? t.statusInProcess
-                                                      : t.statusWaiting}
+                                                        ? t.statusInProcess
+                                                        : t.statusWaiting}
                                             </span>
                                             <p className="text-white text-xs font-semibold line-clamp-2">
                                                 {report.description}
@@ -556,7 +556,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                         key={report.id}
                                         className={`border rounded-[22px] p-4 flex gap-3 items-start shadow-sm ${inBg}`}
                                     >
-                                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-200 shrink-0">
+                                        <div className={`w-12 h-12 rounded-xl overflow-hidden shrink-0 ${isDark ? "bg-slate-800" : "bg-slate-200"}`}>
                                             <img
                                                 src={`/storage/${report.photo_path}`}
                                                 className="w-full h-full object-cover"
@@ -588,8 +588,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                         ? t.statusCompleted
                                                         : report.status ===
                                                             "proses"
-                                                          ? t.statusInProcess
-                                                          : t.statusWaiting}
+                                                            ? t.statusInProcess
+                                                            : t.statusWaiting}
                                                 </span>
                                                 <div className="flex gap-2 text-[10px] font-bold text-slate-400">
                                                     <span>

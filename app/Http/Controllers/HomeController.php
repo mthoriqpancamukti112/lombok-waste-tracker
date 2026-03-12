@@ -22,7 +22,7 @@ class HomeController extends Controller
             },
             'user.warga'
         ])
-            ->whereIn('status', ['menunggu', 'divalidasi', 'proses'])
+            ->whereIn('status', ['menunggu', 'divalidasi', 'proses', 'selesai'])
             ->latest()
             ->get();
 

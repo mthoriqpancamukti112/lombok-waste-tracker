@@ -152,11 +152,11 @@ export default function CreateReport({ auth }: { auth: any }) {
             header={
                 <div className="flex justify-between items-center w-full">
                     <div>
-                        <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                        <h2 className="text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
                             <Send className="w-6 h-6 text-emerald-500" /> Lapor
                             Temuan Sampah
                         </h2>
-                        <p className="text-xs lg:text-sm text-slate-500 mt-1">
+                        <p className="text-xs lg:text-sm text-slate-500 dark:text-slate-400 mt-1">
                             Pilih lokasi, sistem cerdas kami akan mendeteksi
                             wilayahnya.
                         </p>
@@ -166,23 +166,23 @@ export default function CreateReport({ auth }: { auth: any }) {
         >
             <Head title="Buat Laporan Baru" />
 
-            <div className="bg-white overflow-hidden shadow-sm sm:rounded-3xl border border-slate-200 flex flex-col lg:flex-row min-h-[750px] lg:h-[calc(100vh-140px)]">
+            <div className="bg-white dark:bg-slate-900 overflow-hidden shadow-sm sm:rounded-3xl border border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row min-h-[750px] lg:h-[calc(100vh-140px)]">
                 {/* KOLOM KIRI: Peta Mapbox */}
-                <div className="w-full lg:w-1/2 relative bg-slate-100 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col h-[40vh] lg:h-full">
+                <div className="w-full lg:w-1/2 relative bg-slate-100 dark:bg-slate-950 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 flex flex-col h-[40vh] lg:h-full">
                     <div className="p-4 flex justify-between items-end absolute top-0 left-0 right-0 z-10 pointer-events-none">
-                        <div className="pointer-events-auto bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-slate-200">
-                            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <div className="pointer-events-auto bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                                 <MapIcon className="w-4 h-4 text-emerald-500" />{" "}
                                 Koordinat Peta
                             </h3>
-                            <p className="text-[11px] text-slate-600 leading-tight mt-0.5">
+                            <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-tight mt-0.5">
                                 Klik di peta untuk menaruh pin merah.
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={getCurrentLocation}
-                            className="pointer-events-auto bg-white hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-4 rounded-xl shadow-md border border-slate-200 transition-all flex items-center gap-2 text-xs hover:-translate-y-0.5"
+                            className="pointer-events-auto bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-2.5 px-4 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-2 text-xs hover:-translate-y-0.5"
                         >
                             <Target className="w-4 h-4 text-blue-500" /> Lacak
                             GPS
@@ -229,7 +229,7 @@ export default function CreateReport({ auth }: { auth: any }) {
                 </div>
 
                 {/* KOLOM KANAN: Form Pengisian */}
-                <div className="w-full lg:w-1/2 p-6 lg:p-8 flex flex-col h-full bg-white overflow-y-auto custom-scrollbar">
+                <div className="w-full lg:w-1/2 p-6 lg:p-8 flex flex-col h-full bg-white dark:bg-slate-900 overflow-y-auto custom-scrollbar">
                     <form
                         onSubmit={submit}
                         className="space-y-6 flex flex-col"
@@ -237,11 +237,11 @@ export default function CreateReport({ auth }: { auth: any }) {
                     >
                         {/* 1. Upload Foto */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-800 mb-2">
+                            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">
                                 Unggah Foto Bukti{" "}
                                 <span className="text-red-500">*</span>
                             </label>
-                            <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-2xl hover:border-emerald-400 transition-colors bg-slate-50 relative group overflow-hidden h-40">
+                            <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-2xl hover:border-emerald-400 dark:hover:border-emerald-500 transition-colors bg-slate-50 dark:bg-slate-800/50 relative group overflow-hidden h-40">
                                 {imagePreview ? (
                                     <div className="absolute inset-0 w-full h-full">
                                         <img
@@ -258,10 +258,10 @@ export default function CreateReport({ auth }: { auth: any }) {
                                 ) : (
                                     <div className="space-y-1 text-center flex flex-col justify-center items-center w-full h-full pointer-events-none">
                                         <CloudUpload className="w-8 h-8 text-emerald-500 mb-2" />
-                                        <p className="text-sm text-slate-600 font-bold text-emerald-600">
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 font-bold text-emerald-600 dark:text-emerald-400">
                                             Pilih file foto
                                         </p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">
                                             PNG, JPG maksimal 5MB
                                         </p>
                                     </div>
@@ -283,7 +283,7 @@ export default function CreateReport({ auth }: { auth: any }) {
                         {/* 2. Wilayah & Auto Assignment (Now Automated in Backend) */}
                         <div className="grid grid-cols-1 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
+                                <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center justify-between">
                                     <span>Alamat / Patokan Lokasi</span>
                                     {isDetectingLocation && (
                                         <span className="text-[10px] text-emerald-500 flex items-center gap-1 animate-pulse">
@@ -322,7 +322,7 @@ export default function CreateReport({ auth }: { auth: any }) {
                                             setData("address", e.target.value)
                                         }
                                         placeholder="Klik peta untuk deteksi alamat otomatis..."
-                                        className="w-full pl-9 rounded-xl border-slate-200 focus:border-emerald-400 focus:ring-emerald-400 sm:text-sm bg-slate-50 p-3 placeholder:text-slate-400 transition-colors"
+                                        className="w-full pl-9 rounded-xl border-slate-200 dark:border-slate-800 focus:border-emerald-400 focus:ring-emerald-400 sm:text-sm bg-slate-50 dark:bg-slate-800/80 p-3 placeholder:text-slate-400 dark:text-slate-200 transition-colors"
                                     />
                                 </div>
                             </div>
@@ -332,9 +332,9 @@ export default function CreateReport({ auth }: { auth: any }) {
                         <div className="space-y-4">
                             {/* JENIS SAMPAH (CHECKBOX PILLS) */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-800 mb-2">
+                                <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">
                                     Jenis Sampah{" "}
-                                    <span className="text-[10px] font-normal text-slate-500">
+                                    <span className="text-[10px] font-normal text-slate-500 dark:text-slate-500">
                                         (Bisa pilih lebih dari satu)
                                     </span>
                                 </label>
@@ -346,13 +346,12 @@ export default function CreateReport({ auth }: { auth: any }) {
                                             onClick={() =>
                                                 toggleWasteType(type)
                                             }
-                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
-                                                selectedWasteTypes.includes(
-                                                    type,
-                                                )
-                                                    ? "bg-emerald-50 border-emerald-500 text-emerald-700"
-                                                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-                                            }`}
+                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${selectedWasteTypes.includes(
+                                                type,
+                                            )
+                                                ? "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-500 dark:border-emerald-500 text-emerald-700 dark:text-emerald-400"
+                                                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                                }`}
                                         >
                                             {type}
                                         </button>
@@ -362,7 +361,7 @@ export default function CreateReport({ auth }: { auth: any }) {
 
                             {/* TINGKAT KEPARAHAN (TETAP DROPDOWN) */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-800 mb-2">
+                                <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">
                                     Tingkat Keparahan
                                 </label>
                                 <select
@@ -373,7 +372,7 @@ export default function CreateReport({ auth }: { auth: any }) {
                                             e.target.value,
                                         )
                                     }
-                                    className="w-full rounded-xl border-slate-200 focus:border-emerald-400 sm:text-sm bg-slate-50 p-3"
+                                    className="w-full rounded-xl border-slate-200 dark:border-slate-800 focus:border-emerald-400 sm:text-sm bg-slate-50 dark:bg-slate-800/80 p-3 dark:text-slate-200"
                                 >
                                     <option value="">
                                         Pilih Keparahan (Opsional)
@@ -393,8 +392,8 @@ export default function CreateReport({ auth }: { auth: any }) {
 
                         {/* 4. Deskripsi Tambahan */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-1.5">
-                                <FileText className="w-4 h-4 text-slate-500" />{" "}
+                            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+                                <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />{" "}
                                 Keterangan Tambahan{" "}
                                 <span className="text-red-500">*</span>
                             </label>
@@ -403,7 +402,7 @@ export default function CreateReport({ auth }: { auth: any }) {
                                 onChange={(e) =>
                                     setData("description", e.target.value)
                                 }
-                                className="block w-full rounded-xl border-slate-200 focus:border-emerald-400 sm:text-sm bg-slate-50 p-3 resize-none h-24"
+                                className="block w-full rounded-xl border-slate-200 dark:border-slate-800 focus:border-emerald-400 sm:text-sm bg-slate-50 dark:bg-slate-800/80 p-3 resize-none h-24 dark:text-slate-200"
                                 placeholder="Cth: Bau menyengat dan menghalangi jalan"
                             />
                             {errors.description && (
@@ -414,10 +413,10 @@ export default function CreateReport({ auth }: { auth: any }) {
                         </div>
 
                         {/* Area Tombol */}
-                        <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto pb-4">
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3 mt-auto pb-4">
                             <Link
                                 href={route("dashboard")}
-                                className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800"
+                                className="px-5 py-2.5 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                             >
                                 Batal
                             </Link>

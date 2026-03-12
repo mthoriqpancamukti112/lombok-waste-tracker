@@ -30,6 +30,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
     onAuthClick,
     onCreateClick,
     user,
+    isDark = false,
     lang = "id", // Default ke id
 }) => {
     // Inisialisasi kamus
@@ -49,7 +50,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
     const ReportsItem = () => (
         <button
             onClick={() => onTabClick("reports")}
-            className={`flex flex-col items-center gap-1.5 outline-none transition-all min-w-[72px] ${activeTab === "reports" ? "text-[#a7e94a]" : "text-slate-400 hover:text-slate-600"}`}
+            className={`flex flex-col items-center gap-1.5 outline-none transition-all min-w-[72px] ${activeTab === "reports" ? "text-[#a7e94a]" : isDark ? "text-slate-500 hover:text-slate-400" : "text-slate-400 hover:text-slate-600"}`}
         >
             {activeTab === "reports" ? (
                 <ListCheckSolid className="w-7 h-7" />
@@ -80,7 +81,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
                         />
                     </div>
                     <span
-                        className={`text-[11px] font-bold tracking-tight max-w-[72px] truncate ${activeTab === "profile" ? "text-[#a7e94a]" : "text-slate-400"}`}
+                        className={`text-[11px] font-bold tracking-tight max-w-[72px] truncate ${activeTab === "profile" ? "text-[#a7e94a]" : isDark ? "text-slate-500" : "text-slate-400"}`}
                     >
                         {user?.name?.split(" ")[0] || t.profile}{" "}
                         {/* Menggunakan kamus */}
@@ -92,9 +93,9 @@ const BottomBar: React.FC<BottomBarProps> = ({
         return (
             <button
                 onClick={onAuthClick}
-                className="flex flex-col items-center gap-1.5 outline-none transition-all min-w-[72px] text-slate-400 hover:text-slate-600"
+                className={`flex flex-col items-center gap-1.5 outline-none transition-all min-w-[72px] ${isDark ? "text-slate-500 hover:text-slate-400" : "text-slate-400 hover:text-slate-600"}`}
             >
-                <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center ${isDark ? "bg-slate-800" : "bg-slate-100"}`}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -119,7 +120,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
     const ReportsItemDesktop = () => (
         <button
             onClick={() => onTabClick("reports")}
-            className={`flex flex-col items-center gap-1.5 outline-none transition-all min-w-[64px] ${activeTab === "reports" ? "text-[#a7e94a]" : "text-slate-400 hover:text-slate-600"}`}
+            className={`flex flex-col items-center gap-1.5 outline-none transition-all min-w-[64px] ${activeTab === "reports" ? "text-[#a7e94a]" : isDark ? "text-slate-500 hover:text-slate-400" : "text-slate-400 hover:text-slate-600"}`}
         >
             {activeTab === "reports" ? (
                 <ListCheckSolid className="w-6 h-6" />
@@ -149,7 +150,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
                         />
                     </div>
                     <span
-                        className={`text-[11px] font-bold tracking-tight max-w-[64px] truncate ${activeTab === "profile" ? "text-[#a7e94a]" : "text-slate-400"}`}
+                        className={`text-[11px] font-bold tracking-tight max-w-[64px] truncate ${activeTab === "profile" ? "text-[#a7e94a]" : isDark ? "text-slate-500" : "text-slate-400"}`}
                     >
                         {user?.name?.split(" ")[0] || t.profile}{" "}
                         {/* Menggunakan kamus */}
@@ -160,9 +161,9 @@ const BottomBar: React.FC<BottomBarProps> = ({
         return (
             <button
                 onClick={onAuthClick}
-                className="flex flex-col items-center gap-1.5 outline-none transition-all min-w-[64px] text-slate-400 hover:text-[#a7e94a]"
+                className={`flex flex-col items-center gap-1.5 outline-none transition-all min-w-[64px] ${isDark ? "text-slate-500 hover:text-[#a7e94a]" : "text-slate-400 hover:text-[#a7e94a]"}`}
             >
-                <div className="w-6 h-6 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center transition-colors group-hover:border-[#a7e94a]">
+                <div className={`w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center transition-colors group-hover:border-[#a7e94a] ${isDark ? "border-slate-700" : "border-slate-300"}`}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -213,7 +214,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
                     <div className="absolute left-1/2 -translate-x-1/2 -top-5 z-10">
                         <Fab size="lg" />
                     </div>
-                    <div className="bg-white border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.07)] flex items-center justify-between px-10 pt-5 pb-7">
+                    <div className={`${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"} border-t shadow-[0_-4px_24px_rgba(0,0,0,0.07)] flex items-center justify-between px-10 pt-5 pb-7`}>
                         <ReportsItem />
                         <div className="w-[72px]" />
                         <AuthItem />
@@ -235,7 +236,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
                         <div className="absolute left-1/2 -translate-x-1/2 -top-9 z-10">
                             <Fab size="sm" />
                         </div>
-                        <div className="bg-white/95 backdrop-blur-xl border border-slate-100 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.10)] flex items-center justify-between px-12 pt-5 pb-5">
+                        <div className={`${isDark ? "bg-slate-900/95 border-slate-800" : "bg-white/95 border-slate-100"} backdrop-blur-xl border rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.10)] flex items-center justify-between px-12 pt-5 pb-5`}>
                             <ReportsItemDesktop />
                             <div className="w-[64px]" />
                             <AuthItemDesktop />

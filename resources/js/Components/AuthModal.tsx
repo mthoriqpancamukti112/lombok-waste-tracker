@@ -9,16 +9,18 @@ interface AuthModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialTab?: "login" | "register";
-    lang?: "id" | "en"; // TAMBAHKAN PROP LANG
+    lang?: "id" | "en";
+    isDark?: boolean;
 }
 
 export default function AuthModal({
     isOpen,
     onClose,
     initialTab = "login",
-    lang = "id", // DEFAULT BAHASA
+    lang = "id",
+    isDark = false,
 }: AuthModalProps) {
-    const t = landingDict[lang]; // Inisialisasi kamus
+    const t = landingDict[lang];
 
     const [activeTab, setActiveTab] = useState<"login" | "register">(
         initialTab,
@@ -78,47 +80,45 @@ export default function AuthModal({
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-[440px] max-h-[85vh] overflow-y-auto bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className={`relative w-full max-w-[440px] max-h-[85vh] overflow-y-auto rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl animate-in fade-in zoom-in duration-300 ${isDark ? "bg-slate-900 border border-slate-800" : "bg-white"}`}>
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors z-10"
+                    className={`absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-full transition-colors z-10 ${isDark ? "bg-slate-800 hover:bg-slate-700" : "bg-slate-50 hover:bg-slate-100"}`}
                 >
-                    <X className="w-5 h-5 text-slate-500" />
+                    <X className={`w-5 h-5 ${isDark ? "text-slate-400" : "text-slate-500"}`} />
                 </button>
 
                 {/* Tabs Area */}
                 <div className="pt-8 px-6 pb-2 sm:pt-10 sm:px-8 sm:pb-4">
-                    <div className="flex bg-slate-50 p-1.5 rounded-2xl mb-6 sm:mb-8">
+                    <div className={`flex p-1.5 rounded-2xl mb-6 sm:mb-8 ${isDark ? "bg-slate-800" : "bg-slate-50"}`}>
                         <button
                             onClick={() => setActiveTab("login")}
-                            className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${
-                                activeTab === "login"
-                                    ? "bg-white text-slate-900 shadow-sm"
-                                    : "text-slate-400 hover:text-slate-600"
-                            }`}
+                            className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${activeTab === "login"
+                                ? (isDark ? "bg-slate-700 text-slate-100 shadow-sm" : "bg-white text-slate-900 shadow-sm")
+                                : "text-slate-400 hover:text-slate-600"
+                                }`}
                         >
                             {t.authLoginTab}
                         </button>
                         <button
                             onClick={() => setActiveTab("register")}
-                            className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${
-                                activeTab === "register"
-                                    ? "bg-white text-slate-900 shadow-sm"
-                                    : "text-slate-400 hover:text-slate-600"
-                            }`}
+                            className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${activeTab === "register"
+                                ? (isDark ? "bg-slate-700 text-slate-100 shadow-sm" : "bg-white text-slate-900 shadow-sm")
+                                : "text-slate-400 hover:text-slate-600"
+                                }`}
                         >
                             {t.authRegisterTab}
                         </button>
                     </div>
 
                     <div className="mb-6">
-                        <h2 className="text-2xl font-black text-slate-900">
+                        <h2 className={`text-2xl font-black ${isDark ? "text-slate-100" : "text-slate-900"}`}>
                             {activeTab === "login"
                                 ? t.authWelcome
                                 : t.authJoinUs}
                         </h2>
-                        <p className="text-sm text-slate-400 mt-1 font-medium">
+                        <p className={`text-sm mt-1 font-medium ${isDark ? "text-slate-400" : "text-slate-400"}`}>
                             {activeTab === "login"
                                 ? t.authLoginSubtitle
                                 : t.authRegisterSubtitle}
@@ -146,7 +146,7 @@ export default function AuthModal({
                                             )
                                         }
                                         placeholder="your@email.com"
-                                        className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                        className={`w-full border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-4 text-sm font-bold placeholder-slate-300 transition-all ${isDark ? "bg-slate-800 text-slate-100 placeholder:text-slate-500" : "bg-slate-50 text-slate-700"}`}
                                         required
                                     />
                                 </div>
@@ -173,7 +173,7 @@ export default function AuthModal({
                                             )
                                         }
                                         placeholder="••••••••"
-                                        className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-12 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                        className={`w-full border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-12 text-sm font-bold placeholder-slate-300 transition-all ${isDark ? "bg-slate-800 text-slate-100 placeholder:text-slate-500" : "bg-slate-50 text-slate-700"}`}
                                         required
                                     />
                                     <button
@@ -250,7 +250,7 @@ export default function AuthModal({
                                             )
                                         }
                                         placeholder={t.authNamePlaceholder}
-                                        className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                        className={`w-full border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-4 text-sm font-bold transition-all ${isDark ? "bg-slate-800 text-slate-100 placeholder:text-slate-500" : "bg-slate-50 text-slate-700 placeholder-slate-300"}`}
                                         required
                                     />
                                 </div>
@@ -277,7 +277,7 @@ export default function AuthModal({
                                             )
                                         }
                                         placeholder="your@email.com"
-                                        className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                        className={`w-full border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 pl-11 pr-4 text-sm font-bold transition-all ${isDark ? "bg-slate-800 text-slate-100 placeholder:text-slate-500" : "bg-slate-50 text-slate-700 placeholder-slate-300"}`}
                                         required
                                     />
                                 </div>
@@ -301,7 +301,7 @@ export default function AuthModal({
                                             )
                                         }
                                         placeholder="••••••••"
-                                        className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 px-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                        className={`w-full border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 px-4 text-sm font-bold transition-all ${isDark ? "bg-slate-800 text-slate-100 placeholder:text-slate-500" : "bg-slate-50 text-slate-700 placeholder-slate-300"}`}
                                         required
                                     />
                                 </div>
@@ -322,7 +322,7 @@ export default function AuthModal({
                                             )
                                         }
                                         placeholder="••••••••"
-                                        className="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 px-4 text-sm font-bold text-slate-700 placeholder-slate-300 transition-all"
+                                        className={`w-full border-none focus:ring-2 focus:ring-[#a7e94a] rounded-2xl py-3.5 px-4 text-sm font-bold transition-all ${isDark ? "bg-slate-800 text-slate-100 placeholder:text-slate-500" : "bg-slate-50 text-slate-700 placeholder-slate-300"}`}
                                         required
                                     />
                                 </div>
@@ -346,9 +346,9 @@ export default function AuthModal({
                     {/* Divider */}
                     <div className="relative my-8">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-100 italic" />
+                            <div className={`w-full border-t italic ${isDark ? "border-slate-800" : "border-slate-100"}`} />
                         </div>
-                        <div className="relative flex justify-center text-[10px] font-black text-slate-300 bg-white px-4 tracking-widest uppercase">
+                        <div className={`relative flex justify-center text-[10px] font-black px-4 tracking-widest uppercase ${isDark ? "bg-slate-900 text-slate-600" : "bg-white text-slate-300"}`}>
                             {t.authOrUse}
                         </div>
                     </div>
@@ -356,7 +356,7 @@ export default function AuthModal({
                     {/* Google Login */}
                     <a
                         href={route("google.redirect")}
-                        className="w-full flex items-center justify-center gap-3 bg-white border border-slate-100 py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:bg-slate-50 transition-all active:scale-[0.98]"
+                        className={`w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl shadow-sm transition-all active:scale-[0.98] ${isDark ? "bg-slate-800 border border-slate-700 hover:bg-slate-700" : "bg-white border border-slate-100 hover:bg-slate-50 hover:shadow-md"}`}
                     >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path
@@ -376,7 +376,7 @@ export default function AuthModal({
                                 fill="#EA4335"
                             />
                         </svg>
-                        <span className="text-sm font-bold text-slate-700">
+                        <span className={`text-sm font-bold ${isDark ? "text-slate-100" : "text-slate-700"}`}>
                             {t.authGoogleLogin}
                         </span>
                     </a>

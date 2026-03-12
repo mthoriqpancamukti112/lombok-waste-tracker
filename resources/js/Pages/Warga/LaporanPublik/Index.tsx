@@ -1,5 +1,5 @@
 import React, { useState, useEffect, FormEvent, useRef } from "react";
-import { Head, useForm, router } from "@inertiajs/react";
+import { Head, useForm, router, Link } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import WargaLayout from "@/Layouts/WargaLayout";
 import AOS from "aos";
@@ -42,6 +42,7 @@ interface Report {
             is_terverifikasi: boolean;
         };
     };
+    user_id?: number;
     likes: Like[];
     comments: Comment[];
 }
@@ -141,13 +142,13 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 transition-all duration-300">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden mb-6 transition-all duration-300">
             {/* Header Kartu (Info Pembuat) */}
-            <div className="p-4 sm:p-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+            <div className="p-4 sm:p-5 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
                 <div className="flex items-center gap-3">
                     <Link
                         href={route('laporan-publik.profile', report.user_id || (report as any).user?.id)}
-                        className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg flex-shrink-0 hover:bg-emerald-200 transition-colors"
+                        className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg flex-shrink-0 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
                     >
                         {report.user.name.charAt(0)}
                     </Link>
@@ -155,7 +156,7 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                         <div className="flex items-center gap-1.5">
                             <Link
                                 href={route('laporan-publik.profile', report.user_id || (report as any).user?.id)}
-                                className="font-bold text-slate-800 text-sm hover:text-emerald-600 transition-colors"
+                                className="font-bold text-slate-800 dark:text-slate-100 text-sm hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                             >
                                 {report.user.name}
                             </Link>
@@ -163,17 +164,17 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                             {!!report.user.warga?.is_terverifikasi && (
                                 <span
                                     title="Pelapor Terverifikasi (Reputasi Tinggi)"
-                                    className="flex items-center bg-blue-50 p-0.5 rounded-full"
+                                    className="flex items-center bg-blue-50 dark:bg-blue-900/30 p-0.5 rounded-full"
                                 >
                                     <ShieldCheck
-                                        className="w-4 h-4 text-blue-600"
+                                        className="w-4 h-4 text-blue-600 dark:text-blue-400"
                                         strokeWidth={2.5}
                                     />
                                 </span>
                             )}
                         </div>
 
-                        <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1 mt-0.5">
                             <Clock9 className="w-3.5 h-3.5" />{" "}
                             {formatDate(report.created_at)}
                         </p>
@@ -183,11 +184,11 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                 <span
                     className={`px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow-sm
                     ${report.status === "menunggu"
-                            ? "bg-red-100 text-red-600"
+                            ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400"
                             : report.status === "proses" ||
                                 report.status === "divalidasi"
-                                ? "bg-blue-100 text-blue-600"
-                                : "bg-[#a7e94a] text-slate-900"
+                                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
+                                : "bg-emerald-400 text-emerald-950 dark:bg-emerald-500 dark:text-emerald-950"
                         }`}
                 >
                     {report.status}
@@ -196,18 +197,18 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
 
             {/* Body Kartu (Konten Laporan) */}
             <div className="p-4 sm:p-5">
-                <p className="text-slate-700 text-sm leading-relaxed mb-4 whitespace-pre-wrap">
+                <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed mb-4 whitespace-pre-wrap">
                     {report.description || "Melaporkan tumpukan sampah."}
                 </p>
 
                 {/* Foto Laporan (Full Width Style) */}
-                <div className="w-full h-64 sm:h-80 bg-slate-100 rounded-xl overflow-hidden relative group">
+                <div className="w-full h-64 sm:h-80 bg-slate-100 dark:bg-slate-950 rounded-xl overflow-hidden relative group">
                     <img
                         src={`/storage/${report.photo_path}`}
                         alt="Kondisi Sampah"
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-mono px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-white/20 shadow-lg">
+                    <div className="absolute bottom-3 left-3 bg-black/60 dark:bg-black/80 backdrop-blur-md text-white text-[10px] font-mono px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-white/20 shadow-lg">
                         <Map className="w-3.5 h-3.5" />{" "}
                         {parseFloat(report.latitude).toFixed(4)},{" "}
                         {parseFloat(report.longitude).toFixed(4)}
@@ -216,16 +217,16 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
             </div>
 
             {/* Aksi (Like & Comment Bar) */}
-            <div className="px-4 sm:px-5 py-3 border-t border-slate-100 flex items-center gap-6">
+            <div className="px-4 sm:px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-6">
                 <button
                     onClick={handleLike}
                     className="flex items-center gap-2 text-sm font-bold group transition-colors"
                 >
                     <div
-                        className={`p-2 rounded-full transition-all ${isLiked ? "bg-red-50" : "bg-slate-50 group-hover:bg-red-50"}`}
+                        className={`p-2 rounded-full transition-all ${isLiked ? "bg-red-50 dark:bg-red-900/20" : "bg-slate-50 dark:bg-slate-800 group-hover:bg-red-50 dark:group-hover:bg-red-900/30"}`}
                     >
                         <Heart
-                            className={`w-5 h-5 transition-transform group-hover:scale-110 ${isLiked ? "text-red-500 fill-red-500" : "text-slate-400 group-hover:text-red-500"}`}
+                            className={`w-5 h-5 transition-transform group-hover:scale-110 ${isLiked ? "text-red-500 fill-red-500" : "text-slate-400 group-hover:text-red-500 dark:text-slate-500"}`}
                         />
                     </div>
                     <span
@@ -237,10 +238,10 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
 
                 <button
                     onClick={() => setShowComments(!showComments)}
-                    className="flex items-center gap-2 text-sm font-bold text-slate-500 group transition-colors"
+                    className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 group transition-colors"
                 >
-                    <div className="p-2 bg-slate-50 rounded-full group-hover:bg-emerald-50 transition-colors">
-                        <MessageX className="w-5 h-5 group-hover:text-emerald-500 transition-colors" />
+                    <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-full group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 transition-colors">
+                        <MessageX className="w-5 h-5 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors" />
                     </div>
                     <span className="group-hover:text-emerald-600 transition-colors">
                         {commentsCount} Diskusi
@@ -250,7 +251,7 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
 
             {/* Section Komentar (Animasi Expand) */}
             {showComments && (
-                <div className="bg-slate-50 border-t border-slate-100 p-4 sm:p-5 animate-in slide-in-from-top-2 duration-300">
+                <div className="bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 p-4 sm:p-5 animate-in slide-in-from-top-2 duration-300">
                     {/* List Komentar */}
                     {report.comments.length === 0 ? (
                         <p className="text-xs text-center text-slate-400 italic py-2">
@@ -266,19 +267,19 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                                     key={comment.id}
                                     className="flex gap-3 mb-4"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xs font-bold flex-shrink-0 z-10 relative">
+                                    <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 text-xs font-bold flex-shrink-0 z-10 relative">
                                         {comment.user.name.charAt(0)}
                                     </div>
                                     <div className="flex-1">
                                         {/* KOMENTAR UTAMA */}
-                                        <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm inline-block min-w-full sm:min-w-[80%]">
+                                        <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800 shadow-sm inline-block min-w-full sm:min-w-[80%]">
                                             <div className="flex justify-between items-start mb-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-xs font-bold text-slate-800">
+                                                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                                                         {comment.user.name}
                                                     </span>
                                                     {isAuthor && (
-                                                        <span className="text-[8px] bg-slate-800 text-white px-1.5 py-0.5 rounded uppercase tracking-wider font-extrabold">
+                                                        <span className="text-[8px] bg-slate-800 dark:bg-emerald-500 dark:text-emerald-950 text-white px-1.5 py-0.5 rounded uppercase tracking-wider font-extrabold">
                                                             Pembuat
                                                         </span>
                                                     )}
@@ -289,7 +290,7 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                                                     )}
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-slate-600 leading-relaxed">
+                                            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                                                 {renderCommentBody(
                                                     comment.body,
                                                 )}
@@ -304,7 +305,7 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                                                         comment.user.name,
                                                     )
                                                 }
-                                                className="text-[10px] font-bold text-slate-400 hover:text-emerald-600 transition-colors"
+                                                className="text-[10px] font-bold text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                                             >
                                                 Balas
                                             </button>
@@ -329,17 +330,17 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                                                                     className="flex gap-2 relative"
                                                                 >
                                                                     {/* Garis Pembelok L siku */}
-                                                                    <div className="absolute -left-6 top-0 w-6 h-4 border-l-2 border-b-2 border-slate-200 rounded-bl-lg"></div>
+                                                                    <div className="absolute -left-6 top-0 w-6 h-4 border-l-2 border-b-2 border-slate-200 dark:border-slate-800 rounded-bl-lg"></div>
 
-                                                                    <div className="w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-bold flex-shrink-0 relative z-10">
+                                                                    <div className="w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 text-[10px] font-bold flex-shrink-0 relative z-10">
                                                                         {reply.user.name.charAt(
                                                                             0,
                                                                         )}
                                                                     </div>
-                                                                    <div className="flex-1 bg-white p-2.5 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm">
+                                                                    <div className="flex-1 bg-white dark:bg-slate-900 p-2.5 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800 shadow-sm">
                                                                         <div className="flex justify-between items-start mb-0.5">
                                                                             <div className="flex items-center gap-1.5">
-                                                                                <span className="text-[11px] font-bold text-slate-800">
+                                                                                <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
                                                                                     {
                                                                                         reply
                                                                                             .user
@@ -347,13 +348,13 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                                                                                     }
                                                                                 </span>
                                                                                 {isReplyAuthor && (
-                                                                                    <span className="text-[8px] bg-slate-800 text-white px-1 py-0.5 rounded uppercase tracking-wider font-extrabold">
+                                                                                    <span className="text-[8px] bg-slate-800 dark:bg-emerald-500 dark:text-emerald-950 text-white px-1 py-0.5 rounded uppercase tracking-wider font-extrabold">
                                                                                         Pembuat
                                                                                     </span>
                                                                                 )}
                                                                             </div>
                                                                         </div>
-                                                                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                                                                        <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                                                                             {renderCommentBody(
                                                                                 reply.body,
                                                                             )}
@@ -375,7 +376,7 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                     <div className="relative mt-2">
                         {/* Indikator Sedang Membalas */}
                         {data.parent_id && (
-                            <div className="flex justify-between items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-100 border-b-0 px-4 py-1.5 rounded-t-xl -mb-3 pt-2 pb-4">
+                            <div className="flex justify-between items-center text-[10px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 border-b-0 px-4 py-1.5 rounded-t-xl -mb-3 pt-2 pb-4">
                                 <span className="font-bold">
                                     Membalas komentar...
                                 </span>
@@ -403,7 +404,7 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
                                     setData("body", e.target.value)
                                 }
                                 placeholder="Tulis komentar/tanggapan..."
-                                className="w-full bg-white border border-slate-200 shadow-sm rounded-full pl-4 pr-12 py-2.5 text-sm focus:border-emerald-400 focus:ring-emerald-400 transition-colors"
+                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-full pl-4 pr-12 py-2.5 text-sm focus:border-emerald-400 focus:ring-emerald-400 dark:text-slate-200 transition-colors"
                             />
                             <button
                                 type="submit"
@@ -445,11 +446,11 @@ export default function FeedLaporanPublik({
             auth={auth}
             header={
                 <div>
-                    <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    <h2 className="text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
                         <MessageX className="w-7 h-7 text-emerald-500" />
                         Forum Laporan Publik
                     </h2>
-                    <p className="text-xs lg:text-sm text-slate-500 mt-1">
+                    <p className="text-xs lg:text-sm text-slate-500 dark:text-slate-400 mt-1">
                         Dukung dan pantau laporan dari warga lainnya.
                     </p>
                 </div>
@@ -466,8 +467,8 @@ export default function FeedLaporanPublik({
                     <button
                         onClick={() => handleFilter("semua")}
                         className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${currentFilter === "semua"
-                                ? "bg-slate-800 text-white"
-                                : "bg-white text-slate-500 hover:bg-slate-100 border border-slate-200"
+                            ? "bg-slate-800 dark:bg-emerald-500 text-white dark:text-emerald-950"
+                            : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800"
                             }`}
                     >
                         Semua Laporan
@@ -475,8 +476,8 @@ export default function FeedLaporanPublik({
                     <button
                         onClick={() => handleFilter("menunggu")}
                         className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${currentFilter === "menunggu"
-                                ? "bg-red-500 text-white"
-                                : "bg-white text-slate-500 hover:bg-red-50 hover:text-red-500 border border-slate-200"
+                            ? "bg-red-500 text-white"
+                            : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/40 hover:text-red-500 border border-slate-200 dark:border-slate-800"
                             }`}
                     >
                         Menunggu
@@ -484,8 +485,8 @@ export default function FeedLaporanPublik({
                     <button
                         onClick={() => handleFilter("proses")}
                         className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${currentFilter === "proses"
-                                ? "bg-blue-500 text-white"
-                                : "bg-white text-slate-500 hover:bg-blue-50 hover:text-blue-500 border border-slate-200"
+                            ? "bg-blue-500 text-white"
+                            : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/40 hover:text-blue-500 border border-slate-200 dark:border-slate-800"
                             }`}
                     >
                         Diproses
@@ -493,8 +494,8 @@ export default function FeedLaporanPublik({
                     <button
                         onClick={() => handleFilter("selesai")}
                         className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${currentFilter === "selesai"
-                                ? "bg-green-500 text-white"
-                                : "bg-white text-slate-500 hover:bg-green-50 hover:text-green-500 border border-slate-200"
+                            ? "bg-green-500 text-white"
+                            : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-green-50 dark:hover:bg-green-900/40 hover:text-green-500 border border-slate-200 dark:border-slate-800"
                             }`}
                     >
                         Selesai
@@ -504,15 +505,15 @@ export default function FeedLaporanPublik({
                 {reports.length === 0 ? (
                     <div
                         data-aos="zoom-in"
-                        className="bg-white p-12 rounded-3xl border border-slate-100 shadow-sm text-center"
+                        className="bg-white dark:bg-slate-900 p-12 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm text-center"
                     >
-                        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Map className="w-10 h-10 text-emerald-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-800 mb-2">
+                        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
                             Belum Ada Laporan
                         </h3>
-                        <p className="text-slate-500 text-sm">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">
                             Jadilah warga pertama yang melaporkan kondisi
                             lingkungan di Mataram!
                         </p>

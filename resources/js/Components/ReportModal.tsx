@@ -53,6 +53,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
         longitude: "" as string | number,
         address: "",
         severity_level: "",
+        needs: [] as string[],
     });
 
     // ── Local UI State ────────────────────────────
@@ -97,10 +98,13 @@ const ReportModal: React.FC<ReportModalProps> = ({
         zoom: 12,
     });
 
-    // Sync local urgency/location/needs to form data
     useEffect(() => {
         setData("severity_level", urgency);
     }, [urgency]);
+
+    useEffect(() => {
+        setData("needs", needs);
+    }, [needs]);
 
     useEffect(() => {
         if (selectedLocation) {
@@ -514,25 +518,18 @@ const ReportModal: React.FC<ReportModalProps> = ({
                     </div>
 
                     <div
-                        className={`flex items-center justify-between px-6 py-4 border-b ${borderColor}`}
+                        className={`flex items-center justify-center px-6 py-4 border-b ${borderColor}`}
                     >
-                        <button
-                            onClick={onClose}
-                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${isDark ? "bg-ds-border-bold hover:bg-ds-mono text-white" : "bg-ds-disabled-bg hover:bg-ds-negative-subtle hover:text-ds-negative text-ds-mono"}`}
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
                         <h2
                             className={`text-lg font-bold tracking-tight ${textPrimary} flex items-center gap-2`}
                         >
                             {t.modalTitle}
                         </h2>
-                        <div className="w-10" />
                     </div>
 
                     <div
                         ref={scrollRef}
-                        className="flex-1 overflow-y-auto px-6 py-6"
+                        className="flex-1 overflow-y-auto px-6 pt-6 pb-0"
                     >
                         {/* GRID 2 KOLOM UNTUK DESKTOP */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -709,8 +706,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 getCurrentLocation();
                                             }}
                                             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all ${locationMode === "current"
-                                                    ? `${cardBg} shadow-sm ${textPrimary} ${isDark ? "" : "shadow-ds-border/60"}`
-                                                    : textSecondary
+                                                ? `${cardBg} shadow-sm ${textPrimary} ${isDark ? "" : "shadow-ds-border/60"}`
+                                                : textSecondary
                                                 }`}
                                         >
                                             <MapPinUserInside className="w-3.5 h-3.5" />{" "}
@@ -722,8 +719,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 setLocationMode("pick")
                                             }
                                             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all ${locationMode === "pick"
-                                                    ? `bg-ds-primary-subtle text-ds-primary-pressed shadow-sm`
-                                                    : textSecondary
+                                                ? `bg-ds-primary-subtle text-ds-primary-pressed shadow-sm`
+                                                : textSecondary
                                                 }`}
                                         >
                                             <MapPinned className="w-3.5 h-3.5" />{" "}
@@ -764,7 +761,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 type="button"
                                                 onClick={() => searchLocation()}
                                                 disabled={isSearching}
-                                                className="w-10 h-10 rounded-xl bg-ds-primary/15 flex items-center justify-center hover:bg-ds-primary/25 transition-colors flex-shrink-0"
+                                                className="h-[42px] px-4 bg-ds-primary/15 rounded-xl flex items-center justify-center hover:bg-ds-primary/25 transition-all text-xs font-bold text-ds-primary-pressed flex-shrink-0"
                                             >
                                                 {isSearching ? (
                                                     <svg
@@ -787,19 +784,22 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                         />
                                                     </svg>
                                                 ) : (
-                                                    <svg
-                                                        className="w-4 h-4 text-ds-primary-pressed"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                        strokeWidth={2.5}
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                                                        />
-                                                    </svg>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <svg
+                                                            className="w-4 h-4"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                            strokeWidth={2.5}
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                                                            />
+                                                        </svg>
+                                                        <span>Cari</span>
+                                                    </div>
                                                 )}
                                             </button>
                                         </div>
@@ -838,7 +838,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                                                 result,
                                                                             )
                                                                         }
-                                                                        className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-ds-primary-subtle transition-colors ${i < searchResults.length - 1 ? `border-b ${borderColor}` : ""}`}
+                                                                        className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-ds-primary-subtle dark:hover:bg-slate-800 transition-colors ${i < searchResults.length - 1 ? `border-b ${borderColor}` : ""}`}
                                                                     >
                                                                         <div className="w-8 h-8 rounded-full bg-ds-primary-subtle flex items-center justify-center flex-shrink-0 mt-0.5">
                                                                             <svg
@@ -1101,10 +1101,10 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                         <button
                                             type="button"
                                             onClick={addNeed}
-                                            className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 border border-slate-200 transition-colors flex-shrink-0"
+                                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${isDark ? "bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300" : "bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600"}`}
                                         >
                                             <svg
-                                                className="w-5 h-5 text-slate-600"
+                                                className={`w-5 h-5 ${isDark ? "text-slate-400" : "text-slate-600"}`}
                                                 fill="none"
                                                 viewBox="0 0 24 24"
                                                 stroke="currentColor"
@@ -1119,7 +1119,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                             {needs.map((need) => (
                                                 <span
                                                     key={need}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold"
+                                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${isDark ? "bg-slate-800 text-slate-300 border-slate-700" : "bg-slate-100 text-slate-700 border-slate-200"}`}
                                                 >
                                                     {need}
                                                     <button
@@ -1140,12 +1140,12 @@ const ReportModal: React.FC<ReportModalProps> = ({
                     </div>
 
                     <div
-                        className={`px-6 py-5 border-t ${borderColor} flex items-center justify-end gap-3 bg-slate-50/50`}
+                        className={`px-6 py-5 border-t ${borderColor} flex items-center justify-end gap-3 ${isDark ? "bg-slate-900" : "bg-slate-50/50"}`}
                     >
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-slate-800 transition-colors"
+                            className={`px-5 py-2.5 font-bold text-sm transition-colors ${isDark ? "text-slate-400 hover:text-slate-100" : "text-slate-500 hover:text-slate-800"}`}
                         >
                             {t.cancel}
                         </button>
@@ -1156,8 +1156,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                 isSubmitting || isScanningAI || isAiRejected
                             }
                             className={`py-3 px-8 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${isScanningAI || isAiRejected || isSubmitting
-                                    ? `bg-slate-300 text-slate-500 cursor-not-allowed shadow-none`
-                                    : "bg-[#a7e94a] text-slate-900 hover:bg-[#92d03b] hover:shadow-lg hover:-translate-y-0.5"
+                                ? `${isDark ? "bg-slate-800 text-slate-600" : "bg-slate-300 text-slate-500"} cursor-not-allowed shadow-none`
+                                : "bg-[#a7e94a] text-slate-900 hover:bg-[#92d03b] hover:shadow-lg hover:-translate-y-0.5"
                                 }`}
                         >
                             {isScanningAI ? (

@@ -121,6 +121,10 @@ export default function Welcome({
         lng: number;
         address: string;
     } | null>(null);
+    const [userLocation, setUserLocation] = useState<{
+        lat: number;
+        lng: number;
+    } | null>(null);
 
     const mapRef = useRef<{
         centerOnUser: () => void;
@@ -155,6 +159,23 @@ export default function Welcome({
             document.documentElement.classList.remove("dark");
         }
     }, [isDarkMode]);
+
+    // Auto-detect location on mount
+    useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                },
+                (error) => {
+                    console.warn("Geolocation error:", error);
+                }
+            );
+        }
+    }, []);
 
     // Persist language
     useEffect(() => {
@@ -303,7 +324,7 @@ export default function Welcome({
     const mobileBtnBase =
         "w-10 h-10 shadow-[0_4px_14px_rgba(0,0,0,0.07)] border border-slate-100 rounded-xl flex items-center justify-center transition-all active:scale-90";
     const desktopBtn =
-        "w-12 h-12 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-slate-100 rounded-2xl flex items-center justify-center transition-all hover:shadow-lg hover:scale-105 active:scale-95";
+        "w-12 h-12 bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center transition-all hover:shadow-lg hover:scale-105 active:scale-95";
 
     const openAuthModal = (tab: "login" | "register" = "login") => {
         setAuthModalTab(tab);
@@ -395,6 +416,7 @@ export default function Welcome({
                                 setIsReportModalOpen(true);
                             }
                         }}
+                        onGeolocate={(lat, lng) => setUserLocation({ lat, lng })}
                         lang={lang}
                     />
                 </div>
@@ -474,7 +496,7 @@ export default function Welcome({
                         {/* Language */}
                         <button
                             onClick={toggleLang}
-                            className={`${mobileBtnBase} bg-white gap-0.5 px-1`}
+                            className={`${mobileBtnBase} bg-white dark:bg-slate-800 dark:border-slate-700 gap-0.5 px-1`}
                         >
                             <Globe className="w-[15px] h-[15px] text-slate-500" />
                             <span className="text-[11px] font-black text-slate-600 tracking-tighter">
@@ -489,7 +511,7 @@ export default function Welcome({
                                     onClick={() =>
                                         setShowNotifications(!showNotifications)
                                     }
-                                    className={`${mobileBtnBase} bg-white text-slate-500 relative`}
+                                    className={`${mobileBtnBase} bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-500 relative`}
                                 >
                                     {unreadNotifications.length > 0 ? (
                                         <BellSolid className="w-[18px] h-[18px] text-[#a7e94a]" />
@@ -497,7 +519,7 @@ export default function Welcome({
                                         <Bell className="w-[18px] h-[18px]" />
                                     )}
                                     {unreadNotifications.length > 0 && (
-                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
+                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
                                     )}
                                 </button>
                                 {showNotifications && (
@@ -519,7 +541,7 @@ export default function Welcome({
                                         </div>
                                         <div className="max-h-[60vh] overflow-y-auto p-2 flex flex-col gap-1">
                                             {auth.user.notifications?.length ===
-                                            0 ? (
+                                                0 ? (
                                                 <div className="p-6 text-center text-xs text-slate-400">
                                                     Tidak ada notifikasi
                                                 </div>
@@ -593,7 +615,7 @@ export default function Welcome({
                         {/* Dark mode */}
                         <button
                             onClick={toggleDark}
-                            className={`${mobileBtnBase} bg-white text-slate-500`}
+                            className={`${mobileBtnBase} bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-500`}
                         >
                             {isDarkMode ? (
                                 <MoonSolid className="w-[18px] h-[18px]" />
@@ -605,7 +627,7 @@ export default function Welcome({
                         {/* Geolocate */}
                         <button
                             onClick={handleGeolocate}
-                            className={`${mobileBtnBase} bg-white text-slate-500`}
+                            className={`${mobileBtnBase} bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-500`}
                         >
                             <CrosshairSolid className="w-[18px] h-[18px]" />
                         </button>
@@ -618,14 +640,14 @@ export default function Welcome({
                                         !showMobileMapSettings,
                                     )
                                 }
-                                className={`${mobileBtnBase} ${showMobileMapSettings ? "bg-[#a7e94a] text-white border-[#a7e94a]" : "text-slate-500 bg-white"}`}
+                                className={`${mobileBtnBase} ${showMobileMapSettings ? "bg-[#a7e94a] text-white border-[#a7e94a]" : "text-slate-500 bg-white dark:bg-slate-800 dark:border-slate-700"}`}
                             >
                                 <LayersThree className="w-[18px] h-[18px]" />
                             </button>
 
                             {/* Dropdown - Expands Downward */}
                             {showMobileMapSettings && (
-                                <div className="absolute top-12 right-0 z-50 flex flex-col gap-2 bg-white/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-slate-100 animate-in slide-in-from-top-2 duration-200">
+                                <div className="absolute top-12 right-0 z-50 flex flex-col gap-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 animate-in slide-in-from-top-2 duration-200">
                                     <button
                                         onClick={() =>
                                             toggleSetting("showMarkers")
@@ -763,7 +785,7 @@ export default function Welcome({
                                         <Bell className="w-5 h-5" />
                                     )}
                                     {unreadNotifications.length > 0 && (
-                                        <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                                        <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
                                     )}
                                 </button>
                                 {showNotifications && (
@@ -785,7 +807,7 @@ export default function Welcome({
                                         </div>
                                         <div className="max-h-96 overflow-y-auto p-2 flex flex-col gap-1">
                                             {auth.user.notifications?.length ===
-                                            0 ? (
+                                                0 ? (
                                                 <div className="p-6 text-center text-sm text-slate-400">
                                                     Tidak ada notifikasi
                                                 </div>
@@ -868,27 +890,27 @@ export default function Welcome({
                             )}
                         </button>
 
-                        <div className="h-8 w-px bg-slate-200 mx-1" />
+                        <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
 
                         {/* Map Settings Controls */}
-                        <div className="flex items-center gap-1.5 bg-slate-50/50 p-1 rounded-2xl border border-slate-100 shadow-inner">
+                        <div className="flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner">
                             <button
                                 onClick={() => toggleSetting("showMarkers")}
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showMarkers ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white hover:text-slate-600"}`}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showMarkers ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-200"}`}
                                 title="Tampilkan Marker"
                             >
                                 <MapPin className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => toggleSetting("showHeatmap")}
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showHeatmap ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white hover:text-slate-600"}`}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showHeatmap ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-200"}`}
                                 title="Tampilkan Heatmap"
                             >
                                 <Flame className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => toggleSetting("showDangerZones")}
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showDangerZones ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white hover:text-slate-600"}`}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showDangerZones ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-200"}`}
                                 title="Tampilkan Zona Bahaya"
                             >
                                 <DangerTriangle className="w-5 h-5" />
@@ -897,7 +919,7 @@ export default function Welcome({
                                 onClick={() =>
                                     toggleSetting("showDensityZones")
                                 }
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showDensityZones ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white hover:text-slate-600"}`}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showDensityZones ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-200"}`}
                                 title="Tampilkan Kepadatan Sampah"
                             >
                                 <Grid className="w-5 h-5" />
@@ -939,6 +961,7 @@ export default function Welcome({
                         isOpen={activePanel === "reports"}
                         onClose={() => setActivePanel("none")}
                         title="Daftar Laporan"
+                        isDark={isDarkMode}
                     >
                         <ReportListContent
                             reports={reports}
@@ -948,6 +971,7 @@ export default function Welcome({
                             currentUserId={auth.user?.id}
                             onAuthRequired={() => openAuthModal("login")}
                             onSelectReport={handleReportSelect}
+                            userLocation={userLocation}
                             lang={lang}
                         />
                     </BottomSheet>
@@ -957,6 +981,7 @@ export default function Welcome({
                             isOpen={true}
                             onClose={() => setActivePanel("none")}
                             title="My Account"
+                            isDark={isDarkMode}
                         >
                             <ProfileContent
                                 user={auth.user}
@@ -974,6 +999,7 @@ export default function Welcome({
                         isOpen={activePanel === "report-detail"}
                         onClose={() => setActivePanel("none")}
                         title="Detail Laporan"
+                        isDark={isDarkMode}
                     >
                         {isLoadingDetail ? (
                             <div className="py-12 flex items-center justify-center">
@@ -984,6 +1010,7 @@ export default function Welcome({
                                 report={selectedReportDetail.report}
                                 comments={selectedReportDetail.comments}
                                 isLiked={selectedReportDetail.isLiked}
+                                userLocation={userLocation}
                                 isDark={isDarkMode}
                                 lang={lang}
                                 formatDate={formatDate}
@@ -1009,6 +1036,7 @@ export default function Welcome({
                     onCreateClick={() => setIsReportModalOpen(true)}
                     user={auth.user}
                     lang={lang}
+                    isDark={isDarkMode}
                 />
 
                 {/* ─── Global Auth Modal ─── */}
@@ -1017,6 +1045,7 @@ export default function Welcome({
                     onClose={() => setIsAuthModalOpen(false)}
                     initialTab={authModalTab}
                     lang={lang}
+                    isDark={isDarkMode}
                 />
 
                 <ReportModal

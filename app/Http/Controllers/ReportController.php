@@ -102,6 +102,19 @@ class ReportController extends Controller
             }
         }
 
+        // Ekstrak kota dari address (misal: "Mataram", "Lombok Barat")
+        $city = 'Lombok';
+        if ($request->address) {
+            $parts = explode(',', $request->address);
+            foreach ($parts as $part) {
+                $trimmed = trim($part);
+                if (preg_match('/(Mataram|Lombok|Kec\.|Kota)/i', $trimmed)) {
+                    $city = $trimmed;
+                    break;
+                }
+            }
+        }
+
         $report = Report::create([
             'user_id' => Auth::id(),
             'kaling_id' => $kalingId,
@@ -110,9 +123,11 @@ class ReportController extends Controller
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'address' => $request->address,
+            'city' => $city,
             'status' => 'menunggu',
             'severity_level' => $severity,
             'waste_type' => $request->waste_type,
+            'needs' => $request->needs,
         ]);
 
         // --- NOTIFIKASI WHATSAPP KE KALING ---
@@ -223,18 +238,8 @@ class ReportController extends Controller
 
         // Notifikasi
         if ($report->user_id !== Auth::id()) {
-            AppNotification::create([
-                'user_id' => $report->user_id,
-                'type' => 'report_status_updated',
-                'notifiable_type' => Report::class,
-                'notifiable_id' => $report->id,
-                'data' => [
-                    'report_id' => $report->id,
-                    'old_status' => $oldStatus,
-                    'new_status' => $newStatus,
-                    'message' => 'Status laporan Anda telah diperbarui menjadi: ' . $newStatus,
-                ],
-            ]);
+            $pesan = 'Status laporan Anda telah diperbarui menjadi: ' . $newStatus;
+            $report->user->notify(new ReportStatusUpdated($report, $pesan));
         }
 
         // Eksekusi

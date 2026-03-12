@@ -19,11 +19,17 @@ class Report extends Model
         'latitude',
         'longitude',
         'address',
+        'city',
         'status',
         'severity_level',
         'waste_type',
+        'needs',
         'resolved_photo_path',
         'resolved_notes',
+    ];
+
+    protected $casts = [
+        'needs' => 'array',
     ];
 
     protected $appends = ['likes_count', 'comments_count'];

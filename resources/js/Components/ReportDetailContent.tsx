@@ -24,7 +24,9 @@ interface Report {
     status: string;
     severity_level?: string;
     waste_type?: string;
+    needs?: string[];
     address?: string;
+    city?: string;
     photo_path: string;
     user: User;
     likes_count: number;
@@ -40,6 +42,7 @@ interface ReportDetailContentProps {
     isDark?: boolean;
     formatDate: (d: string) => string;
     lang?: "id" | "en";
+    userLocation?: { lat: number; lng: number } | null;
 }
 
 const AvatarImage = ({ user }: { user: User }) => {
@@ -55,6 +58,7 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
     isDark = false,
     formatDate,
     lang = "id",
+    userLocation,
 }) => {
     const t = landingDict[lang];
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -68,10 +72,28 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
     const commentBg = isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50/80 border-slate-100';
 
     const urgencyColor = report.severity_level === 'high'
-        ? 'border-red-400 text-red-500 bg-red-50'
+        ? (isDark ? 'border-red-500/20 text-red-400 bg-red-500/10' : 'border-red-400 text-red-500 bg-red-50')
         : report.severity_level === 'moderate'
-            ? 'border-orange-400 text-orange-500 bg-orange-50'
-            : 'border-[#a7e94a] text-[#5a8a1a] bg-[#a7e94a]/10';
+            ? (isDark ? 'border-orange-500/20 text-orange-400 bg-orange-500/10' : 'border-orange-400 text-orange-500 bg-orange-50')
+            : (isDark ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/10' : 'border-[#a7e94a] text-[#5a8a1a] bg-[#a7e94a]/10');
+
+    const distanceText = useMemo(() => {
+        if (!userLocation) return null;
+        const R = 6371e3; // metres
+        const φ1 = (userLocation.lat * Math.PI) / 180;
+        const φ2 = (parseFloat(report.latitude) * Math.PI) / 180;
+        const Δφ = ((parseFloat(report.latitude) - userLocation.lat) * Math.PI) / 180;
+        const Δλ = ((parseFloat(report.longitude) - userLocation.lng) * Math.PI) / 180;
+
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        const d = R * c; // in metres
+        if (d < 1000) return `${Math.round(d)} m`;
+        return `${(d / 1000).toFixed(1)} km`;
+    }, [userLocation, report.latitude, report.longitude]);
 
     const submitComment = (e: React.FormEvent) => {
         e.preventDefault();
@@ -96,12 +118,25 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                     <h2 className="text-lg font-black tracking-tight">
                         {lang === 'id' ? 'Laporan' : 'Report'} #{report.id} &nbsp;&bull;&nbsp; {formatDate(report.created_at)}
                     </h2>
+
+                    {distanceText && (
+                        <div className="relative group cursor-help">
+                            <span className={`px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider flex items-center gap-2 transition-all hover:scale-105 ${isDark ? 'bg-[#a7e94a]/10 text-[#a7e94a] border-[#a7e94a]/20 shadow-[0_0_20px_rgba(167,233,74,0.1)]' : 'bg-[#a7e94a] text-slate-900 border-[#a7e94a] shadow-lg shadow-[#a7e94a]/20'}`}>
+                                <MapPin className="w-3.5 h-3.5" />
+                                {distanceText}
+                            </span>
+                        </div>
+                    )}
+
                     <span className={`px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wide ${urgencyColor}`}>
                         {report.severity_level === 'high' ? t.urgencyHigh :
                             report.severity_level === 'moderate' ? t.urgencyModerate :
                                 t.urgencyLow}
                     </span>
-                    <span className={`px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wide ${report.status === 'selesai' ? 'bg-[#a7e94a]/20 text-ds-primary border-[#a7e94a]/30' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+
+                    <span className={`px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wide ${report.status === 'selesai'
+                        ? (isDark ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-[#a7e94a]/20 text-ds-primary border-[#a7e94a]/30')
+                        : (isDark ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-blue-50 text-blue-600 border-blue-100')}`}>
                         {t.status}: {report.status === 'selesai' ? t.statusCompleted :
                             report.status === 'proses' ? t.statusInProcess :
                                 t.statusWaiting}
@@ -134,6 +169,21 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                                     <span className={`text-sm ${labelColor}`}>:</span>
                                     <span className={`text-sm ${valueColor}`}>{report.longitude}</span>
                                 </div>
+
+                                {distanceText && (
+                                    <div className="pt-2 mt-1 border-t border-dashed border-slate-100 dark:border-slate-700/50">
+                                        <p className="text-[11px] font-bold text-ds-primary flex items-center gap-1.5">
+
+                                            <span className="text-[15px]">
+                                                {distanceText}
+                                            </span>
+                                            <span className=''>
+
+                                                {t.distanceFromLocation}
+                                            </span>
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </section>
 
@@ -159,14 +209,18 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                                 <span className={`text-sm font-bold ${labelColor}`}>{t.needs}</span>
                             </div>
                             <div className="pl-6 flex flex-wrap gap-2">
-                                {[lang === 'id' ? 'Penanganan Segera' : 'Immediate Care', lang === 'id' ? 'Pembersihan' : 'Cleaning'].map(need => (
+                                {(report.needs && report.needs.length > 0) ? report.needs.map(need => (
                                     <span
                                         key={need}
-                                        className="px-4 py-1.5 rounded-full text-xs font-bold text-[#5a8a1a] bg-[#a7e94a]/10 border border-[#a7e94a]/20"
+                                        className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${isDark ? "bg-slate-800 text-slate-400 border-slate-700" : "text-[#5a8a1a] bg-[#a7e94a]/10 border-[#a7e94a]/20"}`}
                                     >
                                         {need}
                                     </span>
-                                ))}
+                                )) : (
+                                    <span className={`text-xs ${subtle} italic`}>
+                                        {lang === 'id' ? 'Tidak ada kebutuhan khusus' : 'No specific needs'}
+                                    </span>
+                                )}
                             </div>
                         </section>
 
@@ -175,13 +229,13 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                             <span className={`text-sm font-bold ${labelColor} block mb-3`}>{lang === 'id' ? 'Pelapor' : 'Reporter'}</span>
                             <div className={`px-4 py-3 rounded-2xl border flex items-center justify-between ${commentBg}`}>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                                    <div className={`w-9 h-9 rounded-full overflow-hidden shrink-0 ${isDark ? "bg-slate-800 border border-slate-700" : "bg-slate-200"}`}>
                                         <AvatarImage user={report.user} />
                                     </div>
                                     <span className="text-sm font-bold">{report.user.name}</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-slate-400">
-                                    <span className="text-xs">{lang === 'id' ? 'Warga Mataram' : 'Residents of Mataram'}</span>
+                                    <span className="text-xs">{lang === 'id' ? `Warga ${report.city || 'Lombok'}` : `Residents of ${report.city || 'Lombok'}`}</span>
                                     <MapPin className="w-3.5 h-3.5" />
                                 </div>
                             </div>
@@ -195,14 +249,14 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={handleLike}
-                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${isLiked ? 'bg-pink-500 text-white shadow-lg shadow-pink-200' : 'bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-500'}`}
+                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${isLiked ? 'bg-pink-500 text-white shadow-lg shadow-pink-200' : `${isDark ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-500'}`}`}
                                 >
                                     <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-white' : ''}`} />
                                     {report.likes_count} {t.likes}
                                 </button>
                             </div>
                         </div>
-                        <div className="rounded-3xl overflow-hidden bg-slate-100 border border-slate-100 shadow-sm relative group">
+                        <div className={`rounded-3xl overflow-hidden border shadow-sm relative group ${isDark ? "bg-slate-800 border-slate-700" : "bg-slate-100 border-slate-100"}`}>
                             <img
                                 src={`/storage/${report.photo_path}`}
                                 className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -224,7 +278,7 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                                 value={data.body}
                                 onChange={e => setData('body', e.target.value)}
                                 placeholder={t.addComment}
-                                className={`w-full p-4 bg-slate-50 border-transparent rounded-[20px] text-xs font-medium focus:bg-white focus:ring-4 focus:ring-ds-primary/10 focus:border-ds-primary transition-all resize-none ${errors.body ? 'ring-2 ring-red-100' : ''}`}
+                                className={`w-full p-4 ${isDark ? 'bg-slate-800 text-slate-100 placeholder:text-slate-500' : 'bg-slate-50 text-slate-900'} border-transparent rounded-[20px] text-xs font-medium focus:bg-white dark:focus:bg-slate-700 focus:ring-4 focus:ring-ds-primary/10 focus:border-ds-primary transition-all resize-none ${errors.body ? 'ring-2 ring-red-100' : ''}`}
                                 rows={2}
                             />
                             <button
@@ -248,7 +302,7 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                                 comments.map(comment => (
                                     <div key={comment.id} className={`p-4 rounded-2xl border flex flex-col gap-2.5 transition-all hover:border-ds-primary/20 ${commentBg}`}>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-300 overflow-hidden shrink-0">
+                                            <div className={`w-8 h-8 rounded-full overflow-hidden shrink-0 ${isDark ? "bg-slate-800 border border-slate-700" : "bg-slate-300"}`}>
                                                 <AvatarImage user={comment.user} />
                                             </div>
                                             <div className="flex flex-col">
