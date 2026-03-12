@@ -1,8 +1,9 @@
 import InputError from "@/Components/InputError";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { FormEventHandler, useState } from "react";
+import { FormEventHandler, useState, useEffect } from "react";
 import { User, Lock, Eye, EyeOff } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing";
 
 export default function Login({
     status,
@@ -11,6 +12,20 @@ export default function Login({
     status?: string;
     canResetPassword: boolean;
 }) {
+    // --- STATE BAHASA (Otomatis dari localStorage) ---
+    const [lang, setLang] = useState<"id" | "en">("id");
+
+    useEffect(() => {
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) {
+            setLang(savedLang);
+        }
+    }, []);
+
+    // Ambil kamus terjemahan berdasarkan state `lang` saat ini
+    const t = landingDict[lang];
+    // --------------------------------------------------
+
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
@@ -28,17 +43,16 @@ export default function Login({
 
     return (
         <GuestLayout>
-            <Head title="Masuk" />
+            <Head title={t.authLoginTitle} />
 
-            <div className="p-8 sm:p-12">
+            <div className="p-8 sm:p-12 relative">
                 {/* Header Section */}
-                <div className="mb-8 text-center">
-                    {/* Menggunakan warna #a7e94a */}
+                <div className="mb-8 text-center mt-2">
                     <h2 className="text-3xl font-extrabold text-[#a7e94a] tracking-tight mb-2">
-                        Welcome Back!
+                        {t.authWelcomeBack}
                     </h2>
                     <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                        Sign in to report and provide feedback regarding waste.
+                        {t.authLoginSubtitle}
                     </p>
                 </div>
 
@@ -54,10 +68,9 @@ export default function Login({
                     {/* Email Input */}
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700 ml-1">
-                            Email
+                            {t.authEmailLabel}
                         </label>
                         <div className="relative group">
-                            {/* Icon menggunakan warna #a7e94a saat difokuskan */}
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
                                 <User className="w-5 h-5" />
                             </div>
@@ -67,7 +80,7 @@ export default function Login({
                                 onChange={(e) =>
                                     setData("email", e.target.value)
                                 }
-                                placeholder="Enter your email..."
+                                placeholder={t.authEmailPlaceholder}
                                 className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
                                 required
                             />
@@ -78,10 +91,9 @@ export default function Login({
                     {/* Password Input */}
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700 ml-1">
-                            Password
+                            {t.authPasswordLabel}
                         </label>
                         <div className="relative group">
-                            {/* Icon menggunakan warna #a7e94a saat difokuskan */}
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
                                 <Lock className="w-5 h-5" />
                             </div>
@@ -91,7 +103,7 @@ export default function Login({
                                 onChange={(e) =>
                                     setData("password", e.target.value)
                                 }
-                                placeholder="Enter your password..."
+                                placeholder={t.authPasswordPlaceholder}
                                 className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-12 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
                                 required
                             />
@@ -120,12 +132,11 @@ export default function Login({
                                     onChange={(e) =>
                                         setData("remember", e.target.checked)
                                     }
-                                    // Menggunakan warna #a7e94a
                                     className="peer w-5 h-5 rounded-md border-2 border-slate-300 text-[#a7e94a] focus:ring-[#a7e94a]/20 transition-all cursor-pointer"
                                 />
                             </div>
                             <span className="text-sm font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">
-                                Keep me signed in
+                                {t.authRememberMe}
                             </span>
                         </label>
 
@@ -134,12 +145,12 @@ export default function Login({
                                 href={route("password.request")}
                                 className="text-xs font-bold text-[#a7e94a] hover:text-green-600 hover:underline underline-offset-2 transition-all"
                             >
-                                Forgot Password?
+                                {t.authForgotPassword}
                             </Link>
                         )}
                     </div>
 
-                    {/* Submit Button (Solid #a7e94a) */}
+                    {/* Submit Button */}
                     <button
                         type="submit"
                         disabled={processing}
@@ -148,7 +159,7 @@ export default function Login({
                         {processing ? (
                             <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
                         ) : (
-                            "Sign In"
+                            t.authLoginButton
                         )}
                     </button>
                 </form>
@@ -159,7 +170,7 @@ export default function Login({
                         <div className="w-full border-t border-slate-200" />
                     </div>
                     <div className="relative flex justify-center text-xs font-bold text-slate-400 bg-white px-4 uppercase tracking-widest">
-                        OR
+                        {t.authOrUse}
                     </div>
                 </div>
 
@@ -187,19 +198,19 @@ export default function Login({
                         />
                     </svg>
                     <span className="text-sm font-bold text-slate-700 tracking-tight">
-                        Continue with Google
+                        {t.authGoogleLogin}
                     </span>
                 </a>
 
                 {/* Sign Up Link */}
                 <div className="text-center mt-8">
                     <p className="text-sm text-slate-500 font-medium">
-                        Don't have an account?{" "}
+                        {t.authNoAccount}{" "}
                         <Link
                             href={route("register")}
                             className="text-[#a7e94a] font-bold hover:text-green-600 hover:underline underline-offset-4 transition-all"
                         >
-                            Sign up
+                            {t.authSignUpLink}
                         </Link>
                     </p>
                 </div>

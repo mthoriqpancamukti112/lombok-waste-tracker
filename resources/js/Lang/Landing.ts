@@ -92,30 +92,8 @@ export const landingDict = {
         collectPointsInfo:
             "*Kumpulkan 50 poin kepercayaan dengan melaporkan sampah tervalidasi.",
         reportsLabel: "Laporan",
-        authLoginTab: "MASUK",
-        authRegisterTab: "DAFTAR",
-        authWelcome: "Selamat Datang",
-        authJoinUs: "Gabung Bersama Kami",
-        authLoginSubtitle:
-            "Masuk untuk melanjutkan aksi pelestarian lingkungan.",
-        authRegisterSubtitle:
-            "Buat akun untuk mulai berkontribusi dalam menjaga Lombok.",
-        authEmailLabel: "EMAIL",
-        authPasswordLabel: "KATA SANDI",
-        authNameLabel: "NAMA LENGKAP",
-        authNamePlaceholder: "Nama Lengkap",
-        authConfirmPasswordLabel: "KONFIRMASI",
-        authRememberMe: "Ingat Saya",
-        authForgotPassword: "LUPA SANDI?",
-        authProcessing: "MEMPROSES...",
-        authLoginButton: "MASUK SEKARANG",
-        authRegisterButton: "DAFTAR SEKARANG",
-        authOrUse: "Atau Menggunakan",
-        authGoogleLogin: "Masuk dengan Google",
-        authTermsInfo: "Dengan masuk, Anda menyetujui",
-        authTermsLink: "Syarat & Ketentuan",
-        authLoginSuccess: "Login Berhasil! Selamat datang kembali.",
-        authRegisterSuccess: "Akun Berhasil Dibuat! Silakan masuk.",
+
+        // --- DASHBOARD KALING ---
         kalingTitle: "Dashboard Kaling",
         kalingValidateRegion: "Validasi Wilayah",
         kalingWelcome: "Selamat Bertugas, Bapak/Ibu",
@@ -172,6 +150,7 @@ export const landingDict = {
         kalingMapFilterClean: "Sudah Bersih",
         kalingMapPopupBy: "Oleh:",
         kalingMapPopupOpenRoute: "Buka Rute Maps",
+
         // --- PROFIL KALING ---
         kalingProfileTitle: "Profil Dinas",
         kalingProfileSubtitle:
@@ -195,6 +174,8 @@ export const landingDict = {
         kalingSavingBtn: "Menyimpan...",
         kalingSaveSuccessTitle: "Tersimpan!",
         kalingSaveSuccessDesc: "Data profil Kaling berhasil diperbarui.",
+
+        // --- DASHBOARD PETUGAS ---
         petugasTitle: "Dashboard Petugas",
         petugasHeader: "Dashboard Operasional",
         petugasWelcome: "Semangat bertugas,",
@@ -211,8 +192,6 @@ export const landingDict = {
         petugasOpenMaps: "Lihat Rute G-Maps",
         petugasStartWork: "Mulai Kerjakan",
         petugasMarkClean: "Tandai Bersih",
-
-        // SWEET ALERT PETUGAS
         saPetugasStartTitle: "Mulai Pengerjaan?",
         saPetugasStartInfo:
             "Anda akan ditugaskan untuk membersihkan titik ini. Pastikan Anda menuju lokasi.",
@@ -228,7 +207,8 @@ export const landingDict = {
         saPetugasSuccessTitle: "Berhasil!",
         saPetugasSuccessProcess: "Status: Sedang Dikerjakan",
         saPetugasSuccessFinish: "Laporan ditutup. Terima kasih!",
-        // --- PETUGAS RIWAYAT ---
+
+        // --- PETUGAS RIWAYAT & PROFIL ---
         petugasHistoryTitle: "Riwayat Pekerjaan Selesai",
         petugasHistoryHeader: "Catatan Kinerja Anda",
         petugasTotalCleaned: "Total Anda telah membersihkan",
@@ -241,14 +221,12 @@ export const landingDict = {
         petugasDoneBadge: "Tuntas",
         petugasReportedBy: "Dilaporkan:",
         petugasFinishedAt: "Selesai:",
-        // --- LAYOUT PETUGAS ---
         petugasPortal: "Portal Petugas",
         petugasMainMenu: "Menu Utama",
         petugasMenuDashboard: "Daftar Tugas",
         petugasMenuHistory: "Riwayat Selesai",
         petugasProfileMenu: "Profil",
         petugasHomeMenu: "Beranda",
-        // --- PROFIL PETUGAS ---
         petugasProfileTitle: "Profil & Armada",
         petugasProfileSubtitle:
             "Kelola informasi akun dan pantau status armada Anda.",
@@ -275,7 +253,8 @@ export const landingDict = {
         petugasSavingBtn: "Menyimpan...",
         petugasSaveSuccessTitle: "Tersimpan!",
         petugasSaveSuccessDesc: "Data profil Petugas berhasil diperbarui.",
-        // --- DLH DASHBOARD ---
+
+        // --- DLH DASHBOARD & MAP ---
         dlhTitle: "Dashboard Executive DLH",
         dlhHeader: "Executive Dashboard",
         dlhSystemOnline: "Sistem Online",
@@ -297,7 +276,6 @@ export const landingDict = {
         dlhNoDescription: "Laporan Tanpa Keterangan",
         dlhEmptyLogTitle: "Log Kosong",
         dlhEmptyLogDesc: "Tidak ada data untuk filter ini.",
-        // --- LAYOUT DLH ---
         dlhPortal: "Portal DLH",
         dlhMainMenu: "Menu Utama",
         dlhMenuDashboard: "Dashboard",
@@ -308,7 +286,6 @@ export const landingDict = {
         dlhMenuAnalytics: "Laporan & Analitik",
         dlhProfileMenu: "Profil",
         dlhHomeMenu: "Beranda",
-        // --- MAP DLH ---
         dlhMapTitle: "Peta Sebaran Lokasi",
         dlhMapSubtitle:
             "Pemantauan titik tumpukan sampah secara geografis dan interaktif.",
@@ -320,6 +297,7 @@ export const landingDict = {
         dlhMapPopupBy: "Oleh:",
         dlhMapPopupNoDesc: "Tanpa keterangan",
         dlhMapPopupOpenRoute: "Buka Rute Maps",
+
         // --- DANGER ZONE (ZONA RAWAN) ---
         dzTitle: "Pemetaan Zona Rawan (GIS)",
         dzSubtitle:
@@ -350,13 +328,12 @@ export const landingDict = {
         dzSaveAreaBtn: "Simpan Area",
         dzSavingBtn: "Menyimpan...",
         dzSearchPlaceholder: "Cari jalan, tempat, atau Koordinat...",
-
-        // SWEET ALERT ZONA RAWAN
         saDzSavedTitle: "Zona Berhasil Disimpan",
         saDzDeleteTitle: "Hapus Zona Rawan?",
         saDzDeleteText: "Data yang dihapus akan hilang dari peta.",
         saDzDeleteConfirm: "Ya, Hapus!",
         saDzDeletedTitle: "Terhapus",
+
         // --- MANAJEMEN KALING ---
         kmTitle: "Manajemen Kaling",
         kmSubtitle: "Kelola data Kepala Lingkungan dan wilayahnya.",
@@ -402,8 +379,6 @@ export const landingDict = {
         kmSaveData: "Simpan Data",
         kmTooltipEdit: "Edit",
         kmTooltipDelete: "Hapus",
-
-        // SWEET ALERT MANAJEMEN KALING
         saKmSavedTitle: "Berhasil!",
         saKmUpdatedText: "Data Kaling diperbarui.",
         saKmAddedText: "Kaling baru ditambahkan.",
@@ -412,6 +387,7 @@ export const landingDict = {
         saKmDeleteConfirm: "Ya, Hapus!",
         saKmDeletedTitle: "Terhapus!",
         saKmDeletedText: "Data Kaling telah dihapus.",
+
         // --- MANAJEMEN PETUGAS ---
         pmTitle: "Armada & Petugas",
         pmSubtitle: "Kelola data petugas pengangkut dan armadanya.",
@@ -454,8 +430,6 @@ export const landingDict = {
         pmSaveData: "Simpan Data",
         pmTooltipEdit: "Edit",
         pmTooltipDelete: "Hapus",
-
-        // SWEET ALERT MANAJEMEN PETUGAS
         saPmSavedTitle: "Berhasil!",
         saPmUpdatedText: "Data diperbarui.",
         saPmAddedText: "Petugas ditambahkan.",
@@ -463,6 +437,7 @@ export const landingDict = {
         saPmDeleteText: "Data {name} akan dihapus permanen!",
         saPmDeleteConfirm: "Ya, Hapus!",
         saPmDeletedTitle: "Terhapus!",
+
         // --- LAPORAN & ANALITIK DLH ---
         laTitle: "Laporan & Analitik",
         laSubtitle: "Rekapitulasi data pelaporan, filter, dan ekspor dokumen.",
@@ -484,12 +459,46 @@ export const landingDict = {
         laEmptyData: "Tidak ada data laporan yang sesuai dengan filter.",
         laReportBy: "Oleh:",
         laNoDesc: "Tanpa keterangan",
-
-        // SWEET ALERT LAPORAN ANALITIK
         saLaEmptyExportTitle: "Data Kosong!",
         saLaEmptyExportText:
             "Tidak ada data laporan untuk diekspor ke {type}. Silakan ubah filter Anda.",
+
+        // --- AUTH (LOGIN, REGISTER, MODAL) ---
+        authLoginTitle: "Masuk Akun",
+        authRegisterTitle: "Daftar Akun",
+        authLoginTab: "MASUK",
+        authRegisterTab: "DAFTAR",
+        authWelcome: "Selamat Datang",
+        authWelcomeBack: "Selamat Datang Kembali!",
+        authJoinUs: "Bergabung Bersama Kami",
+        authLoginSubtitle:
+            "Masuk untuk melaporkan dan memberikan masukan terkait lingkungan.",
+        authRegisterSubtitle:
+            "Daftar untuk mulai melaporkan sampah dan menjaga kebersihan.",
+        authEmailLabel: "Alamat Email",
+        authEmailPlaceholder: "email@anda.com",
+        authPasswordLabel: "Kata Sandi",
+        authPasswordPlaceholder: "••••••••",
+        authConfirmPasswordLabel: "Konfirmasi Sandi",
+        authNameLabel: "Nama Lengkap",
+        authNamePlaceholder: "Masukkan nama Anda...",
+        authRememberMe: "Ingat Saya",
+        authForgotPassword: "Lupa Kata Sandi?",
+        authLoginButton: "Masuk",
+        authRegisterButton: "Daftar",
+        authProcessing: "Memproses...",
+        authOrUse: "Atau",
+        authGoogleLogin: "Lanjutkan dengan Google",
+        authNoAccount: "Belum punya akun?",
+        authSignUpLink: "Daftar di sini",
+        authHasAccount: "Sudah punya akun?",
+        authSignInLink: "Masuk sekarang",
+        authTermsInfo: "Dengan masuk, Anda menyetujui",
+        authTermsLink: "Syarat & Ketentuan",
+        authLoginSuccess: "Login Berhasil! Selamat datang kembali.",
+        authRegisterSuccess: "Akun Berhasil Dibuat! Silakan masuk.",
     },
+
     en: {
         title: "Waste Monitoring Map",
         searchPlaceholder: "Search Location...",
@@ -582,29 +591,8 @@ export const landingDict = {
         collectPointsInfo:
             "*Collect 50 trust points by reporting validated waste.",
         reportsLabel: "Reports",
-        authLoginTab: "SIGN IN",
-        authRegisterTab: "SIGN UP",
-        authWelcome: "Welcome Back",
-        authJoinUs: "Join Us Today",
-        authLoginSubtitle: "Sign in to continue your environmental action.",
-        authRegisterSubtitle:
-            "Create an account to start contributing to Lombok.",
-        authEmailLabel: "EMAIL",
-        authPasswordLabel: "PASSWORD",
-        authNameLabel: "FULL NAME",
-        authNamePlaceholder: "Full Name",
-        authConfirmPasswordLabel: "CONFIRM",
-        authRememberMe: "Remember Me",
-        authForgotPassword: "FORGOT PASSWORD?",
-        authProcessing: "PROCESSING...",
-        authLoginButton: "SIGN IN NOW",
-        authRegisterButton: "SIGN UP NOW",
-        authOrUse: "Or Continue With",
-        authGoogleLogin: "Sign in with Google",
-        authTermsInfo: "By signing in, you agree to our",
-        authTermsLink: "Terms & Conditions",
-        authLoginSuccess: "Login Successful! Welcome back.",
-        authRegisterSuccess: "Account Created! Please sign in.",
+
+        // --- KALING DASHBOARD ---
         kalingTitle: "Kaling Dashboard",
         kalingValidateRegion: "Region Validation",
         kalingWelcome: "Welcome to duty, Mr./Ms.",
@@ -662,7 +650,8 @@ export const landingDict = {
         kalingMapFilterClean: "Already Cleaned",
         kalingMapPopupBy: "By:",
         kalingMapPopupOpenRoute: "Open Route in Maps",
-        // --- ADDITIONS FOR KALING PROFILE ---
+
+        // --- KALING PROFILE ---
         kalingProfileTitle: "Official Profile",
         kalingProfileSubtitle:
             "Manage contact information and identity of the Region Head.",
@@ -685,6 +674,8 @@ export const landingDict = {
         kalingSavingBtn: "Saving...",
         kalingSaveSuccessTitle: "Saved!",
         kalingSaveSuccessDesc: "Kaling profile data updated successfully.",
+
+        // --- OFFICER DASHBOARD ---
         petugasTitle: "Officer Dashboard",
         petugasHeader: "Operational Dashboard",
         petugasWelcome: "Have a great shift,",
@@ -701,8 +692,6 @@ export const landingDict = {
         petugasOpenMaps: "View G-Maps Route",
         petugasStartWork: "Start Working",
         petugasMarkClean: "Mark as Cleaned",
-
-        // SWEET ALERT PETUGAS
         saPetugasStartTitle: "Start Working?",
         saPetugasStartInfo:
             "You will be assigned to clean this point. Ensure you head to the location.",
@@ -718,7 +707,8 @@ export const landingDict = {
         saPetugasSuccessTitle: "Success!",
         saPetugasSuccessProcess: "Status: In Progress",
         saPetugasSuccessFinish: "Report closed. Thank you!",
-        // --- ADDITIONS FOR PETUGAS HISTORY ---
+
+        // --- OFFICER HISTORY & PROFILE ---
         petugasHistoryTitle: "Completed Work History",
         petugasHistoryHeader: "Your Performance Record",
         petugasTotalCleaned: "You have cleaned a total of",
@@ -731,14 +721,12 @@ export const landingDict = {
         petugasDoneBadge: "Done",
         petugasReportedBy: "Reported by:",
         petugasFinishedAt: "Finished at:",
-        // --- LAYOUT PETUGAS ---
         petugasPortal: "Officer Portal",
         petugasMainMenu: "Main Menu",
         petugasMenuDashboard: "Task List",
         petugasMenuHistory: "Completed History",
         petugasProfileMenu: "Profile",
         petugasHomeMenu: "Home",
-        // --- ADDITIONS FOR PETUGAS PROFILE ---
         petugasProfileTitle: "Profile & Fleet",
         petugasProfileSubtitle:
             "Manage your account information and monitor your fleet status.",
@@ -765,7 +753,8 @@ export const landingDict = {
         petugasSavingBtn: "Saving...",
         petugasSaveSuccessTitle: "Saved!",
         petugasSaveSuccessDesc: "Officer profile data updated successfully.",
-        // --- ADDITIONS FOR DLH DASHBOARD ---
+
+        // --- DLH DASHBOARD & MAP ---
         dlhTitle: "DLH Executive Dashboard",
         dlhHeader: "Executive Dashboard",
         dlhSystemOnline: "System Online",
@@ -787,7 +776,6 @@ export const landingDict = {
         dlhNoDescription: "Report without description",
         dlhEmptyLogTitle: "Empty Log",
         dlhEmptyLogDesc: "No data for this filter.",
-        // --- ADDITIONS FOR DLH LAYOUT ---
         dlhPortal: "DLH Portal",
         dlhMainMenu: "Main Menu",
         dlhMenuDashboard: "Dashboard",
@@ -798,7 +786,6 @@ export const landingDict = {
         dlhMenuAnalytics: "Reports & Analytics",
         dlhProfileMenu: "Profile",
         dlhHomeMenu: "Home",
-        // --- ADDITIONS FOR DLH MAP ---
         dlhMapTitle: "Distribution Map",
         dlhMapSubtitle:
             "Geographical and interactive monitoring of waste accumulation points.",
@@ -810,7 +797,8 @@ export const landingDict = {
         dlhMapPopupBy: "By:",
         dlhMapPopupNoDesc: "No description",
         dlhMapPopupOpenRoute: "Open Route in Maps",
-        // --- ADDITIONS FOR DANGER ZONE ---
+
+        // --- DANGER ZONE ---
         dzTitle: "Danger Zone Mapping (GIS)",
         dzSubtitle:
             "Use the Polygon tool at the top right of the map to draw new danger areas/illegal dumps.",
@@ -840,14 +828,13 @@ export const landingDict = {
         dzSaveAreaBtn: "Save Area",
         dzSavingBtn: "Saving...",
         dzSearchPlaceholder: "Search places or coordinates...",
-
-        // SWEET ALERT DANGER ZONE
         saDzSavedTitle: "Zone Saved Successfully",
         saDzDeleteTitle: "Delete Danger Zone?",
         saDzDeleteText: "Deleted data will be removed from the map.",
         saDzDeleteConfirm: "Yes, Delete!",
         saDzDeletedTitle: "Deleted",
-        // --- ADDITIONS FOR KALING MANAGEMENT ---
+
+        // --- KALING MANAGEMENT ---
         kmTitle: "Kaling Management",
         kmSubtitle: "Manage Region Heads and their territories.",
         kmAddBtn: "Add Kaling",
@@ -892,8 +879,6 @@ export const landingDict = {
         kmSaveData: "Save Data",
         kmTooltipEdit: "Edit",
         kmTooltipDelete: "Delete",
-
-        // SWEET ALERT KALING MANAGEMENT
         saKmSavedTitle: "Success!",
         saKmUpdatedText: "Kaling data updated.",
         saKmAddedText: "New Kaling added.",
@@ -903,7 +888,8 @@ export const landingDict = {
         saKmDeleteConfirm: "Yes, Delete!",
         saKmDeletedTitle: "Deleted!",
         saKmDeletedText: "Kaling data has been deleted.",
-        // --- ADDITIONS FOR PETUGAS MANAGEMENT ---
+
+        // --- PETUGAS MANAGEMENT ---
         pmTitle: "Fleet & Officers",
         pmSubtitle: "Manage waste collection officers and their fleets.",
         pmAddBtn: "Add Officer",
@@ -944,8 +930,6 @@ export const landingDict = {
         pmSaveData: "Save Data",
         pmTooltipEdit: "Edit",
         pmTooltipDelete: "Delete",
-
-        // SWEET ALERT PETUGAS MANAGEMENT
         saPmSavedTitle: "Success!",
         saPmUpdatedText: "Data updated.",
         saPmAddedText: "Officer added.",
@@ -953,7 +937,8 @@ export const landingDict = {
         saPmDeleteText: "Data for {name} will be permanently deleted!",
         saPmDeleteConfirm: "Yes, Delete!",
         saPmDeletedTitle: "Deleted!",
-        // --- ADDITIONS FOR LAPORAN & ANALITIK DLH ---
+
+        // --- LAPORAN & ANALITIK DLH ---
         laTitle: "Reports & Analytics",
         laSubtitle:
             "Recapitulation of reporting data, filters, and document export.",
@@ -975,10 +960,43 @@ export const landingDict = {
         laEmptyData: "No report data matches the filter.",
         laReportBy: "By:",
         laNoDesc: "No description",
-
-        // SWEET ALERT LAPORAN ANALITIK
         saLaEmptyExportTitle: "Empty Data!",
         saLaEmptyExportText:
             "No report data to export to {type}. Please change your filter.",
+
+        // --- AUTH (LOGIN, REGISTER, MODAL) ---
+        authLoginTitle: "Sign In",
+        authRegisterTitle: "Create Account",
+        authLoginTab: "SIGN IN",
+        authRegisterTab: "SIGN UP",
+        authWelcome: "Welcome",
+        authWelcomeBack: "Welcome Back!",
+        authJoinUs: "Join Us Today",
+        authLoginSubtitle:
+            "Sign in to report and provide feedback regarding waste.",
+        authRegisterSubtitle:
+            "Sign up to start reporting waste and help the environment.",
+        authEmailLabel: "Email Address",
+        authEmailPlaceholder: "your@email.com",
+        authPasswordLabel: "Password",
+        authPasswordPlaceholder: "••••••••",
+        authConfirmPasswordLabel: "Confirm Password",
+        authNameLabel: "Full Name",
+        authNamePlaceholder: "Enter your name...",
+        authRememberMe: "Keep me signed in",
+        authForgotPassword: "Forgot Password?",
+        authLoginButton: "Sign In",
+        authRegisterButton: "Sign Up",
+        authProcessing: "Processing...",
+        authOrUse: "OR",
+        authGoogleLogin: "Continue with Google",
+        authNoAccount: "Don't have an account?",
+        authSignUpLink: "Sign up here",
+        authHasAccount: "Already have an account?",
+        authSignInLink: "Sign in now",
+        authTermsInfo: "By signing in, you agree to our",
+        authTermsLink: "Terms & Conditions",
+        authLoginSuccess: "Login Successful! Welcome back.",
+        authRegisterSuccess: "Account Created! Please sign in.",
     },
 };

@@ -1,10 +1,25 @@
 import InputError from "@/Components/InputError";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { FormEventHandler, useState } from "react";
+import { FormEventHandler, useState, useEffect } from "react";
 import { User, Mail, Lock, Eye, EyeOff } from "@mynaui/icons-react";
+import { landingDict } from "@/Lang/Landing"; // Import dictionary
 
 export default function Register() {
+    // --- STATE BAHASA (Otomatis dari localStorage) ---
+    const [lang, setLang] = useState<"id" | "en">("id");
+
+    useEffect(() => {
+        const savedLang = localStorage.getItem("appLang") as "id" | "en";
+        if (savedLang) {
+            setLang(savedLang);
+        }
+    }, []);
+
+    // Ambil kamus terjemahan berdasarkan state `lang` saat ini
+    const t = landingDict[lang];
+    // --------------------------------------------------
+
     const { data, setData, post, processing, errors, reset } = useForm({
         name: "",
         email: "",
@@ -23,18 +38,17 @@ export default function Register() {
 
     return (
         <GuestLayout>
-            <Head title="Daftar Akun" />
+            <Head title={t.authRegisterTitle} />
 
             {/* Padding disamakan dengan halaman Login */}
-            <div className="p-8 sm:p-12">
+            <div className="p-8 sm:p-12 relative">
                 {/* Header Section */}
                 <div className="mb-10 text-center">
                     <h2 className="text-3xl font-extrabold text-[#a7e94a] tracking-tight mb-2">
-                        Join to Preserve
+                        {t.authJoinUs}
                     </h2>
                     <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-[280px] mx-auto">
-                        Sign up to start reporting waste and help the
-                        environment.
+                        {t.authRegisterSubtitle}
                     </p>
                 </div>
 
@@ -42,7 +56,7 @@ export default function Register() {
                     {/* Full Name Input */}
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700 ml-1 block">
-                            Full Name
+                            {t.authNameLabel}
                         </label>
                         <div className="relative group">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
@@ -55,7 +69,7 @@ export default function Register() {
                                 onChange={(e) =>
                                     setData("name", e.target.value)
                                 }
-                                placeholder="Enter your name..."
+                                placeholder={t.authNamePlaceholder}
                                 className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
                                 required
                             />
@@ -66,7 +80,7 @@ export default function Register() {
                     {/* Email Address Input */}
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700 ml-1 block">
-                            Email Address
+                            {t.authEmailLabel}
                         </label>
                         <div className="relative group">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
@@ -79,7 +93,7 @@ export default function Register() {
                                 onChange={(e) =>
                                     setData("email", e.target.value)
                                 }
-                                placeholder="Enter your email..."
+                                placeholder={t.authEmailPlaceholder}
                                 className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
                                 required
                             />
@@ -91,7 +105,7 @@ export default function Register() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 ml-1 block">
-                                Password
+                                {t.authPasswordLabel}
                             </label>
                             <div className="relative group">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
@@ -104,7 +118,7 @@ export default function Register() {
                                     onChange={(e) =>
                                         setData("password", e.target.value)
                                     }
-                                    placeholder="••••••••"
+                                    placeholder={t.authPasswordPlaceholder}
                                     className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
                                     required
                                 />
@@ -113,7 +127,7 @@ export default function Register() {
 
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 ml-1 block">
-                                Confirm
+                                {t.authConfirmPasswordLabel}
                             </label>
                             <div className="relative group">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
@@ -129,7 +143,7 @@ export default function Register() {
                                             e.target.value,
                                         )
                                     }
-                                    placeholder="••••••••"
+                                    placeholder={t.authPasswordPlaceholder}
                                     className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
                                     required
                                 />
@@ -146,13 +160,17 @@ export default function Register() {
                         >
                             {showPassword ? (
                                 <>
-                                    <EyeOff className="w-3.5 h-3.5" /> Hide
-                                    Password
+                                    <EyeOff className="w-3.5 h-3.5" />
+                                    {lang === "id"
+                                        ? "Sembunyikan Sandi"
+                                        : "Hide Password"}
                                 </>
                             ) : (
                                 <>
-                                    <Eye className="w-3.5 h-3.5" /> Show
-                                    Password
+                                    <Eye className="w-3.5 h-3.5" />
+                                    {lang === "id"
+                                        ? "Tampilkan Sandi"
+                                        : "Show Password"}
                                 </>
                             )}
                         </button>
@@ -167,7 +185,7 @@ export default function Register() {
                         {processing ? (
                             <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
                         ) : (
-                            "Sign Up"
+                            t.authRegisterButton
                         )}
                     </button>
                 </form>
@@ -178,7 +196,7 @@ export default function Register() {
                         <div className="w-full border-t border-slate-200" />
                     </div>
                     <div className="relative flex justify-center text-xs font-bold text-slate-400 bg-white px-4 uppercase tracking-widest">
-                        OR
+                        {t.authOrUse}
                     </div>
                 </div>
 
@@ -206,19 +224,19 @@ export default function Register() {
                         />
                     </svg>
                     <span className="text-sm font-bold text-slate-700 tracking-tight">
-                        Continue with Google
+                        {t.authGoogleLogin}
                     </span>
                 </a>
 
                 {/* Sign In Link */}
                 <div className="text-center mt-8">
                     <p className="text-sm text-slate-500 font-medium">
-                        Already have an account?{" "}
+                        {t.authHasAccount}{" "}
                         <Link
                             href={route("login")}
                             className="text-[#a7e94a] font-bold hover:text-green-600 hover:underline underline-offset-4 transition-all"
                         >
-                            Sign in
+                            {t.authSignInLink}
                         </Link>
                     </p>
                 </div>
