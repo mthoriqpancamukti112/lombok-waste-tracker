@@ -54,7 +54,9 @@ const ReportModal: React.FC<ReportModalProps> = ({
         latitude: "" as string | number,
         longitude: "" as string | number,
         address: "",
+        city: "",
         severity_level: "",
+        waste_type: "",
         needs: [] as string[],
     });
 
@@ -68,6 +70,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
         lat: number;
         lng: number;
         address: string;
+        city?: string;
     } | null>(null);
     const [urgency, setUrgency] = useState<"low" | "moderate" | "high" | "">(
         "",
@@ -115,6 +118,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 latitude: selectedLocation.lat,
                 longitude: selectedLocation.lng,
                 address: selectedLocation.address,
+                city: selectedLocation.city || "",
             }));
         }
     }, [selectedLocation]);
@@ -322,9 +326,17 @@ const ReportModal: React.FC<ReportModalProps> = ({
             const json = await res.json();
             if (json.features?.[0]) {
                 const address = json.features[0].place_name;
-                setSelectedLocation((prev) =>
-                    prev ? { ...prev, address } : { lat, lng, address },
+
+                // --- KODE BARU: Ekstrak Nama Kota dari Mapbox ---
+                const context = json.features[0].context || [];
+                const placeObj = context.find((c: any) =>
+                    c.id.startsWith("place"),
                 );
+                // Hilangkan kata "Kabupaten " atau "Kota " jika ada, agar rapi
+                let city = placeObj ? placeObj.text : "";
+                // ------------------------------------------------
+
+                setSelectedLocation({ lat, lng, address, city }); // Update state dengan city
             }
         } catch (err) {
             console.error("Geocode error:", err);
