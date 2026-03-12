@@ -365,8 +365,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
             if (json.suggestions?.length) {
                 setSearchResults(
                     json.suggestions.map((s: any) => ({
-                        name: s.name || s.full_address || q,
-                        full_address: s.full_address || s.place_formatted || "",
+                        name: s.name || q,
+                        full_address: s.place_formatted || s.full_address || "",
                         mapbox_id: s.mapbox_id,
                     })),
                 );
@@ -389,7 +389,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
     }) => {
         setShowResults(false);
         setSearchResults([]);
-        setSearchQuery(result.name);
+        setSearchQuery(result.name); // Tetap tampilkan nama pendek di kolom pencarian
         setIsSearching(true);
         try {
             const res = await fetch(
@@ -399,11 +399,32 @@ const ReportModal: React.FC<ReportModalProps> = ({
             if (json.features?.[0]) {
                 const coords = json.features[0].geometry.coordinates;
                 const [lng, lat] = coords;
+
+                // --- PERBAIKAN: GABUNGKAN NAME DAN FULL ADDRESS ---
+                let finalAddress = result.name;
+
+                // Cek agar tidak terjadi duplikasi kata (misal "Mataram, Mataram, NTB")
+                if (
+                    result.full_address &&
+                    !result.full_address.includes(result.name)
+                ) {
+                    finalAddress = `${result.name}, ${result.full_address}`;
+                } else if (result.full_address) {
+                    finalAddress = result.full_address;
+                }
+                // --------------------------------------------------
+
+                // Ambil city (jika Anda sudah menerapkan saran ekstraksi kota sebelumnya)
+                const context = json.features[0].properties?.context || {};
+                let city = context.place?.name || "";
+
                 setSelectedLocation({
                     lat,
                     lng,
-                    address: result.full_address || result.name,
+                    address: finalAddress, // <- Gunakan alamat yang sudah digabung
+                    // city: city // Aktifkan jika Anda pakai kolom city
                 });
+
                 setViewState({ longitude: lng, latitude: lat, zoom: 15 });
             }
             sessionTokenRef.current = crypto.randomUUID();

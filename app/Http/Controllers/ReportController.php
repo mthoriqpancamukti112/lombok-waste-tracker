@@ -86,7 +86,7 @@ class ReportController extends Controller
                 elseif (str_contains($addressLower, 'lombok utara')) $city = 'Lombok Utara';
             }
 
-            $kalings = \App\Models\Kaling::all();
+            $kalings = Kaling::all();
             $maxScore = 0;
 
             foreach ($kalings as $k) {
