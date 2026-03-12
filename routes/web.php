@@ -159,7 +159,7 @@ Route::middleware('auth')->group(function () {
 
     // Reports
     Route::patch('/report/{report}/status', [ReportController::class, 'updateStatus'])->name('report.update-status');
-    Route::get('/report/create', [ReportController::class, 'create'])->name('report.create');
+    // Route::get('/report/create', [ReportController::class, 'create'])->name('report.create');
     Route::post('/report', [ReportController::class, 'store'])->name('report.store');
     Route::get('/report/{report}', [ReportController::class, 'show'])->name('report.show');
 
