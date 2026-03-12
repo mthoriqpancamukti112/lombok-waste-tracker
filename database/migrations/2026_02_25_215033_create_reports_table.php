@@ -20,9 +20,11 @@ return new class extends Migration {
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);
             $table->string('address')->nullable();
+            $table->string('city')->nullable();
             $table->enum('status', ['menunggu', 'divalidasi', 'proses', 'selesai', 'ditolak'])->default('menunggu');
             $table->string('severity_level')->nullable();
             $table->enum('waste_type', ['organik', 'anorganik', 'b3', 'campuran'])->nullable();
+            $table->json('needs')->nullable();
             $table->string('resolved_photo_path')->nullable();
             $table->text('resolved_notes')->nullable();
             $table->timestamps();

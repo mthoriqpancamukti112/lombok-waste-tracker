@@ -73,7 +73,7 @@ export default function ErrorPage({ status }: { status: number }) {
                 </p>
 
                 <Link
-                    href={route("dashboard")}
+                    href="/"
                     className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-8 rounded-xl shadow-md transition-transform hover:-translate-y-1 active:translate-y-0 w-full sm:w-auto"
                 >
                     <Home className="w-5 h-5" />

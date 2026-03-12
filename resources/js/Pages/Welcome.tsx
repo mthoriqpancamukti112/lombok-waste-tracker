@@ -172,7 +172,7 @@ export default function Welcome({
                 },
                 (error) => {
                     console.warn("Geolocation error:", error);
-                }
+                },
             );
         }
     }, []);
@@ -416,7 +416,9 @@ export default function Welcome({
                                 setIsReportModalOpen(true);
                             }
                         }}
-                        onGeolocate={(lat, lng) => setUserLocation({ lat, lng })}
+                        onGeolocate={(lat, lng) =>
+                            setUserLocation({ lat, lng })
+                        }
                         lang={lang}
                     />
                 </div>
@@ -541,7 +543,7 @@ export default function Welcome({
                                         </div>
                                         <div className="max-h-[60vh] overflow-y-auto p-2 flex flex-col gap-1">
                                             {auth.user.notifications?.length ===
-                                                0 ? (
+                                            0 ? (
                                                 <div className="p-6 text-center text-xs text-slate-400">
                                                     Tidak ada notifikasi
                                                 </div>
@@ -807,7 +809,7 @@ export default function Welcome({
                                         </div>
                                         <div className="max-h-96 overflow-y-auto p-2 flex flex-col gap-1">
                                             {auth.user.notifications?.length ===
-                                                0 ? (
+                                            0 ? (
                                                 <div className="p-6 text-center text-sm text-slate-400">
                                                     Tidak ada notifikasi
                                                 </div>
