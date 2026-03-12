@@ -31,6 +31,8 @@ class ReportController extends Controller
             'address' => 'nullable|string|max:500',
             'waste_type' => 'nullable|string|max:255',
             'severity_level' => 'nullable|string|max:100',
+            'needs' => 'nullable|array',
+            'city' => 'nullable|string|max:255',
         ]);
 
         $photoFile = $request->file('photo') ?? ($request->file('photos')[0] ?? null);
@@ -55,12 +57,9 @@ class ReportController extends Controller
         $severity = $request->severity_level ?? 'low';
         // Normalize severity to match case if needed, but 'low', 'moderate', 'high' is standard
         $severity = strtolower($severity);
-        if ($severity === 'ringan')
-            $severity = 'low';
-        if ($severity === 'sedang')
-            $severity = 'moderate';
-        if ($severity === 'parah')
-            $severity = 'high';
+        if ($severity === 'ringan') $severity = 'low';
+        if ($severity === 'sedang') $severity = 'moderate';
+        if ($severity === 'parah') $severity = 'high';
 
         $desc = $request->description;
 
@@ -72,9 +71,22 @@ class ReportController extends Controller
 
         // --- SISTEM OTOMATIS PENENTUAN KALING (SMART MATCHING) ---
         $kalingId = null;
+        // Parsing Kota sederhana dari alamat jika city kosong
+        $city = $request->city;
+
         if ($request->address) {
             $addressLower = strtolower($request->address);
-            $kalings = Kaling::all();
+
+            // Ekstrak nama kota/kabupaten jika ada di dalam alamat
+            if (!$city) {
+                if (str_contains($addressLower, 'mataram')) $city = 'Mataram';
+                elseif (str_contains($addressLower, 'lombok barat')) $city = 'Lombok Barat';
+                elseif (str_contains($addressLower, 'lombok tengah')) $city = 'Lombok Tengah';
+                elseif (str_contains($addressLower, 'lombok timur')) $city = 'Lombok Timur';
+                elseif (str_contains($addressLower, 'lombok utara')) $city = 'Lombok Utara';
+            }
+
+            $kalings = \App\Models\Kaling::all();
             $maxScore = 0;
 
             foreach ($kalings as $k) {
@@ -101,23 +113,26 @@ class ReportController extends Controller
         }
 
         $report = Report::create([
-            'user_id' => Auth::id(),
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
             'kaling_id' => $kalingId,
             'description' => $desc,
             'photo_path' => $photoPath,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'address' => $request->address,
+            'city' => $city,
             'status' => 'menunggu',
             'severity_level' => $severity,
             'waste_type' => $request->waste_type,
+            'needs' => $request->needs,
         ]);
 
         // --- NOTIFIKASI WHATSAPP KE KALING ---
         if ($report->kaling_id) {
-            $kaling = Kaling::with('user')->find($report->kaling_id);
+            $kaling = \App\Models\Kaling::with('user')->find($report->kaling_id);
             if ($kaling && $kaling->user && $kaling->user->phone_number) {
-                $wa = new WhatsAppService();
+                // Pastikan class WhatsAppService sudah di-import di atas (use App\Services\WhatsAppService;)
+                $wa = new \App\Services\WhatsAppService();
                 $msg = "📢 *Laporan Sampah Baru!*\n\n" .
                     "ID: #{$report->id}\n" .
                     "Lokasi: {$report->address}\n" .
