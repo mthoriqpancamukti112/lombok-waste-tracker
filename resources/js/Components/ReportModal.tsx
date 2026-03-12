@@ -25,6 +25,8 @@ interface ReportModalProps {
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const AI_DETECTION_URL = import.meta.env.VITE_AI_DETECTION_URL;
+const AI_DETECTION_API_KEY = import.meta.env.VITE_AI_DETECTION_API_KEY;
 
 const ReportModal: React.FC<ReportModalProps> = ({
     isOpen,
@@ -160,10 +162,11 @@ const ReportModal: React.FC<ReportModalProps> = ({
         formData.append("file", file);
 
         try {
-            const yoloApiUrl = import.meta.env.VITE_YOLO_API_URL || "http://127.0.0.1:8001";
+            const yoloApiUrl =
+                import.meta.env.VITE_YOLO_API_URL || "http://127.0.0.1:8001";
             const response = await fetch(`${yoloApiUrl}/deteksi/`, {
                 method: "POST",
-                headers: { "x-api-key": "yolo11-deteksi-sampah" },
+                headers: { "x-api-key": AI_DETECTION_API_KEY },
                 body: formData,
             });
 
@@ -705,10 +708,11 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 setLocationMode("current");
                                                 getCurrentLocation();
                                             }}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all ${locationMode === "current"
-                                                ? `${cardBg} shadow-sm ${textPrimary} ${isDark ? "" : "shadow-ds-border/60"}`
-                                                : textSecondary
-                                                }`}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+                                                locationMode === "current"
+                                                    ? `${cardBg} shadow-sm ${textPrimary} ${isDark ? "" : "shadow-ds-border/60"}`
+                                                    : textSecondary
+                                            }`}
                                         >
                                             <MapPinUserInside className="w-3.5 h-3.5" />{" "}
                                             {t.currentLocation}
@@ -718,10 +722,11 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                             onClick={() =>
                                                 setLocationMode("pick")
                                             }
-                                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all ${locationMode === "pick"
-                                                ? `bg-ds-primary-subtle text-ds-primary-pressed shadow-sm`
-                                                : textSecondary
-                                                }`}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+                                                locationMode === "pick"
+                                                    ? `bg-ds-primary-subtle text-ds-primary-pressed shadow-sm`
+                                                    : textSecondary
+                                            }`}
                                         >
                                             <MapPinned className="w-3.5 h-3.5" />{" "}
                                             {t.pickOnMap}
@@ -748,7 +753,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                     }
                                                     onFocus={() =>
                                                         searchResults.length >
-                                                        0 &&
+                                                            0 &&
                                                         setShowResults(true)
                                                     }
                                                     placeholder={
@@ -1026,8 +1031,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 level === "low"
                                                     ? t.severityLow
                                                     : level === "moderate"
-                                                        ? t.severityModerate
-                                                        : t.severityHigh;
+                                                      ? t.severityModerate
+                                                      : t.severityHigh;
 
                                             if (level === "low") {
                                                 colorClasses = isActive
@@ -1155,10 +1160,11 @@ const ReportModal: React.FC<ReportModalProps> = ({
                             disabled={
                                 isSubmitting || isScanningAI || isAiRejected
                             }
-                            className={`py-3 px-8 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${isScanningAI || isAiRejected || isSubmitting
-                                ? `${isDark ? "bg-slate-800 text-slate-600" : "bg-slate-300 text-slate-500"} cursor-not-allowed shadow-none`
-                                : "bg-[#a7e94a] text-slate-900 hover:bg-[#92d03b] hover:shadow-lg hover:-translate-y-0.5"
-                                }`}
+                            className={`py-3 px-8 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+                                isScanningAI || isAiRejected || isSubmitting
+                                    ? `${isDark ? "bg-slate-800 text-slate-600" : "bg-slate-300 text-slate-500"} cursor-not-allowed shadow-none`
+                                    : "bg-[#a7e94a] text-slate-900 hover:bg-[#92d03b] hover:shadow-lg hover:-translate-y-0.5"
+                            }`}
                         >
                             {isScanningAI ? (
                                 <>
