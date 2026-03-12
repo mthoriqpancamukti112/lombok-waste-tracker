@@ -166,11 +166,23 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
         <KalingLayout
             auth={auth}
             header={
-                <h2 className="text-xl font-bold leading-tight text-slate-800 flex items-center gap-2">
-                    <ShieldCheck className="w-6 h-6 text-indigo-500" />
-                    {t.kalingValidateRegion}{" "}
-                    {namaWilayah ? `- ${namaWilayah}` : ""}
-                </h2>
+                <div className="flex justify-between items-center w-full animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                            <ShieldCheck className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div className="flex flex-col max-w-[220px] sm:max-w-md md:max-w-lg lg:max-w-2xl">
+                            <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 tracking-tight truncate">
+                                {t.kalingValidateRegion}
+                            </h2>
+                            {namaWilayah && (
+                                <p className="text-[11px] sm:text-xs lg:text-sm text-indigo-600 font-bold truncate">
+                                    {namaWilayah}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
             }
         >
             <Head title={t.kalingTitle} />
@@ -237,17 +249,17 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                         <InfoCircle className="w-5 h-5" />
                                     </button>
 
-                                    {report.latitude && (
-                                        <div className="absolute bottom-3 left-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm border border-white/20">
-                                            <Map className="w-3 h-3" />{" "}
-                                            {parseFloat(
-                                                report.latitude,
-                                            ).toFixed(4)}
-                                            ,{" "}
-                                            {parseFloat(
-                                                report.longitude,
-                                            ).toFixed(4)}
-                                        </div>
+                                    {/* --- TOMBOL CEK MAP MENGGANTIKAN KOORDINAT --- */}
+                                    {report.latitude && report.longitude && (
+                                        <a
+                                            href={`https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="absolute bottom-3 left-3 bg-slate-900/70 hover:bg-indigo-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 backdrop-blur-md border border-white/20 transition-all shadow-lg hover:scale-105"
+                                        >
+                                            <Map className="w-3.5 h-3.5" />
+                                            Cek Map
+                                        </a>
                                     )}
                                 </div>
 

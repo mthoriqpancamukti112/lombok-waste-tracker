@@ -178,9 +178,9 @@ export default function KalingMap({
                     <p class="text-xs font-semibold text-slate-800 line-clamp-2 leading-snug mt-1.5">
                         ${report.description || t.kalingNoDesc}
                     </p>
-                    <a href="https://maps.google.com/?q=$$${report.latitude},${report.longitude}" target="_blank" class="mt-4 block w-full text-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold py-2.5 rounded-lg transition-colors border border-indigo-200">
-                        ${t.kalingMapPopupOpenRoute}
-                    </a>
+                 <a href="https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}" target="_blank" rel="noopener noreferrer" class="mt-4 block w-full text-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold py-2.5 rounded-lg transition-colors border border-indigo-200">
+                    ${t.kalingMapPopupOpenRoute}
+                </a>
                 </div>
             `;
 
@@ -220,15 +220,24 @@ export default function KalingMap({
             auth={auth}
             header={
                 <div className="flex justify-between items-center w-full animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div>
-                        <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                            <MapIcon className="w-7 h-7 text-indigo-500" />
-                            {t.kalingMapTitle}{" "}
-                            {namaWilayah ? `- ${namaWilayah}` : ""}
-                        </h2>
-                        <p className="text-xs lg:text-sm text-slate-500 mt-1">
-                            {t.kalingMapSubtitle}
-                        </p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                            <MapIcon className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div className="flex flex-col max-w-[200px] sm:max-w-md md:max-w-lg lg:max-w-2xl">
+                            <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 tracking-tight truncate">
+                                {t.kalingMapTitle}
+                            </h2>
+                            {namaWilayah ? (
+                                <p className="text-[11px] sm:text-xs lg:text-sm text-indigo-600 font-bold truncate">
+                                    {namaWilayah}
+                                </p>
+                            ) : (
+                                <p className="text-[11px] sm:text-xs lg:text-sm text-slate-500 mt-0.5 truncate">
+                                    {t.kalingMapSubtitle}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
             }
