@@ -15,6 +15,8 @@ import {
     Truck,
     DangerTriangle,
     Archive,
+    MapPin,
+    BriefcaseSolid, // Icon tambahan untuk kebutuhan alat (needs)
 } from "@mynaui/icons-react";
 import { landingDict } from "@/Lang/Landing";
 
@@ -29,6 +31,8 @@ interface Report {
     longitude: string;
     severity_level: string;
     waste_type: string;
+    city?: string; // <-- Tambahan
+    needs?: string[]; // <-- Tambahan
 }
 
 interface PetugasProfile {
@@ -176,8 +180,9 @@ export default function PetugasDashboard({
 
     const openGoogleMaps = (lat: string, lng: string) => {
         window.open(
-            `http://googleusercontent.com/maps.google.com/?q=${lat},${lng}`,
+            `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
             "_blank",
+            "noopener,noreferrer",
         );
     };
 
@@ -258,18 +263,19 @@ export default function PetugasDashboard({
                                 key={report.id}
                                 data-aos="fade-up"
                                 data-aos-delay={50 * index}
-                                className={`bg-white rounded-2xl shadow-sm border overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col ${
+                                className={`bg-white rounded-2xl shadow-sm border overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col group ${
                                     report.status === "proses"
                                         ? "border-amber-200 ring-2 ring-amber-100"
                                         : "border-slate-100"
                                 }`}
                             >
-                                <div className="h-56 w-full relative flex-shrink-0 bg-slate-200 group">
+                                <div className="h-52 w-full relative flex-shrink-0 bg-slate-200 group">
                                     <img
                                         src={`/storage/${report.photo_path}`}
                                         alt="Lokasi Sampah"
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
+
                                     <div
                                         className={`absolute top-3 right-3 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md backdrop-blur-sm ${
                                             report.status === "proses"
@@ -281,14 +287,28 @@ export default function PetugasDashboard({
                                             ? t.petugasStatusProcess
                                             : t.petugasStatusReady}
                                     </div>
-                                    <div className="absolute bottom-3 left-3 bg-black/60 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
-                                        <Map className="w-3 h-3" />{" "}
-                                        {parseFloat(report.latitude).toFixed(4)}
-                                        ,{" "}
-                                        {parseFloat(report.longitude).toFixed(
-                                            4,
-                                        )}
-                                    </div>
+
+                                    {/* --- TOMBOL CEK MAP --- */}
+                                    {report.latitude && report.longitude && (
+                                        <a
+                                            href={`https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="absolute bottom-3 left-3 bg-slate-900/70 hover:bg-indigo-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 backdrop-blur-md border border-white/20 transition-all shadow-lg hover:scale-105"
+                                        >
+                                            <Map className="w-3.5 h-3.5" />
+                                            Cek Map
+                                        </a>
+                                    )}
+
+                                    {/* CITY BADGE */}
+                                    {report.city && (
+                                        <div className="absolute bottom-3 right-3 bg-white/90 text-slate-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 backdrop-blur-md shadow-sm border border-slate-200">
+                                            <MapPin className="w-3 h-3 text-slate-400" />
+                                            {report.city}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="p-6 flex flex-col flex-1">
@@ -315,7 +335,6 @@ export default function PetugasDashboard({
                                                     : report.severity_level ||
                                                       t.kalingUnknownSeverity}
                                         </span>
-
                                         {report.waste_type ? (
                                             report.waste_type
                                                 .split(",")
@@ -338,6 +357,26 @@ export default function PetugasDashboard({
                                         )}
                                     </div>
 
+                                    {/* NEEDS BADGE (Kebutuhan Alat) */}
+                                    {report.needs &&
+                                        report.needs.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mb-3">
+                                                {report.needs.map(
+                                                    (need, idx) => (
+                                                        <span
+                                                            key={idx}
+                                                            className="text-[9px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase"
+                                                        >
+                                                            {idx === 0 && (
+                                                                <BriefcaseSolid className="w-2.5 h-2.5" />
+                                                            )}
+                                                            {need}
+                                                        </span>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
+
                                     <h4
                                         className="font-bold text-slate-800 line-clamp-2 mb-4"
                                         title={report.description}
@@ -345,16 +384,18 @@ export default function PetugasDashboard({
                                         {report.description || t.petugasNoDesc}
                                     </h4>
 
-                                    <div className="mt-auto space-y-2 text-sm text-slate-500 bg-slate-50 p-4 rounded-xl">
-                                        <div className="flex items-center gap-2">
-                                            <UsersGroup className="w-4 h-4 text-slate-400" />
-                                            <p className="font-medium line-clamp-1 text-slate-700">
-                                                {report.user.name}
-                                            </p>
+                                    <div className="mt-auto space-y-2 text-sm text-slate-500 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <UsersGroup className="w-4 h-4 text-slate-400" />
+                                                <p className="font-medium line-clamp-1 text-slate-700">
+                                                    {report.user.name}
+                                                </p>
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Clock9 className="w-4 h-4 text-slate-400" />
-                                            <p className="font-medium text-slate-700">
+                                            <p className="font-medium text-slate-700 text-xs">
                                                 {formatDate(report.created_at)}
                                             </p>
                                         </div>

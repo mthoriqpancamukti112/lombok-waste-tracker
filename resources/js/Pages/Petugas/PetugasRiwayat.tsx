@@ -10,6 +10,10 @@ import {
     CheckCircleSolid,
     Calendar,
     Sparkles,
+    DangerTriangle,
+    Archive,
+    MapPin,
+    BriefcaseSolid,
 } from "@mynaui/icons-react";
 import { landingDict } from "@/Lang/Landing";
 
@@ -23,6 +27,10 @@ interface Report {
     updated_at: string; // Menggunakan updated_at untuk waktu selesai
     latitude: string;
     longitude: string;
+    severity_level: string; // Ditambahkan
+    waste_type: string; // Ditambahkan
+    city?: string; // Ditambahkan
+    needs?: string[]; // Ditambahkan
 }
 
 interface Props extends PageProps {
@@ -54,6 +62,23 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                 minute: "2-digit",
             },
         );
+    };
+
+    // Fungsi warna badge keparahan
+    const getSeverityColor = (severity: string) => {
+        switch (severity?.toLowerCase()) {
+            case "tinggi":
+            case "high":
+                return "bg-red-100 text-red-700 border-red-200";
+            case "sedang":
+            case "moderate":
+                return "bg-orange-100 text-orange-700 border-orange-200";
+            case "rendah":
+            case "low":
+                return "bg-emerald-100 text-emerald-700 border-emerald-200";
+            default:
+                return "bg-slate-100 text-slate-700 border-slate-200";
+        }
     };
 
     return (
@@ -129,7 +154,7 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                         {t.petugasDoneBadge}
                                     </div>
 
-                                    <div className="absolute bottom-3 left-3 bg-black/50 text-white text-[10px] px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
+                                    <div className="absolute bottom-3 left-3 bg-black/50 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
                                         <Map className="w-3 h-3" />{" "}
                                         {parseFloat(report.latitude).toFixed(4)}
                                         ,{" "}
@@ -137,10 +162,83 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                             4,
                                         )}
                                     </div>
+
+                                    {/* CITY BADGE (opsional, ditaruh di pojok kanan bawah jika ada) */}
+                                    {report.city && (
+                                        <div className="absolute bottom-3 right-3 bg-white/90 text-slate-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 backdrop-blur-md shadow-sm border border-slate-200">
+                                            <MapPin className="w-3 h-3 text-slate-400" />
+                                            {report.city}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Detail Informasi */}
                                 <div className="p-6 flex flex-col flex-1">
+                                    {/* BADGE KEPARAHAN & JENIS SAMPAH */}
+                                    <div className="flex flex-wrap gap-1.5 mb-3 opacity-80">
+                                        <span
+                                            className={`text-[10px] font-bold border px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide ${getSeverityColor(report.severity_level)}`}
+                                        >
+                                            <DangerTriangle className="w-3 h-3" />{" "}
+                                            {report.severity_level ===
+                                                "tinggi" ||
+                                            report.severity_level === "high"
+                                                ? t.urgencyHigh
+                                                : report.severity_level ===
+                                                        "sedang" ||
+                                                    report.severity_level ===
+                                                        "moderate"
+                                                  ? t.urgencyModerate
+                                                  : report.severity_level ===
+                                                          "rendah" ||
+                                                      report.severity_level ===
+                                                          "low"
+                                                    ? t.urgencyLow
+                                                    : report.severity_level ||
+                                                      t.kalingUnknownSeverity}
+                                        </span>
+                                        {report.waste_type ? (
+                                            report.waste_type
+                                                .split(",")
+                                                .map((type, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide"
+                                                    >
+                                                        {idx === 0 && (
+                                                            <Archive className="w-3 h-3" />
+                                                        )}
+                                                        {type.trim()}
+                                                    </span>
+                                                ))
+                                        ) : (
+                                            <span className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide">
+                                                <Archive className="w-3 h-3" />{" "}
+                                                {t.kalingGeneralWaste}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* NEEDS BADGE (Kebutuhan Alat - Opsional ditampilkan di Riwayat) */}
+                                    {report.needs &&
+                                        report.needs.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mb-3 opacity-80">
+                                                {report.needs.map(
+                                                    (need, idx) => (
+                                                        <span
+                                                            key={idx}
+                                                            className="text-[9px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase"
+                                                        >
+                                                            {idx === 0 && (
+                                                                <BriefcaseSolid className="w-2.5 h-2.5" />
+                                                            )}
+                                                            {need}
+                                                        </span>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
+
                                     <h4
                                         className="font-bold text-slate-800 line-clamp-2 mb-4"
                                         title={report.description}
