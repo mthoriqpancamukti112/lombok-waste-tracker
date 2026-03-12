@@ -536,9 +536,6 @@ const ReportModal: React.FC<ReportModalProps> = ({
                     >
                         {/* GRID 2 KOLOM UNTUK DESKTOP */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* ========================================================= */}
-                            {/* KOLOM KIRI (GAMBAR & PETA) */}
-                            {/* ========================================================= */}
                             <div className="space-y-6">
                                 {/* 1. IMAGE UPLOAD & AI PREVIEW (TUNGGAL / 1 FOTO) */}
                                 <section>
