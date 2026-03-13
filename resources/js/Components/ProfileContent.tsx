@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Link, router } from "@inertiajs/react";
-import { X } from "@mynaui/icons-react";
+import { X, MapPin, Like, MessageDots } from "@mynaui/icons-react";
 import { toast } from "react-hot-toast";
 import { landingDict } from "@/Lang/Landing";
 
@@ -516,12 +516,14 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             <p className="text-white text-[10px] font-semibold line-clamp-2">
                                                 {report.description}
                                             </p>
-                                            <div className="flex gap-2 text-white/80">
-                                                <span className="text-[9px] font-bold">
-                                                    👍 {report.likes_count}
+                                            <div className="flex gap-3 text-white/80">
+                                                <span className="flex items-center gap-1 text-[9px] font-bold">
+                                                    <Like className="w-3 h-3" />{" "}
+                                                    {report.likes_count}
                                                 </span>
-                                                <span className="text-[9px] font-bold">
-                                                    💬 {report.comments_count}
+                                                <span className="flex items-center gap-1 text-[9px] font-bold">
+                                                    <MessageDots className="w-3 h-3" />{" "}
+                                                    {report.comments_count}
                                                 </span>
                                             </div>
                                         </div>
@@ -859,12 +861,14 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             <p className="text-white text-xs font-semibold line-clamp-2">
                                                 {report.description}
                                             </p>
-                                            <div className="flex gap-3 text-white/80">
-                                                <span className="text-xs font-bold">
-                                                    👍 {report.likes_count}
+                                            <div className="flex gap-3 text-[10px] font-bold text-slate-400">
+                                                <span className="flex items-center gap-1">
+                                                    <Like className="w-3.5 h-3.5" />{" "}
+                                                    {report.likes_count}
                                                 </span>
-                                                <span className="text-xs font-bold">
-                                                    💬 {report.comments_count}
+                                                <span className="flex items-center gap-1">
+                                                    <MessageDots className="w-3.5 h-3.5" />{" "}
+                                                    {report.comments_count}
                                                 </span>
                                             </div>
                                         </div>
@@ -909,9 +913,10 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             </p>
                                             {report.address && (
                                                 <p
-                                                    className={`text-[10px] ${subtle} mt-0.5 truncate`}
+                                                    className={`flex items-center gap-1 text-[10px] ${subtle} mt-1 truncate`}
                                                 >
-                                                    📍 {report.address}
+                                                    <MapPin className="w-3 h-3 shrink-0" />{" "}
+                                                    {report.address}
                                                 </p>
                                             )}
                                             <div className="flex items-center justify-between mt-2">
@@ -925,12 +930,13 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                           ? t.statusInProcess
                                                           : t.statusWaiting}
                                                 </span>
-                                                <div className="flex gap-2 text-[10px] font-bold text-slate-400">
-                                                    <span>
-                                                        👍 {report.likes_count}
+                                                <div className="flex gap-3 text-[10px] font-bold text-slate-400">
+                                                    <span className="flex items-center gap-1">
+                                                        <Like className="w-3.5 h-3.5" />{" "}
+                                                        {report.likes_count}
                                                     </span>
-                                                    <span>
-                                                        💬{" "}
+                                                    <span className="flex items-center gap-1">
+                                                        <MessageDots className="w-3.5 h-3.5" />{" "}
                                                         {report.comments_count}
                                                     </span>
                                                 </div>
