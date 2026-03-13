@@ -125,6 +125,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
 ) {
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
     const [isLegendCollapsed, setIsLegendCollapsed] = useState(false);
+    const [currentZoom, setCurrentZoom] = useState(10);
     // Use props if provided, fallback to internal state for backward compatibility/standalone use
     const [internalMapSettings, setInternalMapSettings] = useState({
         showHeatmap: true,
@@ -461,6 +462,16 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
         return { ping: "bg-[#a7e94a]", dot: "bg-[#a7e94a]" };
     };
 
+    // Zoom 8 (Jauh/Pulau): Ukuran 50%
+    // Zoom 12 (Sedang/Kota): Ukuran 100%
+    // Zoom 16 (Dekat/Jalan): Ukuran 140%
+    const calculateScale = (zoom: number) => {
+        if (zoom <= 8) return 0.5;
+        if (zoom >= 16) return 1.4;
+        return 0.5 + ((zoom - 8) / 8) * 0.9;
+    };
+    const dynamicScale = calculateScale(currentZoom);
+
     return (
         <Map
             ref={mapRef}
@@ -481,6 +492,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                     setSelectedReport(null);
                 }
             }}
+            onZoom={(e) => setCurrentZoom(e.viewState.zoom)}
         >
             <style>{`.mapboxgl-ctrl-logo { display: none !important; } .mapboxgl-ctrl-attrib { display: none !important; } .mapboxgl-ctrl-geolocate { display: none !important; }`}</style>
 
@@ -569,28 +581,35 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                         anchor="center"
                     >
                         <div
-                            title={zone.name}
-                            className="relative flex items-center justify-center w-8 h-8 cursor-pointer hover:scale-125 transition-transform"
+                            style={{
+                                transform: `scale(${dynamicScale})`,
+                                transition: "transform 0.1s ease-out",
+                            }}
                         >
-                            <span
-                                className={`absolute w-8 h-8 rounded-full opacity-40 animate-ping`}
-                                style={{
-                                    backgroundColor:
-                                        severityColor[zone.severity] ||
-                                        "#ef4444",
-                                }}
-                            />
-                            <span
-                                className={`absolute w-3 h-3 rounded-full border-2 border-white shadow-lg`}
-                                style={{
-                                    backgroundColor:
-                                        severityColor[zone.severity] ||
-                                        "#ef4444",
-                                }}
-                            />
-                            <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black/70 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100">
-                                {zone.name}
-                            </span>
+                            <div
+                                title={zone.name}
+                                className="relative flex items-center justify-center w-8 h-8 cursor-pointer hover:scale-125 transition-transform"
+                            >
+                                <span
+                                    className={`absolute w-8 h-8 rounded-full opacity-40 animate-ping`}
+                                    style={{
+                                        backgroundColor:
+                                            severityColor[zone.severity] ||
+                                            "#ef4444",
+                                    }}
+                                />
+                                <span
+                                    className={`absolute w-3 h-3 rounded-full border-2 border-white shadow-lg`}
+                                    style={{
+                                        backgroundColor:
+                                            severityColor[zone.severity] ||
+                                            "#ef4444",
+                                    }}
+                                />
+                                <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black/70 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {zone.name}
+                                </span>
+                            </div>
                         </div>
                     </Marker>
                 ))}
@@ -610,17 +629,24 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                                 setSelectedReport(report);
                             }}
                         >
-                            <div className="relative flex items-center justify-center w-10 h-10 cursor-pointer hover:scale-110 transition-transform duration-300 group">
-                                <span
-                                    className={`absolute w-10 h-10 opacity-50 rounded-full animate-ping ${ping}`}
-                                />
-                                <span
-                                    className={`absolute w-4 h-4 rounded-full border-2 border-white shadow-md ${dot}`}
-                                />
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
-                                        {report.severity_level?.toUpperCase()}
-                                    </span>
+                            <div
+                                style={{
+                                    transform: `scale(${dynamicScale})`,
+                                    transition: "transform 0.1s ease-out",
+                                }}
+                            >
+                                <div className="relative flex items-center justify-center w-10 h-10 cursor-pointer hover:scale-110 transition-transform duration-300 group">
+                                    <span
+                                        className={`absolute w-10 h-10 opacity-50 rounded-full animate-ping ${ping}`}
+                                    />
+                                    <span
+                                        className={`absolute w-4 h-4 rounded-full border-2 border-white shadow-md ${dot}`}
+                                    />
+                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                        <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
+                                            {report.severity_level?.toUpperCase()}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </Marker>
@@ -744,15 +770,23 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                         latitude={searchedLocation.lat}
                         anchor="bottom"
                     >
-                        <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 bg-[#a7e94a] rounded-full border-[3px] border-white shadow-lg flex items-center justify-center animate-bounce">
-                                <svg
-                                    className="w-4 h-4 text-slate-900"
-                                    fill="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" />
-                                </svg>
+                        <div
+                            style={{
+                                transform: `scale(${dynamicScale})`,
+                                transition: "transform 0.1s ease-out",
+                                transformOrigin: "bottom center",
+                            }}
+                        >
+                            <div className="flex flex-col items-center">
+                                <div className="w-8 h-8 bg-[#a7e94a] rounded-full border-[3px] border-white shadow-lg flex items-center justify-center animate-bounce">
+                                    <svg
+                                        className="w-4 h-4 text-slate-900"
+                                        fill="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </Marker>
