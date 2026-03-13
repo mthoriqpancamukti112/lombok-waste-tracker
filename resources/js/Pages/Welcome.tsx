@@ -10,6 +10,7 @@ import ProfileContent from "@/Components/ProfileContent";
 import AuthModal from "@/Components/AuthModal";
 import ReportModal from "@/Components/ReportModal";
 import ReportDetailContent from "@/Components/ReportDetailContent";
+import ChatbotWidget from "@/Components/ChatbotWidget";
 import { Toaster, toast } from "react-hot-toast";
 import {
     Globe,
@@ -129,6 +130,7 @@ export default function Welcome({
     const mapRef = useRef<{
         centerOnUser: () => void;
         flyTo: (lat: number, lng: number) => void;
+        openPopup: (report: Report) => void;
     } | null>(null);
     const t = landingDict[lang];
 
@@ -318,6 +320,28 @@ export default function Welcome({
             setActivePanel("none");
         } finally {
             setIsLoadingDetail(false);
+        }
+    };
+
+    // ======================================================================
+    // MENGATUR MAP FOCUS & BUKA POPUP DARI LINK CHATBOT (INSTAN / SPA)
+    // ======================================================================
+    const handleFocusReportFromChatbot = (reportId: number) => {
+        if (reports && reports.length > 0) {
+            const targetReport = reports.find((r) => r.id === reportId);
+
+            if (targetReport && mapRef.current) {
+                // 1. Terbang ke titik koordinat
+                mapRef.current.flyTo(
+                    Number(targetReport.latitude),
+                    Number(targetReport.longitude),
+                );
+
+                // 2. Munculkan popup kecil 0.5 detik kemudian
+                setTimeout(() => {
+                    mapRef.current?.openPopup(targetReport);
+                }, 500);
+            }
         }
     };
 
@@ -1068,6 +1092,12 @@ export default function Welcome({
                     isDark={isDarkMode}
                     initialLocation={initialReportLocation}
                     lang={lang}
+                />
+
+                <ChatbotWidget
+                    isDark={isDarkMode}
+                    userId={auth.user?.id}
+                    onFocusReport={handleFocusReportFromChatbot}
                 />
 
                 <Toaster

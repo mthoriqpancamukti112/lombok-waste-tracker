@@ -6,6 +6,7 @@ use App\Models\AppNotification;
 use App\Models\Kaling;
 use App\Models\Report;
 use App\Models\ReportStatusLog;
+use App\Models\User;
 use App\Notifications\ReportStatusUpdated;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
@@ -269,5 +270,145 @@ class ReportController extends Controller
             $report->update($dataToUpdate);
             return back()->with('success', 'Status laporan berhasil diperbarui.');
         }
+    }
+
+    public function getLatestReportStatus($userId)
+    {
+        if ($userId == 0) {
+            return response()->json(['status' => null], 200);
+        }
+
+        // Cari 1 laporan paling baru berdasarkan user_id
+        $latestReport = Report::where('user_id', $userId)
+            ->latest() // otomatis mengurutkan dari created_at terbaru
+            ->first();
+
+        if (!$latestReport) {
+            return response()->json(['status' => null], 200);
+        }
+
+        return response()->json([
+            'status' => $latestReport->status,
+            'address' => $latestReport->address ?? 'Lokasi tidak diketahui',
+            'date' => $latestReport->created_at->format('d M Y')
+        ], 200);
+    }
+
+    /**
+     * API Endpoint untuk Chatbot Python mengambil 5 laporan terbaru secara global
+     */
+    public function getLatestReports()
+    {
+        // Ambil 5 laporan terakhir beserta nama pelapornya
+        $reports = Report::with('user:id,name')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        if ($reports->isEmpty()) {
+            return response()->json(['reports' => []], 200);
+        }
+
+        // Format datanya agar rapi saat dibaca Python
+        $formattedReports = $reports->map(function ($report) {
+            return [
+                'id' => $report->id,
+                'pelapor' => $report->user ? $report->user->name : 'Anonim',
+                'lokasi' => $report->address ?? ($report->city ?? 'Lokasi tidak diketahui'),
+                'status' => $report->status,
+                'tanggal' => $report->created_at->format('d M Y, H:i')
+            ];
+        });
+
+        return response()->json(['reports' => $formattedReports], 200);
+    }
+
+    /**
+     * API Endpoint untuk Chatbot Python (Khusus Petugas, Kaling, DLH)
+     */
+    public function getTitikAngkut($userId)
+    {
+        if ($userId == 0) {
+            return response()->json(['role' => 'guest'], 200);
+        }
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return response()->json(['role' => 'unknown'], 200);
+        }
+
+        if ($user->role === 'warga') {
+            return response()->json([
+                'role' => 'warga',
+                'message' => 'Fitur ini khusus untuk operasional petugas.'
+            ], 200);
+        }
+
+        $totalTugas = Report::whereIn('status', ['divalidasi', 'proses'])->count();
+        $menungguKaling = Report::where('status', 'menunggu')->count();
+
+        // Ambil 5 tugas yang SIAP ANGKUT
+        $reports = Report::whereIn('status', ['divalidasi', 'proses'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $formattedReports = $reports->map(function ($report) {
+            return [
+                'id' => $report->id,
+                'lokasi' => $report->address ?? ($report->city ?? 'Lokasi tidak diketahui'),
+                'status' => $report->status,
+                'severity' => strtolower($report->severity_level ?? 'low')
+            ];
+        });
+
+        // --- TAMBAHAN BARU: Ambil 10 data yang MENUNGGU KALING ---
+        $menungguList = Report::where('status', 'menunggu')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(function ($report) {
+                return [
+                    'id' => $report->id,
+                    'lokasi' => $report->address ?? ($report->city ?? 'Lokasi tidak diketahui'),
+                ];
+            });
+
+        return response()->json([
+            'role' => $user->role,
+            'total_tugas' => $totalTugas,
+            'menunggu_kaling' => $menungguKaling,
+            'reports' => $formattedReports,
+            'menunggu_list' => $menungguList
+        ], 200);
+    }
+
+    /**
+     * API Endpoint untuk Chatbot Python mengambil statistik keseluruhan laporan
+     */
+    public function getStatistik()
+    {
+        $total = Report::count();
+
+        // Ambil jumlah berdasarkan masing-masing status
+        $menunggu = Report::where('status', 'menunggu')->count();
+        $divalidasi = Report::where('status', 'divalidasi')->count();
+        $proses = Report::where('status', 'proses')->count();
+        $selesai = Report::where('status', 'selesai')->count();
+        $ditolak = Report::where('status', 'ditolak')->count();
+
+        // Hitung persentase penyelesaian (Tingkat Keberhasilan)
+        $persentaseSelesai = $total > 0 ? round(($selesai / $total) * 100, 1) : 0;
+
+        return response()->json([
+            'total' => $total,
+            'menunggu' => $menunggu,
+            'divalidasi' => $divalidasi,
+            'proses' => $proses,
+            'selesai' => $selesai,
+            'ditolak' => $ditolak,
+            'persentase_selesai' => $persentaseSelesai
+        ], 200);
     }
 }
