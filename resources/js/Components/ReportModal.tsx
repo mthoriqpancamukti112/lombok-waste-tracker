@@ -36,10 +36,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
     initialLocation,
     lang,
 }) => {
-    // Memanggil dictionary berdasarkan bahasa yang aktif
     const t = landingDict[lang];
 
-    // ── Form State (Inertia) ──────────────────────
     const {
         data,
         setData,
@@ -47,6 +45,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
         processing: isSubmitting,
         errors,
         reset,
+        clearErrors,
     } = useForm({
         description: "",
         photo: null as File | null,
@@ -60,7 +59,6 @@ const ReportModal: React.FC<ReportModalProps> = ({
         needs: [] as string[],
     });
 
-    // ── Local UI State ────────────────────────────
     const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
     const [locationMode, setLocationMode] = useState<"current" | "pick">(
         "current",
@@ -84,7 +82,6 @@ const ReportModal: React.FC<ReportModalProps> = ({
     >([]);
     const [showResults, setShowResults] = useState(false);
 
-    // ── AI State (NEW) ────────────────────────────
     const [isScanningAI, setIsScanningAI] = useState(false);
     const [aiResultImage, setAiResultImage] = useState<string | null>(null);
     const [aiDetectedCount, setAiDetectedCount] = useState<number | null>(null);
@@ -123,14 +120,31 @@ const ReportModal: React.FC<ReportModalProps> = ({
         }
     }, [selectedLocation]);
 
-    // Reset form when modal opens
+    // --- FUNGSI RESET TOTAL ---
+    const resetAllState = () => {
+        reset(); // Reset form inertia
+        clearErrors();
+        setData("description", "");
+        setImages([]);
+        setAiResultImage(null);
+        setAiDetectedCount(null);
+        setIsAiRejected(false);
+        setUrgency("");
+        setNeeds([]);
+        setNeedInput("");
+        setSearchQuery("");
+        setSearchResults([]);
+        setShowResults(false);
+
+        // Kosongkan value dari input file agar bisa pilih file yg sama lagi
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
     useEffect(() => {
         if (isOpen) {
-            setImages([]);
-            reset();
-            setAiResultImage(null);
-            setAiDetectedCount(null);
-            setIsAiRejected(false);
+            resetAllState();
 
             if (initialLocation) {
                 setLocationMode("pick");
@@ -144,18 +158,9 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 setLocationMode("current");
                 setSelectedLocation(null);
             }
-            setSearchQuery("");
-            setUrgency("");
-            setNeeds([]);
-            setNeedInput("");
-            setSearchResults([]);
-            setShowResults(false);
         }
     }, [isOpen, initialLocation]);
 
-    // =======================================================
-    // AI LOGIC: FASTAPI SCANNING REAL-TIME
-    // =======================================================
     const scanImageWithAI = async (file: File) => {
         setIsScanningAI(true);
         setIsAiRejected(false);
@@ -208,21 +213,17 @@ const ReportModal: React.FC<ReportModalProps> = ({
             }
         } catch (error) {
             console.error("AI Error:", error);
-            toast(t.aiOfflineToast, {
-                icon: "⚠️",
-            });
+            toast(t.aiOfflineToast, { icon: "⚠️" });
         } finally {
             setIsScanningAI(false);
         }
     };
 
-    // ── Image handling ────────────────────────────
     const updateImagesInForm = (
         newImages: { file: File; preview: string }[],
     ) => {
         setData((prev) => ({
             ...prev,
-            // Simpan foto asli ke state inertia, BUKAN foto hasil AI
             photo: newImages[0]?.file || null,
             photos: newImages.slice(1).map((img) => img.file),
         }));
@@ -231,7 +232,6 @@ const ReportModal: React.FC<ReportModalProps> = ({
     const handleFiles = async (files: FileList | null) => {
         if (!files) return;
 
-        // BAGAIMANA JUGA HANYA MENGAMBIL 1 GAMBAR
         const validFiles = Array.from(files)
             .filter((f) => f.type.startsWith("image/"))
             .slice(0, 1);
@@ -263,20 +263,25 @@ const ReportModal: React.FC<ReportModalProps> = ({
         setImages(newImagesList);
         updateImagesInForm(newImagesList);
 
-        // Langsung panggil AI Scanner
         if (newImagesList.length > 0) {
             scanImageWithAI(newImagesList[0].file);
         }
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         handleFiles(e.target.files);
+    };
 
     const removeImage = (index: number) => {
         if (index === 0) {
             setAiResultImage(null);
             setAiDetectedCount(null);
             setIsAiRejected(false);
+
+            // --- PENTING: Kosongkan input file agar bisa di-klik lagi ---
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
         }
 
         setImages((prev) => {
@@ -327,16 +332,13 @@ const ReportModal: React.FC<ReportModalProps> = ({
             if (json.features?.[0]) {
                 const address = json.features[0].place_name;
 
-                // --- KODE BARU: Ekstrak Nama Kota dari Mapbox ---
                 const context = json.features[0].context || [];
                 const placeObj = context.find((c: any) =>
                     c.id.startsWith("place"),
                 );
-                // Hilangkan kata "Kabupaten " atau "Kota " jika ada, agar rapi
                 let city = placeObj ? placeObj.text : "";
-                // ------------------------------------------------
 
-                setSelectedLocation({ lat, lng, address, city }); // Update state dengan city
+                setSelectedLocation({ lat, lng, address, city });
             }
         } catch (err) {
             console.error("Geocode error:", err);
@@ -389,7 +391,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
     }) => {
         setShowResults(false);
         setSearchResults([]);
-        setSearchQuery(result.name); // Tetap tampilkan nama pendek di kolom pencarian
+        setSearchQuery(result.name);
         setIsSearching(true);
         try {
             const res = await fetch(
@@ -400,10 +402,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 const coords = json.features[0].geometry.coordinates;
                 const [lng, lat] = coords;
 
-                // --- PERBAIKAN: GABUNGKAN NAME DAN FULL ADDRESS ---
                 let finalAddress = result.name;
-
-                // Cek agar tidak terjadi duplikasi kata (misal "Mataram, Mataram, NTB")
                 if (
                     result.full_address &&
                     !result.full_address.includes(result.name)
@@ -412,17 +411,15 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 } else if (result.full_address) {
                     finalAddress = result.full_address;
                 }
-                // --------------------------------------------------
 
-                // Ambil city (jika Anda sudah menerapkan saran ekstraksi kota sebelumnya)
                 const context = json.features[0].properties?.context || {};
                 let city = context.place?.name || "";
 
                 setSelectedLocation({
                     lat,
                     lng,
-                    address: finalAddress, // <- Gunakan alamat yang sudah digabung
-                    // city: city // Aktifkan jika Anda pakai kolom city
+                    address: finalAddress,
+                    city: city,
                 });
 
                 setViewState({ longitude: lng, latitude: lat, zoom: 15 });
@@ -472,6 +469,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
             setNeedInput("");
         }
     };
+
     const removeNeed = (tag: string) =>
         setNeeds((prev) => prev.filter((n) => n !== tag));
 
@@ -496,6 +494,10 @@ const ReportModal: React.FC<ReportModalProps> = ({
                     duration: 4000,
                     position: "top-center",
                 });
+
+                // --- RESET TOTAL SETELAH SUBMIT ---
+                resetAllState();
+
                 onSubmit(data);
                 onClose();
             },
@@ -646,9 +648,10 @@ const ReportModal: React.FC<ReportModalProps> = ({
                                                 {/* Overlay Ganti Foto saat hover */}
                                                 {!isScanningAI && (
                                                     <div
-                                                        onClick={() =>
-                                                            fileInputRef.current?.click()
-                                                        }
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // Stop agar tidak bentrok dgn div luar
+                                                            fileInputRef.current?.click();
+                                                        }}
                                                         className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl z-20"
                                                     >
                                                         <p className="text-white font-semibold text-sm drop-shadow-md">
@@ -1179,7 +1182,10 @@ const ReportModal: React.FC<ReportModalProps> = ({
                     >
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={() => {
+                                resetAllState();
+                                onClose();
+                            }}
                             className={`px-5 py-2.5 font-bold text-sm transition-colors ${isDark ? "text-slate-400 hover:text-slate-100" : "text-slate-500 hover:text-slate-800"}`}
                         >
                             {t.cancel}
