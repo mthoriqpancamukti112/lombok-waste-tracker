@@ -4,6 +4,7 @@ import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEventHandler, useState, useEffect } from "react";
 import { User, Lock, Eye, EyeOff } from "@mynaui/icons-react";
 import { landingDict } from "@/Lang/Landing";
+import ForgotPasswordModal from "@/Components/ForgotPasswordModal";
 
 export default function Login({
     status,
@@ -14,6 +15,9 @@ export default function Login({
 }) {
     // --- STATE BAHASA (Otomatis dari localStorage) ---
     const [lang, setLang] = useState<"id" | "en">("id");
+
+    // --- STATE MODAL LUPA PASSWORD ---
+    const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
     useEffect(() => {
         const savedLang = localStorage.getItem("appLang") as "id" | "en";
@@ -141,12 +145,14 @@ export default function Login({
                         </label>
 
                         {canResetPassword && (
-                            <Link
-                                href={route("password.request")}
+                            // MENGUBAH <Link> MENJADI <button> UNTUK MEMBUKA MODAL
+                            <button
+                                type="button"
+                                onClick={() => setIsForgotModalOpen(true)}
                                 className="text-xs font-bold text-[#a7e94a] hover:text-green-600 hover:underline underline-offset-2 transition-all"
                             >
                                 {t.authForgotPassword}
-                            </Link>
+                            </button>
                         )}
                     </div>
 
@@ -215,6 +221,14 @@ export default function Login({
                     </p>
                 </div>
             </div>
+
+            {/* ─── PANGGIL MODAL LUPA PASSWORD DI SINI ─── */}
+            <ForgotPasswordModal
+                isOpen={isForgotModalOpen}
+                onClose={() => setIsForgotModalOpen(false)}
+                onBackToLogin={() => setIsForgotModalOpen(false)}
+                isDark={false} // GuestLayout biasanya default light mode, tapi bisa disesuaikan
+            />
         </GuestLayout>
     );
 }
