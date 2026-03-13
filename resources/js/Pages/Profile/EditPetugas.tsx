@@ -51,6 +51,10 @@ export default function EditPetugas({ auth, userData, status }: Props) {
 
     useEffect(() => {
         if (recentlySuccessful) {
+            // Cek apakah dark mode aktif untuk menyesuaikan pop-up SweetAlert
+            const isDarkMode =
+                document.documentElement.classList.contains("dark");
+
             Swal.fire({
                 title: t.petugasSaveSuccessTitle,
                 text: t.petugasSaveSuccessDesc,
@@ -59,6 +63,8 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                 showConfirmButton: false,
                 toast: true,
                 position: "top-end",
+                background: isDarkMode ? "#1e293b" : "#ffffff", // Dark bg
+                color: isDarkMode ? "#f8fafc" : "#0f172a", // Text color
             });
         }
     }, [recentlySuccessful, t]);
@@ -80,11 +86,11 @@ export default function EditPetugas({ auth, userData, status }: Props) {
             auth={auth}
             header={
                 <div>
-                    <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    <h2 className="text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 transition-colors">
                         <User className="w-7 h-7 text-amber-500" />
                         {t.petugasProfileTitle}
                     </h2>
-                    <p className="text-xs lg:text-sm text-slate-500 mt-1">
+                    <p className="text-xs lg:text-sm text-slate-500 dark:text-slate-400 mt-1 transition-colors">
                         {t.petugasProfileSubtitle}
                     </p>
                 </div>
@@ -94,7 +100,7 @@ export default function EditPetugas({ auth, userData, status }: Props) {
 
             <div className="max-w-4xl mx-auto space-y-6 pb-12">
                 {/* KARTU IDENTITAS ARMADA (ID CARD) */}
-                <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-1 shadow-lg border border-amber-400 overflow-hidden relative">
+                <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-1 shadow-lg border border-amber-400 dark:border-amber-600/50 overflow-hidden relative transition-colors">
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 blur-3xl"></div>
                     <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-black opacity-10 blur-2xl"></div>
 
@@ -102,7 +108,11 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                         <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white flex items-center justify-center text-4xl sm:text-5xl font-black text-amber-600 shadow-xl border-4 border-amber-100 flex-shrink-0 relative">
                             {userData.name.charAt(0).toUpperCase()}
                             <div
-                                className={`absolute bottom-0 right-0 ${userData.petugas?.is_aktif ? "bg-green-500" : "bg-red-500"} text-white p-1.5 rounded-full border-2 border-white shadow-sm`}
+                                className={`absolute bottom-0 right-0 ${
+                                    userData.petugas?.is_aktif
+                                        ? "bg-green-500"
+                                        : "bg-red-500"
+                                } text-white p-1.5 rounded-full border-2 border-white shadow-sm`}
                                 title={
                                     userData.petugas?.is_aktif
                                         ? t.petugasStatusActive
@@ -171,25 +181,25 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                 </div>
 
                 {/* INFO DATA ARMADA (Peringatan) */}
-                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex gap-3 items-start animate-in fade-in slide-in-from-bottom-2">
-                    <InfoCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 rounded-2xl p-4 flex gap-3 items-start animate-in fade-in slide-in-from-bottom-2 transition-colors">
+                    <InfoCircle className="w-5 h-5 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <div>
-                        <h5 className="text-sm font-bold text-blue-800">
+                        <h5 className="text-sm font-bold text-blue-800 dark:text-blue-300">
                             {t.petugasFleetChangeTitle}
                         </h5>
-                        <p className="text-xs text-blue-600 mt-1">
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                             {t.petugasFleetChangeDesc}
                         </p>
                     </div>
                 </div>
 
                 {/* FORM UPDATE PROFIL */}
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div className="p-6 lg:p-8 border-b border-slate-100 bg-slate-50/50">
-                        <h4 className="text-lg font-bold text-slate-800">
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
+                    <div className="p-6 lg:p-8 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 transition-colors">
+                        <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                             {t.petugasEditAccountTitle}
                         </h4>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                             {t.petugasEditAccountDesc}
                         </p>
                     </div>
@@ -198,13 +208,13 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Nama */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">
                                     {t.petugasFullNameLabel}{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <User className="h-5 w-5 text-slate-400" />
+                                        <User className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                                     </div>
                                     <input
                                         type="text"
@@ -213,11 +223,11 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                             setData("name", e.target.value)
                                         }
                                         required
-                                        className="w-full pl-10 rounded-xl border-slate-200 focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-slate-50 p-2.5 transition-colors"
+                                        className="w-full pl-10 rounded-xl border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 transition-colors"
                                     />
                                 </div>
                                 {errors.name && (
-                                    <p className="text-xs text-red-500 mt-1">
+                                    <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                                         {errors.name}
                                     </p>
                                 )}
@@ -225,13 +235,13 @@ export default function EditPetugas({ auth, userData, status }: Props) {
 
                             {/* Email */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">
                                     {t.petugasEmailLabel}{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span className="text-slate-400 font-bold text-lg">
+                                        <span className="text-slate-400 dark:text-slate-500 font-bold text-lg">
                                             @
                                         </span>
                                     </div>
@@ -242,11 +252,11 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                             setData("email", e.target.value)
                                         }
                                         required
-                                        className="w-full pl-10 rounded-xl border-slate-200 focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-slate-50 p-2.5 transition-colors"
+                                        className="w-full pl-10 rounded-xl border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 transition-colors"
                                     />
                                 </div>
                                 {errors.email && (
-                                    <p className="text-xs text-red-500 mt-1">
+                                    <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                                         {errors.email}
                                     </p>
                                 )}
@@ -254,12 +264,12 @@ export default function EditPetugas({ auth, userData, status }: Props) {
 
                             {/* Nomor Telepon */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">
                                     {t.petugasPhoneLabel}
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Telephone className="h-5 w-5 text-slate-400" />
+                                        <Telephone className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                                     </div>
                                     <input
                                         type="text"
@@ -268,11 +278,11 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                                             setData("no_telp", e.target.value)
                                         }
                                         placeholder={t.petugasPhonePlaceholder}
-                                        className="w-full pl-10 rounded-xl border-slate-200 focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-slate-50 p-2.5 transition-colors"
+                                        className="w-full pl-10 rounded-xl border-slate-200 dark:border-slate-600 focus:border-amber-500 dark:focus:border-amber-500 focus:ring-amber-500 sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                     />
                                 </div>
                                 {errors.no_telp && (
-                                    <p className="text-xs text-red-500 mt-1">
+                                    <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                                         {errors.no_telp}
                                     </p>
                                 )}
@@ -280,11 +290,11 @@ export default function EditPetugas({ auth, userData, status }: Props) {
                         </div>
 
                         {/* Tombol Simpan */}
-                        <div className="flex items-center justify-end pt-4 border-t border-slate-100 mt-4">
+                        <div className="flex items-center justify-end pt-4 border-t border-slate-100 dark:border-slate-700 mt-6 transition-colors">
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-md disabled:opacity-50 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 min-w-[200px] flex justify-center items-center"
+                                className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-bold py-2.5 px-6 rounded-xl shadow-md disabled:opacity-50 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 min-w-[200px] flex justify-center items-center"
                             >
                                 {processing ? (
                                     <span className="flex items-center gap-2">

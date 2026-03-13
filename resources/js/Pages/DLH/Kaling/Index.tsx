@@ -154,8 +154,17 @@ export default function Index({
         setNamaLingkungan("");
     };
 
+    const getSwalConfig = () => {
+        const isDarkMode = document.documentElement.classList.contains("dark");
+        return {
+            background: isDarkMode ? "#1e293b" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
+        };
+    };
+
     const submit = (e: FormEvent) => {
         e.preventDefault();
+        const swalTheme = getSwalConfig();
 
         if (editingId) {
             put(route("kaling-management.update", editingId), {
@@ -167,6 +176,7 @@ export default function Index({
                         icon: "success",
                         timer: 1500,
                         showConfirmButton: false,
+                        ...swalTheme,
                     });
                 },
             });
@@ -180,6 +190,7 @@ export default function Index({
                         icon: "success",
                         timer: 1500,
                         showConfirmButton: false,
+                        ...swalTheme,
                     });
                 },
             });
@@ -187,25 +198,31 @@ export default function Index({
     };
 
     const handleDelete = (id: number, name: string) => {
+        const isDarkMode = document.documentElement.classList.contains("dark");
+
         Swal.fire({
             title: t.saKmDeleteTitle,
             text: t.saKmDeleteText.replace("{name}", name),
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
-            cancelButtonColor: "#94a3b8",
+            cancelButtonColor: isDarkMode ? "#64748b" : "#94a3b8",
             confirmButtonText: t.saKmDeleteConfirm,
             cancelButtonText: t.kmCancel,
             reverseButtons: true,
+            background: isDarkMode ? "#1e293b" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route("kaling-management.destroy", id), {
                     onSuccess: () => {
-                        Swal.fire(
-                            t.saKmDeletedTitle,
-                            t.saKmDeletedText,
-                            "success",
-                        );
+                        Swal.fire({
+                            title: t.saKmDeletedTitle,
+                            text: t.saKmDeletedText,
+                            icon: "success",
+                            background: isDarkMode ? "#1e293b" : "#ffffff",
+                            color: isDarkMode ? "#f8fafc" : "#0f172a",
+                        });
                     },
                 });
             }
@@ -218,11 +235,11 @@ export default function Index({
             header={
                 <div className="flex justify-between items-center w-full">
                     <div>
-                        <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                        <h2 className="text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 transition-colors">
                             <UsersGroup className="w-7 h-7 text-[#86bf36]" />
                             {t.kmTitle}
                         </h2>
-                        <p className="text-xs lg:text-sm text-slate-500 mt-1">
+                        <p className="text-xs lg:text-sm text-slate-500 dark:text-slate-400 mt-1 transition-colors">
                             {t.kmSubtitle}
                         </p>
                     </div>
@@ -239,10 +256,10 @@ export default function Index({
             <Head title={t.kmTitle} />
 
             {/* TABEL DATA */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-slate-600">
-                        <thead className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase font-bold text-slate-500">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300 transition-colors">
+                        <thead className="bg-slate-50/80 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 transition-colors">
                             <tr>
                                 <th className="px-6 py-4">{t.kmTableCol1}</th>
                                 <th className="px-6 py-4">{t.kmTableCol2}</th>
@@ -252,12 +269,12 @@ export default function Index({
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700 transition-colors">
                             {kalings.length === 0 ? (
                                 <tr>
                                     <td
                                         colSpan={4}
-                                        className="px-6 py-12 text-center text-slate-400"
+                                        className="px-6 py-12 text-center text-slate-400 dark:text-slate-500"
                                     >
                                         <UsersGroup className="w-12 h-12 mx-auto mb-3 opacity-20" />
                                         <p>{t.kmEmptyData}</p>
@@ -267,13 +284,13 @@ export default function Index({
                                 kalings.map((kaling) => (
                                     <tr
                                         key={kaling.id}
-                                        className="hover:bg-slate-50/50 transition-colors"
+                                        className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors"
                                     >
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-slate-800">
+                                            <div className="font-bold text-slate-800 dark:text-slate-200 transition-colors">
                                                 {kaling.user.name}
                                             </div>
-                                            <div className="text-xs text-slate-500">
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 transition-colors">
                                                 {kaling.user.email}
                                             </div>
                                         </td>
@@ -283,11 +300,11 @@ export default function Index({
                                                     {kaling.nama_wilayah}
                                                 </span>
                                             </div>
-                                            <div className="text-xs text-slate-500 mt-1">
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 transition-colors">
                                                 NIK: {kaling.nik}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 font-medium">
+                                        <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-300 transition-colors">
                                             {kaling.no_telp || "-"}
                                         </td>
                                         <td className="px-6 py-4">
@@ -296,7 +313,7 @@ export default function Index({
                                                     onClick={() =>
                                                         openEditModal(kaling)
                                                     }
-                                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    className="p-2 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                                                     title={t.kmTooltipEdit}
                                                 >
                                                     <Edit className="w-4 h-4" />
@@ -308,7 +325,7 @@ export default function Index({
                                                             kaling.user.name,
                                                         )
                                                     }
-                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                                     title={t.kmTooltipDelete}
                                                 >
                                                     <Trash className="w-4 h-4" />
@@ -330,9 +347,9 @@ export default function Index({
                         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
                         onClick={closeModal}
                     ></div>
-                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700 transition-colors">
+                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/80 transition-colors">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 transition-colors">
                                 {editingId ? (
                                     <Edit className="w-5 h-5 text-blue-500" />
                                 ) : (
@@ -342,7 +359,7 @@ export default function Index({
                             </h3>
                             <button
                                 onClick={closeModal}
-                                className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"
+                                className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-xl transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -356,12 +373,12 @@ export default function Index({
                             >
                                 {/* Info Akun */}
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 transition-colors">
                                         {t.kmAccountInfo}
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmFullNameLabel}
                                             </label>
                                             <input
@@ -373,19 +390,19 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                                 placeholder={
                                                     t.kmFullNamePlaceholder
                                                 }
                                             />
                                             {errors.name && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.name}
                                                 </p>
                                             )}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmEmailLabel}
                                             </label>
                                             <input
@@ -397,19 +414,19 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                                 placeholder={
                                                     t.kmEmailPlaceholder
                                                 }
                                             />
                                             {errors.email && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.email}
                                                 </p>
                                             )}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {editingId
                                                     ? t.kmPasswordNew
                                                     : t.kmPasswordTemp}
@@ -423,7 +440,7 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                                 placeholder={
                                                     editingId
                                                         ? t.kmPasswordPlaceholderEdit
@@ -431,13 +448,13 @@ export default function Index({
                                                 }
                                             />
                                             {errors.password && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.password}
                                                 </p>
                                             )}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmNIKLabel}
                                             </label>
                                             <input
@@ -449,17 +466,17 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                                 placeholder={t.kmNIKPlaceholder}
                                             />
                                             {errors.nik && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.nik}
                                                 </p>
                                             )}
                                         </div>
                                         <div className="sm:col-span-2">
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmPhoneLabel}
                                             </label>
                                             <input
@@ -471,13 +488,13 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                                 placeholder={
                                                     t.kmPhonePlaceholder
                                                 }
                                             />
                                             {errors.no_telp && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.no_telp}
                                                 </p>
                                             )}
@@ -486,20 +503,20 @@ export default function Index({
                                 </div>
 
                                 {/* Profil Wilayah (API Emsifa) */}
-                                <div className="pt-2 border-t border-dashed border-slate-200">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 mt-2">
+                                <div className="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700 transition-colors">
+                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 mt-2 transition-colors">
                                         {t.kmRegionCoverage}
                                     </p>
 
                                     {editingId && (
-                                        <div className="mb-4 bg-blue-50 border border-blue-100 p-3 rounded-xl">
-                                            <p className="text-xs text-blue-600 font-bold mb-1">
+                                        <div className="mb-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 p-3 rounded-xl transition-colors">
+                                            <p className="text-xs text-blue-600 dark:text-blue-400 font-bold mb-1 transition-colors">
                                                 {t.kmCurrentRegion}
                                             </p>
-                                            <p className="text-sm font-semibold text-slate-800">
+                                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 transition-colors">
                                                 {data.nama_wilayah}
                                             </p>
-                                            <p className="text-[10px] text-blue-500 mt-1">
+                                            <p className="text-[10px] text-blue-500 dark:text-blue-400/80 mt-1 transition-colors">
                                                 {t.kmRegionNote}
                                             </p>
                                         </div>
@@ -507,11 +524,11 @@ export default function Index({
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmProvinceLabel}
                                             </label>
                                             <select
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] sm:text-sm bg-slate-50 p-2.5"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 transition-colors"
                                                 onChange={(e) => {
                                                     const selected =
                                                         provinces.find(
@@ -542,11 +559,11 @@ export default function Index({
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmRegencyLabel}
                                             </label>
                                             <select
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 disabled:opacity-50"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 disabled:opacity-50 transition-colors"
                                                 disabled={
                                                     regencies.length === 0
                                                 }
@@ -580,11 +597,11 @@ export default function Index({
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmDistrictLabel}
                                             </label>
                                             <select
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 disabled:opacity-50"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 disabled:opacity-50 transition-colors"
                                                 disabled={
                                                     districts.length === 0
                                                 }
@@ -618,11 +635,11 @@ export default function Index({
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmVillageLabel}
                                             </label>
                                             <select
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 disabled:opacity-50"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 disabled:opacity-50 transition-colors"
                                                 disabled={villages.length === 0}
                                                 onChange={(e) => {
                                                     const selected =
@@ -654,11 +671,11 @@ export default function Index({
                                         </div>
 
                                         <div className="sm:col-span-2">
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.kmHamletLabel}
                                             </label>
                                             <div className="flex">
-                                                <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-500 sm:text-sm font-bold">
+                                                <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 sm:text-sm font-bold transition-colors">
                                                     Lingkungan
                                                 </span>
                                                 <input
@@ -669,7 +686,7 @@ export default function Index({
                                                             e.target.value,
                                                         )
                                                     }
-                                                    className="flex-1 min-w-0 block w-full rounded-none rounded-r-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 disabled:opacity-50"
+                                                    className="flex-1 min-w-0 block w-full rounded-none rounded-r-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 disabled:opacity-50 transition-colors"
                                                     placeholder={
                                                         t.kmHamletPlaceholder
                                                     }
@@ -679,14 +696,16 @@ export default function Index({
                                             {/* Preview Nama Akhir saat mengetik dari API */}
                                             {namaLingkungan &&
                                                 selectedVill.name && (
-                                                    <p className="text-xs text-green-600 font-semibold mt-2 bg-green-50 border border-green-100 p-2 rounded-lg">
+                                                    <p className="text-xs text-green-600 dark:text-green-400 font-semibold mt-2 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/50 p-2 rounded-lg transition-colors">
                                                         {t.kmRegionPreview}{" "}
                                                         <br />{" "}
-                                                        {data.nama_wilayah}
+                                                        <span className="text-slate-800 dark:text-slate-200">
+                                                            {data.nama_wilayah}
+                                                        </span>
                                                     </p>
                                                 )}
                                             {errors.nama_wilayah && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.nama_wilayah}
                                                 </p>
                                             )}
@@ -696,11 +715,11 @@ export default function Index({
                             </form>
                         </div>
 
-                        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
+                        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/80 transition-colors">
                             <button
                                 type="button"
                                 onClick={closeModal}
-                                className="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                                className="px-5 py-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
                             >
                                 {t.kmCancel}
                             </button>

@@ -45,20 +45,40 @@ export default function KalingMap({
     const markersRef = useRef<mapboxgl.Marker[]>([]);
     const [activeFilter, setActiveFilter] = useState<string>("semua");
 
+    // State untuk mendeteksi Dark Mode pada peta
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
     // Efek Inisialisasi Peta (Hanya berjalan sekali di awal)
     useEffect(() => {
         // Load language dari localStorage
         const savedLang = localStorage.getItem("appLang") as "id" | "en";
         if (savedLang) setLang(savedLang);
 
+        const checkDarkMode = () => {
+            setIsDarkMode(document.documentElement.classList.contains("dark"));
+        };
+
+        checkDarkMode();
+
+        // Observer untuk memantau perubahan tema secara real-time
+        const observer = new MutationObserver(checkDarkMode);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class"],
+        });
+
         if (map.current || !mapContainer.current) return;
 
         mapboxgl.accessToken = mapboxToken || import.meta.env.VITE_MAPBOX_TOKEN;
 
+        const initialStyle = document.documentElement.classList.contains("dark")
+            ? "mapbox://styles/mapbox/dark-v11"
+            : "mapbox://styles/mapbox/streets-v12";
+
         // Inisialisasi awal
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
-            style: "mapbox://styles/mapbox/streets-v12",
+            style: initialStyle,
             center: [116.1165, -8.5833],
             zoom: 11,
             pitch: 45,
@@ -114,7 +134,20 @@ export default function KalingMap({
                 searchLocation();
             }
         });
+
+        return () => observer.disconnect();
     }, [mapboxToken, namaWilayah]);
+
+    // Efek untuk merubah Style Peta jika Dark Mode di-toggle
+    useEffect(() => {
+        if (!map.current) return;
+
+        const newStyle = isDarkMode
+            ? "mapbox://styles/mapbox/dark-v11"
+            : "mapbox://styles/mapbox/streets-v12";
+
+        map.current.setStyle(newStyle);
+    }, [isDarkMode]);
 
     // Fungsi Utama: Menggambar Marker
     // Diingat menggunakan useCallback agar dependensi `t` (bahasa) selalu ter-update
@@ -142,7 +175,7 @@ export default function KalingMap({
 
                 let markerColor = "#ef4444";
                 let statusText = t.kalingMapFilterWaiting;
-                let bgBadge = "bg-red-500";
+                let bgBadge = "bg-red-500 text-white";
 
                 if (
                     report.status === "divalidasi" ||
@@ -150,11 +183,11 @@ export default function KalingMap({
                 ) {
                     markerColor = "#6366f1";
                     statusText = t.kalingMapFilterProcess;
-                    bgBadge = "bg-indigo-500";
+                    bgBadge = "bg-indigo-500 text-white";
                 } else if (report.status === "selesai") {
                     markerColor = "#22c55e";
                     statusText = t.kalingMapFilterClean;
-                    bgBadge = "bg-green-500";
+                    bgBadge = "bg-green-500 text-white";
                 }
 
                 const isVerified = report.user.warga?.is_terverifikasi;
@@ -164,21 +197,41 @@ export default function KalingMap({
                    </svg>`
                     : "";
 
+                // Desain Popup (Menyesuaikan dengan Dark Mode)
+                const isMapDark =
+                    document.documentElement.classList.contains("dark");
+                const popupBg = isMapDark ? "bg-slate-800" : "bg-white";
+                const popupText = isMapDark
+                    ? "text-slate-200"
+                    : "text-slate-800";
+                const popupBorder = isMapDark
+                    ? "border-slate-700"
+                    : "border-slate-100";
+                const popupMuted = isMapDark
+                    ? "text-slate-400"
+                    : "text-slate-500";
+                const popupBtnBg = isMapDark
+                    ? "bg-slate-700 text-indigo-400 border-slate-600"
+                    : "bg-indigo-50 text-indigo-700 border-indigo-200";
+                const popupBtnHover = isMapDark
+                    ? "hover:bg-slate-600 hover:text-indigo-300"
+                    : "hover:bg-indigo-100";
+
                 const popupHTML = `
-                <div class="w-56 font-sans bg-white">
-                    <div class="h-32 w-full mb-3 rounded-lg overflow-hidden bg-slate-100 relative border border-slate-100">
+                <div class="w-56 font-sans ${popupBg}">
+                    <div class="h-32 w-full mb-3 rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-700 relative border ${popupBorder}">
                         <img src="/storage/${report.photo_path}" class="w-full h-full object-cover" alt="Foto Sampah" />
                     </div>
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] text-slate-500 font-bold flex items-center">
+                        <span class="text-[10px] ${popupMuted} font-bold flex items-center">
                             ${t.kalingMapPopupBy} ${report.user.name} ${verifiedBadgeHTML}
                         </span>
-                        <span class="text-[9px] font-black text-white px-2 py-0.5 rounded shadow-sm ${bgBadge}">${statusText}</span>
+                        <span class="text-[9px] font-black px-2 py-0.5 rounded shadow-sm ${bgBadge}">${statusText}</span>
                     </div>
-                    <p class="text-xs font-semibold text-slate-800 line-clamp-2 leading-snug mt-1.5">
+                    <p class="text-xs font-semibold ${popupText} line-clamp-2 leading-snug mt-1.5">
                         ${report.description || t.kalingNoDesc}
                     </p>
-                 <a href="https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}" target="_blank" rel="noopener noreferrer" class="mt-4 block w-full text-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold py-2.5 rounded-lg transition-colors border border-indigo-200">
+                 <a href="https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}" target="_blank" rel="noopener noreferrer" class="mt-4 block w-full text-center ${popupBtnBg} ${popupBtnHover} text-xs font-bold py-2.5 rounded-lg transition-colors border">
                     ${t.kalingMapPopupOpenRoute}
                 </a>
                 </div>
@@ -189,6 +242,9 @@ export default function KalingMap({
                     closeButton: true,
                     closeOnClick: true,
                     maxWidth: "280px",
+                    className: isMapDark
+                        ? "custom-popup dark-popup"
+                        : "custom-popup",
                 }).setHTML(popupHTML);
 
                 const marker = new mapboxgl.Marker({
@@ -208,32 +264,34 @@ export default function KalingMap({
         [reports, t],
     );
 
-    // Render ulang saat filter atau BAHASA berubah
+    // Render ulang saat filter, BAHASA, atau DARK MODE berubah
     useEffect(() => {
         if (map.current && map.current.isStyleLoaded()) {
             renderMarkers(activeFilter);
         }
-    }, [activeFilter, renderMarkers]);
+    }, [activeFilter, isDarkMode, renderMarkers]);
 
     return (
         <KalingLayout
             auth={auth}
             header={
-                <div className="flex justify-between items-center w-full animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
-                            <MapIcon className="w-6 h-6 text-indigo-600" />
+                // PERBAIKAN RESPONSIVITAS: flex-1 dan min-w-0 agar tidak mendesak tombol menu
+                <div className="flex justify-between items-center w-full animate-in fade-in slide-in-from-top-4 duration-500 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 w-full">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0 transition-colors">
+                            <MapIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <div className="flex flex-col max-w-[200px] sm:max-w-md md:max-w-lg lg:max-w-2xl">
-                            <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 tracking-tight truncate">
+                        <div className="flex flex-col min-w-0 flex-1">
+                            <h2 className="text-base sm:text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight truncate transition-colors">
                                 {t.kalingMapTitle}
                             </h2>
                             {namaWilayah ? (
-                                <p className="text-[11px] sm:text-xs lg:text-sm text-indigo-600 font-bold truncate">
+                                // PERBAIKAN: class hidden sm:block agar hilang di hp
+                                <p className="hidden sm:block text-xs lg:text-sm text-indigo-600 dark:text-indigo-400 font-bold truncate transition-colors mt-0.5">
                                     {namaWilayah}
                                 </p>
                             ) : (
-                                <p className="text-[11px] sm:text-xs lg:text-sm text-slate-500 mt-0.5 truncate">
+                                <p className="hidden sm:block text-xs lg:text-sm text-slate-500 dark:text-slate-400 mt-0.5 truncate transition-colors">
                                     {t.kalingMapSubtitle}
                                 </p>
                             )}
@@ -246,46 +304,72 @@ export default function KalingMap({
 
             <style>
                 {`
-                    .mapboxgl-popup-content {
+                    /* Memaksa background popup menjadi putih solid dan cantik */
+                    .custom-popup .mapboxgl-popup-content {
                         background-color: #ffffff !important;
                         border-radius: 16px !important;
                         padding: 12px !important;
                         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
                         border: 1px solid #f1f5f9 !important;
+                        transition: background-color 0.3s ease, border-color 0.3s ease;
                     }
-                    .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+                    /* Memastikan panah (segitiga) popup juga berwarna putih solid */
+                    .custom-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
                         border-top-color: #ffffff !important;
+                        transition: border-top-color 0.3s ease;
                     }
-                    .mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+                    .custom-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
                         border-bottom-color: #ffffff !important;
+                        transition: border-bottom-color 0.3s ease;
                     }
-                    .mapboxgl-popup-close-button {
+                    /* Mempercantik tombol X close */
+                    .custom-popup .mapboxgl-popup-close-button {
                         font-size: 16px;
                         color: #94a3b8;
                         padding: 4px 8px;
                         border-radius: 0 16px 0 8px;
                     }
-                    .mapboxgl-popup-close-button:hover {
+                    .custom-popup .mapboxgl-popup-close-button:hover {
                         background-color: #fee2e2;
                         color: #ef4444;
+                    }
+
+                    /* --- Dark Mode Overrides untuk Popup Mapbox --- */
+                    .dark-popup.mapboxgl-popup .mapboxgl-popup-content {
+                        background-color: #1e293b !important; /* slate-800 */
+                        border-color: #334155 !important; /* slate-700 */
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    .dark-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+                        border-top-color: #1e293b !important;
+                    }
+                    .dark-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+                        border-bottom-color: #1e293b !important;
+                    }
+                    .dark-popup .mapboxgl-popup-close-button {
+                        color: #cbd5e1;
+                    }
+                    .dark-popup .mapboxgl-popup-close-button:hover {
+                        background-color: #7f1d1d; /* red-900 */
+                        color: #fca5a5; /* red-300 */
                     }
                 `}
             </style>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative flex flex-col h-[calc(100vh-180px)] animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden relative flex flex-col h-[calc(100vh-180px)] animate-in fade-in slide-in-from-bottom-4 duration-700 transition-colors">
                 <div ref={mapContainer} className="flex-1 w-full h-full" />
 
                 {/* Floating Legend & Filter Panel */}
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 z-10 w-64">
+                <div className="absolute top-4 left-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 dark:border-slate-700 z-10 w-64 animate-in fade-in slide-in-from-left-4 duration-500 transition-colors">
                     <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
-                            <InfoCircle className="w-4 h-4 text-slate-400" />{" "}
+                        <h4 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest flex items-center gap-1.5 transition-colors">
+                            <InfoCircle className="w-4 h-4 text-slate-400 dark:text-slate-500" />{" "}
                             {t.kalingMapFilterTitle}
                         </h4>
                         {activeFilter !== "semua" && (
                             <button
                                 onClick={() => setActiveFilter("semua")}
-                                className="text-[9px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors"
+                                className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 px-2 py-1 rounded transition-colors"
                             >
                                 {t.kalingMapReset}
                             </button>
@@ -304,22 +388,30 @@ export default function KalingMap({
                             }
                             className={`w-full flex items-center justify-between p-2 rounded-xl transition-all border ${
                                 activeFilter === "menunggu"
-                                    ? "bg-red-50 border-red-200 shadow-sm"
-                                    : "bg-transparent border-transparent hover:bg-slate-50"
+                                    ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50 shadow-sm"
+                                    : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50"
                             }`}
                         >
                             <div className="flex items-center gap-3">
                                 <div
-                                    className={`w-4 h-4 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] border-2 border-white ${activeFilter === "menunggu" ? "animate-pulse" : ""}`}
+                                    className={`w-4 h-4 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] border-2 border-white dark:border-slate-800 transition-colors ${
+                                        activeFilter === "menunggu"
+                                            ? "animate-pulse"
+                                            : ""
+                                    }`}
                                 ></div>
                                 <span
-                                    className={`text-sm font-bold ${activeFilter === "menunggu" ? "text-red-700" : "text-slate-700"}`}
+                                    className={`text-sm font-bold transition-colors ${
+                                        activeFilter === "menunggu"
+                                            ? "text-red-700 dark:text-red-400"
+                                            : "text-slate-700 dark:text-slate-300"
+                                    }`}
                                 >
                                     {t.kalingMapFilterWaiting}
                                 </span>
                             </div>
                             {activeFilter === "menunggu" && (
-                                <Check className="w-4 h-4 text-red-600" />
+                                <Check className="w-4 h-4 text-red-600 dark:text-red-400" />
                             )}
                         </button>
 
@@ -334,22 +426,30 @@ export default function KalingMap({
                             }
                             className={`w-full flex items-center justify-between p-2 rounded-xl transition-all border ${
                                 activeFilter === "proses"
-                                    ? "bg-indigo-50 border-indigo-200 shadow-sm"
-                                    : "bg-transparent border-transparent hover:bg-slate-50"
+                                    ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800/50 shadow-sm"
+                                    : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50"
                             }`}
                         >
                             <div className="flex items-center gap-3">
                                 <div
-                                    className={`w-4 h-4 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] border-2 border-white ${activeFilter === "proses" ? "animate-pulse" : ""}`}
+                                    className={`w-4 h-4 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] border-2 border-white dark:border-slate-800 transition-colors ${
+                                        activeFilter === "proses"
+                                            ? "animate-pulse"
+                                            : ""
+                                    }`}
                                 ></div>
                                 <span
-                                    className={`text-sm font-bold ${activeFilter === "proses" ? "text-indigo-700" : "text-slate-700"}`}
+                                    className={`text-sm font-bold transition-colors ${
+                                        activeFilter === "proses"
+                                            ? "text-indigo-700 dark:text-indigo-400"
+                                            : "text-slate-700 dark:text-slate-300"
+                                    }`}
                                 >
                                     {t.kalingMapFilterProcess}
                                 </span>
                             </div>
                             {activeFilter === "proses" && (
-                                <Check className="w-4 h-4 text-indigo-600" />
+                                <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                             )}
                         </button>
 
@@ -364,22 +464,30 @@ export default function KalingMap({
                             }
                             className={`w-full flex items-center justify-between p-2 rounded-xl transition-all border ${
                                 activeFilter === "selesai"
-                                    ? "bg-green-50 border-green-200 shadow-sm"
-                                    : "bg-transparent border-transparent hover:bg-slate-50"
+                                    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50 shadow-sm"
+                                    : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50"
                             }`}
                         >
                             <div className="flex items-center gap-3">
                                 <div
-                                    className={`w-4 h-4 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] border-2 border-white ${activeFilter === "selesai" ? "animate-pulse" : ""}`}
+                                    className={`w-4 h-4 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] border-2 border-white dark:border-slate-800 transition-colors ${
+                                        activeFilter === "selesai"
+                                            ? "animate-pulse"
+                                            : ""
+                                    }`}
                                 ></div>
                                 <span
-                                    className={`text-sm font-bold ${activeFilter === "selesai" ? "text-green-700" : "text-slate-700"}`}
+                                    className={`text-sm font-bold transition-colors ${
+                                        activeFilter === "selesai"
+                                            ? "text-green-700 dark:text-green-400"
+                                            : "text-slate-700 dark:text-slate-300"
+                                    }`}
                                 >
                                     {t.kalingMapFilterClean}
                                 </span>
                             </div>
                             {activeFilter === "selesai" && (
-                                <Check className="w-4 h-4 text-green-600" />
+                                <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
                             )}
                         </button>
                     </div>

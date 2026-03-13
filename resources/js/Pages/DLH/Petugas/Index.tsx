@@ -88,8 +88,18 @@ export default function Index({
         setEditingId(null);
     };
 
+    const getSwalConfig = () => {
+        const isDarkMode = document.documentElement.classList.contains("dark");
+        return {
+            background: isDarkMode ? "#1e293b" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
+        };
+    };
+
     const submit = (e: FormEvent) => {
         e.preventDefault();
+        const swalTheme = getSwalConfig();
+
         if (editingId) {
             put(route("petugas-management.update", editingId), {
                 onSuccess: () => {
@@ -100,6 +110,7 @@ export default function Index({
                         icon: "success",
                         timer: 1500,
                         showConfirmButton: false,
+                        ...swalTheme,
                     });
                 },
             });
@@ -113,6 +124,7 @@ export default function Index({
                         icon: "success",
                         timer: 1500,
                         showConfirmButton: false,
+                        ...swalTheme,
                     });
                 },
             });
@@ -120,16 +132,20 @@ export default function Index({
     };
 
     const handleDelete = (id: number, name: string) => {
+        const isDarkMode = document.documentElement.classList.contains("dark");
+
         Swal.fire({
             title: t.saPmDeleteTitle,
             text: t.saPmDeleteText.replace("{name}", name),
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
-            cancelButtonColor: "#94a3b8",
+            cancelButtonColor: isDarkMode ? "#64748b" : "#94a3b8",
             confirmButtonText: t.saPmDeleteConfirm,
             cancelButtonText: t.pmCancel,
             reverseButtons: true,
+            background: isDarkMode ? "#1e293b" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route("petugas-management.destroy", id), {
@@ -139,6 +155,8 @@ export default function Index({
                             icon: "success",
                             timer: 1500,
                             showConfirmButton: false,
+                            background: isDarkMode ? "#1e293b" : "#ffffff",
+                            color: isDarkMode ? "#f8fafc" : "#0f172a",
                         }),
                 });
             }
@@ -151,11 +169,11 @@ export default function Index({
             header={
                 <div className="flex justify-between items-center w-full">
                     <div>
-                        <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                        <h2 className="text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 transition-colors">
                             <Truck className="w-7 h-7 text-[#86bf36]" />
                             {t.pmTitle}
                         </h2>
-                        <p className="text-xs lg:text-sm text-slate-500 mt-1">
+                        <p className="text-xs lg:text-sm text-slate-500 dark:text-slate-400 mt-1 transition-colors">
                             {t.pmSubtitle}
                         </p>
                     </div>
@@ -171,10 +189,10 @@ export default function Index({
         >
             <Head title={t.pmTitle} />
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-slate-600">
-                        <thead className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase font-bold text-slate-500">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300 transition-colors">
+                        <thead className="bg-slate-50/80 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 transition-colors">
                             <tr>
                                 <th className="px-6 py-4">{t.pmTableCol1}</th>
                                 <th className="px-6 py-4">{t.pmTableCol2}</th>
@@ -184,12 +202,12 @@ export default function Index({
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700 transition-colors">
                             {petugasList.length === 0 ? (
                                 <tr>
                                     <td
                                         colSpan={4}
-                                        className="px-6 py-12 text-center text-slate-400"
+                                        className="px-6 py-12 text-center text-slate-400 dark:text-slate-500"
                                     >
                                         <Truck className="w-12 h-12 mx-auto mb-3 opacity-20" />
                                         <p>{t.pmEmptyData}</p>
@@ -199,10 +217,10 @@ export default function Index({
                                 petugasList.map((p) => (
                                     <tr
                                         key={p.id}
-                                        className="hover:bg-slate-50/50 transition-colors"
+                                        className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors"
                                     >
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-slate-800">
+                                            <div className="font-bold text-slate-800 dark:text-slate-200 transition-colors">
                                                 {p.user.name}
                                             </div>
                                         </td>
@@ -212,14 +230,18 @@ export default function Index({
                                                     p.jenis_kendaraan,
                                                 )}
                                             </div>
-                                            <div className="text-xs text-slate-500 mt-0.5">
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 transition-colors">
                                                 {p.plat_nomor || t.pmNoPlate} •{" "}
                                                 {p.kapasitas_kg} kg
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span
-                                                className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${p.is_aktif ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                                                className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest transition-colors ${
+                                                    p.is_aktif
+                                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                                }`}
                                             >
                                                 {p.is_aktif
                                                     ? t.pmStatusActive
@@ -232,7 +254,7 @@ export default function Index({
                                                     onClick={() =>
                                                         openEditModal(p)
                                                     }
-                                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    className="p-2 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                                                     title={t.pmTooltipEdit}
                                                 >
                                                     <Edit className="w-4 h-4" />
@@ -244,7 +266,7 @@ export default function Index({
                                                             p.user.name,
                                                         )
                                                     }
-                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                                     title={t.pmTooltipDelete}
                                                 >
                                                     <Trash className="w-4 h-4" />
@@ -263,12 +285,12 @@ export default function Index({
             {isModalOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
                     <div
-                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
                         onClick={closeModal}
                     ></div>
-                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700 transition-colors animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/80 transition-colors">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 transition-colors">
                                 {editingId ? (
                                     <Edit className="w-5 h-5 text-blue-500" />
                                 ) : (
@@ -278,7 +300,7 @@ export default function Index({
                             </h3>
                             <button
                                 onClick={closeModal}
-                                className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-xl"
+                                className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-xl transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -292,12 +314,12 @@ export default function Index({
                             >
                                 {/* Akun */}
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 transition-colors">
                                         {t.pmAccountInfo}
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.pmFullNameLabel}
                                             </label>
                                             <input
@@ -312,16 +334,16 @@ export default function Index({
                                                 placeholder={
                                                     t.pmFullNamePlaceholder
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors placeholder:text-slate-400"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                             />
                                             {errors.name && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.name}
                                                 </p>
                                             )}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.pmEmailLabel}
                                             </label>
                                             <input
@@ -336,16 +358,16 @@ export default function Index({
                                                 placeholder={
                                                     t.pmEmailPlaceholder
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors placeholder:text-slate-400"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                             />
                                             {errors.email && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.email}
                                                 </p>
                                             )}
                                         </div>
                                         <div className="sm:col-span-2">
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {editingId
                                                     ? t.pmPasswordNew
                                                     : t.pmPasswordTemp}
@@ -364,10 +386,10 @@ export default function Index({
                                                         ? t.pmPasswordPlaceholderEdit
                                                         : t.pmPasswordPlaceholderAdd
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors placeholder:text-slate-400"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                             />
                                             {errors.password && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.password}
                                                 </p>
                                             )}
@@ -376,13 +398,13 @@ export default function Index({
                                 </div>
 
                                 {/* Armada */}
-                                <div className="pt-2 border-t border-dashed border-slate-200">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 mt-2">
+                                <div className="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700 transition-colors">
+                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 mt-2 transition-colors">
                                         {t.pmFleetDetail}
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.pmVehicleTypeLabel}
                                             </label>
                                             <select
@@ -393,7 +415,7 @@ export default function Index({
                                                         e.target.value as any,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 transition-colors"
                                             >
                                                 <option value="pickup">
                                                     {t.pmVehiclePickup}
@@ -407,7 +429,7 @@ export default function Index({
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.pmPlateLabel}
                                             </label>
                                             <input
@@ -422,11 +444,11 @@ export default function Index({
                                                 placeholder={
                                                     t.pmPlatePlaceholder
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors uppercase placeholder:normal-case placeholder:text-slate-400"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 transition-colors uppercase placeholder:normal-case placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 mb-1">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {t.pmCapacityLabel}
                                             </label>
                                             <input
@@ -446,11 +468,11 @@ export default function Index({
                                                 placeholder={
                                                     t.pmCapacityPlaceholder
                                                 }
-                                                className="w-full rounded-xl border-slate-200 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 p-2.5 transition-colors placeholder:text-slate-400"
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-2.5 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                                 min="0"
                                             />
                                             {errors.kapasitas_kg && (
-                                                <p className="text-xs text-red-600 mt-1">
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.kapasitas_kg}
                                                 </p>
                                             )}
@@ -468,13 +490,13 @@ export default function Index({
                                                                     .checked,
                                                             )
                                                         }
-                                                        className="rounded-md border-slate-300 text-[#a7e94a] focus:ring-[#a7e94a] w-5 h-5 transition-colors cursor-pointer"
+                                                        className="rounded-md border-slate-300 dark:border-slate-600 text-[#a7e94a] focus:ring-[#a7e94a] bg-white dark:bg-slate-900 w-5 h-5 transition-colors cursor-pointer"
                                                     />
-                                                    <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
                                                         {t.pmStatusActiveLabel}
                                                     </span>
                                                 </label>
-                                                <p className="text-xs text-slate-400 mt-1 ml-8">
+                                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 ml-8 transition-colors">
                                                     {t.pmStatusActiveNote}
                                                 </p>
                                             </div>
@@ -484,11 +506,11 @@ export default function Index({
                             </form>
                         </div>
 
-                        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/50">
+                        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/80 transition-colors">
                             <button
                                 type="button"
                                 onClick={closeModal}
-                                className="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                                className="px-5 py-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
                             >
                                 {t.pmCancel}
                             </button>

@@ -64,20 +64,20 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
         );
     };
 
-    // Fungsi warna badge keparahan
+    // Fungsi warna badge keparahan (Disempurnakan untuk Dark Mode)
     const getSeverityColor = (severity: string) => {
         switch (severity?.toLowerCase()) {
             case "tinggi":
             case "high":
-                return "bg-red-100 text-red-700 border-red-200";
+                return "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-400 dark:border-red-800/50";
             case "sedang":
             case "moderate":
-                return "bg-orange-100 text-orange-700 border-orange-200";
+                return "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/40 dark:text-orange-400 dark:border-orange-800/50";
             case "rendah":
             case "low":
-                return "bg-emerald-100 text-emerald-700 border-emerald-200";
+                return "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:border-emerald-800/50";
             default:
-                return "bg-slate-100 text-slate-700 border-slate-200";
+                return "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-700/50 dark:text-slate-300 dark:border-slate-600";
         }
     };
 
@@ -85,7 +85,7 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
         <PetugasLayout
             auth={auth}
             header={
-                <h2 className="text-xl font-bold leading-tight text-slate-800 flex items-center gap-2">
+                <h2 className="text-xl font-bold leading-tight text-slate-800 dark:text-slate-100 flex items-center gap-2 transition-colors">
                     <CheckCircleSolid className="w-6 h-6 text-green-500" />
                     {t.petugasHistoryTitle}
                 </h2>
@@ -97,16 +97,16 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                 {/* Header Statistik Pencapaian */}
                 <div
                     data-aos="fade-down"
-                    className="bg-white overflow-hidden shadow-sm sm:rounded-2xl p-8 border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6"
+                    className="bg-white dark:bg-slate-800 overflow-hidden shadow-sm sm:rounded-2xl p-8 border border-slate-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-6 transition-colors"
                 >
                     <div>
-                        <h3 className="text-2xl font-extrabold text-slate-800 flex items-center gap-3">
+                        <h3 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-3">
                             {t.petugasHistoryHeader}
                             <Sparkles className="w-7 h-7 text-yellow-500" />
                         </h3>
-                        <p className="text-slate-500 mt-2">
+                        <p className="text-slate-500 dark:text-slate-400 mt-2">
                             {t.petugasTotalCleaned}{" "}
-                            <strong className="text-green-600 text-lg">
+                            <strong className="text-green-600 dark:text-green-400 text-lg">
                                 {reports.length} {t.petugasPointsCleaned}
                             </strong>{" "}
                             {t.petugasThanksDedication}
@@ -118,15 +118,15 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                 {reports.length === 0 ? (
                     <div
                         data-aos="zoom-in"
-                        className="bg-white overflow-hidden shadow-sm sm:rounded-2xl p-16 text-center border border-slate-100"
+                        className="bg-white dark:bg-slate-800 overflow-hidden shadow-sm sm:rounded-2xl p-16 text-center border border-slate-100 dark:border-slate-700 transition-colors"
                     >
-                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircleSolid className="w-12 h-12 text-slate-300" />
+                        <div className="w-24 h-24 bg-slate-50 dark:bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
+                            <CheckCircleSolid className="w-12 h-12 text-slate-300 dark:text-slate-500" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-800 mb-2">
+                        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
                             {t.petugasNoHistoryTitle}
                         </h3>
-                        <p className="text-slate-500">
+                        <p className="text-slate-500 dark:text-slate-400">
                             {t.petugasNoHistoryDesc}
                         </p>
                     </div>
@@ -137,17 +137,17 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                 key={report.id}
                                 data-aos="fade-up"
                                 data-aos-delay={100 * index}
-                                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
+                                className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all flex flex-col"
                             >
                                 {/* Foto Lokasi & Badge Success */}
-                                <div className="h-48 w-full relative flex-shrink-0 bg-slate-200">
+                                <div className="h-48 w-full relative flex-shrink-0 bg-slate-200 dark:bg-slate-700">
                                     <img
                                         src={`/storage/${report.photo_path}`}
                                         alt="Lokasi Sampah"
                                         className="w-full h-full object-cover filter grayscale-[20%]" // Sedikit di-grayscale agar terkesan "masa lalu"
                                     />
                                     {/* Overlay Gradient Hijau Transparan */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-green-900/40 to-transparent"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-green-900/40 dark:from-green-900/60 to-transparent"></div>
 
                                     <div className="absolute top-3 right-3 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md backdrop-blur-sm bg-green-500 text-white flex items-center gap-1">
                                         <CheckCircleSolid className="w-3 h-3" />{" "}
@@ -165,8 +165,8 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
 
                                     {/* CITY BADGE (opsional, ditaruh di pojok kanan bawah jika ada) */}
                                     {report.city && (
-                                        <div className="absolute bottom-3 right-3 bg-white/90 text-slate-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 backdrop-blur-md shadow-sm border border-slate-200">
-                                            <MapPin className="w-3 h-3 text-slate-400" />
+                                        <div className="absolute bottom-3 right-3 bg-white/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 backdrop-blur-md shadow-sm border border-slate-200 dark:border-slate-600 transition-colors">
+                                            <MapPin className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                                             {report.city}
                                         </div>
                                     )}
@@ -177,7 +177,9 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                     {/* BADGE KEPARAHAN & JENIS SAMPAH */}
                                     <div className="flex flex-wrap gap-1.5 mb-3 opacity-80">
                                         <span
-                                            className={`text-[10px] font-bold border px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide ${getSeverityColor(report.severity_level)}`}
+                                            className={`text-[10px] font-bold border px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide transition-colors ${getSeverityColor(
+                                                report.severity_level,
+                                            )}`}
                                         >
                                             <DangerTriangle className="w-3 h-3" />{" "}
                                             {report.severity_level ===
@@ -203,7 +205,7 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                                 .map((type, idx) => (
                                                     <span
                                                         key={idx}
-                                                        className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide"
+                                                        className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide transition-colors"
                                                     >
                                                         {idx === 0 && (
                                                             <Archive className="w-3 h-3" />
@@ -212,7 +214,7 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                                     </span>
                                                 ))
                                         ) : (
-                                            <span className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide">
+                                            <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 px-2 py-1 rounded-md flex items-center gap-1 uppercase tracking-wide transition-colors">
                                                 <Archive className="w-3 h-3" />{" "}
                                                 {t.kalingGeneralWaste}
                                             </span>
@@ -227,7 +229,7 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                                     (need, idx) => (
                                                         <span
                                                             key={idx}
-                                                            className="text-[9px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase"
+                                                            className="text-[9px] font-bold bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/50 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase transition-colors"
                                                         >
                                                             {idx === 0 && (
                                                                 <BriefcaseSolid className="w-2.5 h-2.5" />
@@ -240,27 +242,31 @@ export default function PetugasRiwayat({ auth, reports }: Props) {
                                         )}
 
                                     <h4
-                                        className="font-bold text-slate-800 line-clamp-2 mb-4"
+                                        className="font-bold text-slate-800 dark:text-slate-200 line-clamp-2 mb-4 transition-colors"
                                         title={report.description}
                                     >
                                         {report.description || t.petugasNoDesc}
                                     </h4>
 
-                                    <div className="mt-auto space-y-2 text-sm text-slate-600 bg-green-50 border border-green-100 p-4 rounded-xl">
+                                    <div className="mt-auto space-y-2 text-sm text-slate-600 dark:text-slate-300 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/50 p-4 rounded-xl transition-colors">
                                         <div className="flex items-center gap-2">
-                                            <UsersGroup className="w-4 h-4 text-green-600" />
+                                            <UsersGroup className="w-4 h-4 text-green-600 dark:text-green-400" />
                                             <p className="font-medium line-clamp-1">
                                                 {t.petugasReportedBy}{" "}
-                                                {report.user.name}
+                                                <span className="dark:text-slate-200">
+                                                    {report.user.name}
+                                                </span>
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4 text-green-600" />
+                                            <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
                                             <p className="font-medium">
                                                 {t.petugasFinishedAt}{" "}
-                                                {formatDateTime(
-                                                    report.updated_at,
-                                                )}
+                                                <span className="dark:text-slate-200">
+                                                    {formatDateTime(
+                                                        report.updated_at,
+                                                    )}
+                                                </span>
                                             </p>
                                         </div>
                                     </div>

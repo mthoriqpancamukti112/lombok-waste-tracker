@@ -48,6 +48,9 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [drawnFeatureId, setDrawnFeatureId] = useState<string | null>(null);
 
+    // State untuk mendeteksi Dark Mode pada peta
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
     const { data, setData, post, processing, reset, errors } = useForm({
         name: "",
         description: "",
@@ -56,21 +59,41 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
         coordinates: null as any,
     });
 
-    // 1. Sinkronisasi Bahasa dari LocalStorage (Berjalan sekali)
+    // 1. Sinkronisasi Bahasa & Tema dari LocalStorage (Berjalan sekali)
     useEffect(() => {
         const savedLang = localStorage.getItem("appLang") as "id" | "en";
         if (savedLang) setLang(savedLang);
+
+        const checkDarkMode = () => {
+            setIsDarkMode(document.documentElement.classList.contains("dark"));
+        };
+
+        checkDarkMode();
+
+        // Observer untuk memantau perubahan tema secara real-time
+        const observer = new MutationObserver(checkDarkMode);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class"],
+        });
+
+        return () => observer.disconnect();
     }, []);
 
-    // 2. Inisialisasi Peta & Tool Menggambar (Hanya berjalan sekali di awal)
+    // 2. Inisialisasi Peta & Tool Menggambar
     useEffect(() => {
         if (map.current || !mapContainer.current) return;
 
         mapboxgl.accessToken = mapboxToken;
 
+        // Pilih style awal berdasarkan state Dark Mode
+        const initialStyle = isDarkMode
+            ? "mapbox://styles/mapbox/dark-v11"
+            : "mapbox://styles/mapbox/streets-v12";
+
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
-            style: "mapbox://styles/mapbox/streets-v12",
+            style: initialStyle,
             center: [116.1165, -8.5833], // Mataram
             zoom: 12,
         });
@@ -82,7 +105,6 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
             marker: {
                 color: "#ef4444",
             } as any,
-            // Placeholder awal, nanti akan diupdate oleh useEffect di bawah
             placeholder:
                 lang === "id"
                     ? "Cari jalan, tempat, atau Koordinat..."
@@ -150,15 +172,30 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
             setDrawnFeatureId(null);
             reset();
         });
-    }, [mapboxToken]); // Hanya dependensi token, agar peta tidak tereset saat ganti bahasa
+    }, [mapboxToken]);
 
-    // 3. Efek khusus untuk MENGUPDATE PLACEHOLDER GEOCODER tanpa mereset peta
+    // 3. Efek untuk merubah Style Peta jika Dark Mode di-toggle
+    useEffect(() => {
+        if (!map.current) return;
+
+        const newStyle = isDarkMode
+            ? "mapbox://styles/mapbox/dark-v11"
+            : "mapbox://styles/mapbox/streets-v12";
+
+        map.current.setStyle(newStyle);
+
+        // Perlu menggambar ulang zona setelah style map berubah
+        map.current.once("style.load", () => {
+            renderExistingZones();
+        });
+    }, [isDarkMode]);
+
+    // 4. Efek khusus untuk MENGUPDATE PLACEHOLDER GEOCODER tanpa mereset peta
     useEffect(() => {
         const geocoderInput = document.querySelector(
             ".mapboxgl-ctrl-geocoder--input",
         ) as HTMLInputElement;
         if (geocoderInput) {
-            // Gunakan kamus jika sudah diset di Landing.ts, jika tidak gunakan fallback ternary
             geocoderInput.placeholder =
                 t.dzSearchPlaceholder ||
                 (lang === "id"
@@ -169,7 +206,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
 
     // Fungsi menggambar zona yang sudah ada di database ke atas peta
     const renderExistingZones = useCallback(() => {
-        if (!map.current) return;
+        if (!map.current || !map.current.isStyleLoaded()) return;
 
         const features = zones.map((zone) => ({
             type: "Feature",
@@ -245,13 +282,17 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
             map.current.on("click", "danger-zones-fill", (e) => {
                 if (e.features && e.features.length > 0) {
                     const props = e.features[0].properties;
+                    // Popup background menyesuaikan tema OS browser (default mapbox popup)
                     new mapboxgl.Popup({ className: "custom-popup" })
                         .setLngLat(e.lngLat)
                         .setHTML(
                             `
                             <div class="p-2 w-48 font-sans">
                                 <h4 class="font-bold text-slate-800 text-sm mb-1">${props?.name}</h4>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-slate-100 border text-slate-600">${props?.type.replace("_", " ")}</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-slate-100 border text-slate-600">${props?.type.replace(
+                                    "_",
+                                    " ",
+                                )}</span>
                             </div>
                         `,
                         )
@@ -304,6 +345,8 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                     title: t.saDzSavedTitle,
                     showConfirmButton: false,
                     timer: 2000,
+                    background: isDarkMode ? "#1e293b" : "#ffffff",
+                    color: isDarkMode ? "#f8fafc" : "#0f172a",
                 });
             },
         });
@@ -314,8 +357,11 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
             title: t.saDzDeleteTitle,
             text: t.saDzDeleteText,
             icon: "warning",
+            background: isDarkMode ? "#1e293b" : "#ffffff",
+            color: isDarkMode ? "#f8fafc" : "#0f172a",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
+            cancelButtonColor: isDarkMode ? "#64748b" : "#94a3b8",
             cancelButtonText: t.cancel || "Batal",
             confirmButtonText: t.saDzDeleteConfirm,
             reverseButtons: true,
@@ -331,6 +377,8 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                             title: t.saDzDeletedTitle,
                             showConfirmButton: false,
                             timer: 1500,
+                            background: isDarkMode ? "#1e293b" : "#ffffff",
+                            color: isDarkMode ? "#f8fafc" : "#0f172a",
                         });
                     },
                 });
@@ -343,11 +391,11 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
             auth={auth}
             header={
                 <div>
-                    <h2 className="text-xl lg:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    <h2 className="text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 transition-colors">
                         <MapPin className="w-7 h-7 text-red-500" />
                         {t.dzTitle}
                     </h2>
-                    <p className="text-xs lg:text-sm text-slate-500 mt-1 hidden sm:block">
+                    <p className="text-xs lg:text-sm text-slate-500 dark:text-slate-400 mt-1 hidden sm:block transition-colors">
                         {t.dzSubtitle}
                     </p>
                 </div>
@@ -358,18 +406,18 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
             {/* RESPONSIVE LAYOUT CONTAINER */}
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 lg:h-[calc(100vh-140px)]">
                 {/* PANEL KIRI: Peta Mapbox */}
-                <div className="flex-1 h-[55vh] min-h-[400px] lg:h-auto bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative">
+                <div className="flex-1 h-[55vh] min-h-[400px] lg:h-auto bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden relative transition-colors">
                     <div ref={mapContainer} className="w-full h-full" />
 
                     {/* Instruksi Menggambar (Disembunyikan di Mobile) */}
-                    <div className="hidden lg:block absolute top-4 right-14 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 z-10 w-64 pointer-events-none">
+                    <div className="hidden lg:block absolute top-4 right-14 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 dark:border-slate-700 z-10 w-64 pointer-events-none transition-colors">
                         <div className="flex gap-3 items-start">
-                            <InfoCircle className="w-6 h-6 text-blue-500 flex-shrink-0" />
+                            <InfoCircle className="w-6 h-6 text-blue-500 dark:text-blue-400 flex-shrink-0" />
                             <div>
-                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-1">
+                                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest mb-1">
                                     {t.dzHowToDraw}
                                 </h4>
-                                <p className="text-[11px] text-slate-600 leading-relaxed">
+                                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                                     {t.dzDrawStep1}
                                     <br />
                                     {t.dzDrawStep2}
@@ -382,10 +430,10 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                 </div>
 
                 {/* PANEL KANAN: Daftar Zona */}
-                <div className="w-full lg:w-96 h-[50vh] min-h-[350px] lg:h-auto bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
-                    <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                            <MapIcon className="w-5 h-5 text-slate-500" />{" "}
+                <div className="w-full lg:w-96 h-[50vh] min-h-[350px] lg:h-auto bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden transition-colors">
+                    <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex-shrink-0 transition-colors">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <MapIcon className="w-5 h-5 text-slate-500 dark:text-slate-400" />{" "}
                             {t.dzActiveZones}
                         </h3>
                     </div>
@@ -393,8 +441,8 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                     <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                         {zones.length === 0 ? (
                             <div className="text-center py-10 opacity-60">
-                                <DangerTriangle className="w-10 h-10 mx-auto text-slate-400 mb-2" />
-                                <p className="text-sm font-medium text-slate-500">
+                                <DangerTriangle className="w-10 h-10 mx-auto text-slate-400 dark:text-slate-500 mb-2" />
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                                     {t.dzNoZones}
                                 </p>
                             </div>
@@ -402,37 +450,37 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                             zones.map((zone) => (
                                 <div
                                     key={zone.id}
-                                    className="p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors group"
+                                    className="p-3 border border-slate-100 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group"
                                 >
                                     <div className="flex justify-between items-start mb-1">
-                                        <h4 className="font-bold text-slate-800 text-sm line-clamp-1 pr-2">
+                                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm line-clamp-1 pr-2 transition-colors">
                                             {zone.name}
                                         </h4>
                                         <button
                                             onClick={() =>
                                                 handleDeleteZone(zone.id)
                                             }
-                                            className="text-slate-400 hover:text-red-500 p-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity flex-shrink-0"
+                                            className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity flex-shrink-0"
                                         >
                                             <Trash className="w-4 h-4" />
                                         </button>
                                     </div>
                                     <div className="flex gap-2 mt-2">
                                         <span
-                                            className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+                                            className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border transition-colors ${
                                                 zone.severity === "critical"
-                                                    ? "bg-red-50 text-red-600 border-red-200"
+                                                    ? "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50"
                                                     : zone.severity === "high"
-                                                      ? "bg-orange-50 text-orange-600 border-orange-200"
+                                                      ? "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800/50"
                                                       : zone.severity ===
                                                           "medium"
-                                                        ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                                                        : "bg-green-50 text-green-600 border-green-200"
+                                                        ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800/50"
+                                                        : "bg-green-50 text-green-600 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50"
                                             }`}
                                         >
                                             {zone.severity}
                                         </span>
-                                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 transition-colors">
                                             {zone.type.replace("_", " ")}
                                         </span>
                                     </div>
@@ -451,15 +499,15 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                         onClick={handleCancel}
                     ></div>
 
-                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="px-6 py-4 border-b border-slate-100 bg-red-50/50 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-red-700 flex items-center gap-2">
+                    <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700 transition-colors">
+                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-red-50/50 dark:bg-red-900/20 flex justify-between items-center transition-colors">
+                            <h3 className="text-lg font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
                                 <DangerTriangle className="w-6 h-6" />{" "}
                                 {t.dzSaveZoneTitle}
                             </h3>
                             <button
                                 onClick={handleCancel}
-                                className="text-slate-400 hover:text-red-500 p-1 rounded-lg"
+                                className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded-lg transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -467,7 +515,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                     {t.dzAreaNameLabel}{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
@@ -479,10 +527,10 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                     }
                                     placeholder={t.dzAreaNamePlaceholder}
                                     required
-                                    className="w-full rounded-xl border-slate-200 focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                                    className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500 sm:text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors"
                                 />
                                 {errors.name && (
-                                    <p className="text-xs text-red-500 mt-1">
+                                    <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                                         {errors.name}
                                     </p>
                                 )}
@@ -490,7 +538,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                         {t.dzZoneTypeLabel}{" "}
                                         <span className="text-red-500">*</span>
                                     </label>
@@ -499,7 +547,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                         onChange={(e) =>
                                             setData("type", e.target.value)
                                         }
-                                        className="w-full rounded-xl border-slate-200 focus:border-red-500 focus:ring-red-500 sm:text-sm bg-slate-50"
+                                        className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500 sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors"
                                     >
                                         <option value="illegal_dump">
                                             {t.dzZoneIllegalDump}
@@ -519,7 +567,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                         {t.dzSeverityLabel}
                                     </label>
                                     <select
@@ -527,7 +575,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                         onChange={(e) =>
                                             setData("severity", e.target.value)
                                         }
-                                        className="w-full rounded-xl border-slate-200 focus:border-red-500 focus:ring-red-500 sm:text-sm bg-slate-50"
+                                        className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500 sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors"
                                     >
                                         <option value="critical">
                                             {t.dzSeverityCritical}
@@ -546,7 +594,7 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                     {t.dzDescLabel}
                                 </label>
                                 <textarea
@@ -556,22 +604,22 @@ export default function DangerZoneIndex({ auth, zones, mapboxToken }: Props) {
                                     }
                                     rows={2}
                                     placeholder={t.dzDescPlaceholder}
-                                    className="w-full rounded-xl border-slate-200 focus:border-red-500 focus:ring-red-500 sm:text-sm resize-none"
+                                    className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-red-500 dark:focus:border-red-500 focus:ring-red-500 sm:text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none transition-colors"
                                 ></textarea>
                             </div>
 
-                            <div className="flex gap-3 pt-4 border-t border-slate-100">
+                            <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700 transition-colors">
                                 <button
                                     type="button"
                                     onClick={handleCancel}
-                                    className="flex-1 font-bold text-slate-500 hover:bg-slate-100 py-2.5 rounded-xl transition-colors"
+                                    className="flex-1 font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 py-2.5 rounded-xl transition-colors"
                                 >
                                     {t.cancel || "Batal"}
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex-1 flex justify-center items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-md disabled:opacity-50 transition-transform active:scale-95"
+                                    className="flex-1 flex justify-center items-center gap-2 bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 text-white font-bold py-2.5 rounded-xl shadow-md disabled:opacity-50 transition-all active:scale-95"
                                 >
                                     {processing ? (
                                         <span className="flex items-center gap-2">
