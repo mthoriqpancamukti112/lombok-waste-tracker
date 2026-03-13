@@ -30,6 +30,12 @@ export default function AuthModal({
     useEffect(() => {
         if (isOpen) {
             setActiveTab(initialTab);
+        } else {
+            loginForm.reset();
+            registerForm.reset();
+            loginForm.clearErrors();
+            registerForm.clearErrors();
+            setShowPassword(false);
         }
     }, [isOpen, initialTab]);
 
@@ -50,6 +56,8 @@ export default function AuthModal({
         e.preventDefault();
         loginForm.post(route("login"), {
             onSuccess: () => {
+                loginForm.reset(); // <--- TAMBAHKAN INI: Bersihkan semua isian
+                loginForm.clearErrors();
                 onClose();
                 toast.success(t.authLoginSuccess);
             },
@@ -61,6 +69,8 @@ export default function AuthModal({
         e.preventDefault();
         registerForm.post(route("register"), {
             onSuccess: () => {
+                registerForm.reset(); // <--- TAMBAHKAN INI: Bersihkan Nama, Email, dan Password
+                registerForm.clearErrors();
                 onClose();
                 toast.success(t.authRegisterSuccess);
             },
