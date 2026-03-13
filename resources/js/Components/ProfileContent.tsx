@@ -291,17 +291,14 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             <p className="text-sm font-bold">
                                                 {t.citizenStatus}
                                             </p>
-                                            <div className="flex items-center gap-1">
+                                            <div className="flex items-center gap-0.5">
                                                 <div
                                                     className={`w-1.5 h-1.5 rounded-full ${user.warga?.is_terverifikasi ? "bg-[#a7e94a]" : isDark ? "bg-slate-700" : "bg-slate-300"}`}
                                                 />
                                                 <span
                                                     className={`text-[10px] font-bold ${user.warga?.is_terverifikasi ? "text-[#a7e94a]" : subtle}`}
                                                 >
-                                                    {user.warga
-                                                        ?.is_terverifikasi
-                                                        ? t.verified
-                                                        : t.unverified}
+                                                    {user.warga?.is_terverifikasi ? t.verified : t.unverified}
                                                 </span>
                                             </div>
                                         </div>
@@ -601,17 +598,14 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             <p className="text-sm font-bold">
                                                 {t.citizenStatus}
                                             </p>
-                                            <div className="flex items-center gap-1">
+                                            <div className="flex items-center gap-0.5">
                                                 <div
                                                     className={`w-1.5 h-1.5 rounded-full ${user.warga?.is_terverifikasi ? "bg-[#a7e94a]" : isDark ? "bg-slate-700" : "bg-slate-300"}`}
                                                 />
                                                 <span
                                                     className={`text-[10px] font-bold ${user.warga?.is_terverifikasi ? "text-[#a7e94a]" : subtle}`}
                                                 >
-                                                    {user.warga
-                                                        ?.is_terverifikasi
-                                                        ? t.verified
-                                                        : t.unverified}
+                                                    {user.warga?.is_terverifikasi ? t.verified : t.unverified}
                                                 </span>
                                             </div>
                                         </div>
