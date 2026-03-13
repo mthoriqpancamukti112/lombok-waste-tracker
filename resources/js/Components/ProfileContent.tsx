@@ -121,12 +121,12 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
         activeTab === "all"
             ? sortedReports
             : activeTab === "high-upvote"
-                ? [...sortedReports]
+              ? [...sortedReports]
                     .sort((a, b) => b.likes_count - a.likes_count)
                     .slice(0, 6)
-                : activeTab === "notifications"
-                    ? sortedReports
-                    : sortedReports.filter((r) => r.status === "selesai");
+              : activeTab === "notifications"
+                ? sortedReports
+                : sortedReports.filter((r) => r.status === "selesai");
 
     const totalLikes = reports.reduce((sum, r) => sum + r.likes_count, 0);
     const totalComments = reports.reduce((sum, r) => sum + r.comments_count, 0);
@@ -201,7 +201,9 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                     >
                         {/* Avatar */}
                         <div className="flex flex-col items-center gap-3">
-                            <div className={`w-28 h-28 rounded-[28px] overflow-hidden shadow-lg ring-4 ${isDark ? "ring-[#a7e94a]/10" : "ring-[#a7e94a]/20"}`}>
+                            <div
+                                className={`w-28 h-28 rounded-[28px] overflow-hidden shadow-lg ring-4 ${isDark ? "ring-[#a7e94a]/10" : "ring-[#a7e94a]/20"}`}
+                            >
                                 <img
                                     src={avatarSrc}
                                     alt={user.name}
@@ -292,11 +294,13 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 {t.citizenStatus}
                                             </p>
                                             <div className="flex items-center gap-0.5">
-
                                                 <span
                                                     className={`text-[10px] font-bold ${user.warga?.is_terverifikasi ? "text-[#a7e94a]" : subtle}`}
                                                 >
-                                                    {user.warga?.is_terverifikasi ? t.verified : t.unverified}
+                                                    {user.warga
+                                                        ?.is_terverifikasi
+                                                        ? t.verified
+                                                        : t.unverified}
                                                 </span>
                                             </div>
                                         </div>
@@ -319,6 +323,35 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 )}
                             </div>
                         )}
+
+                        {/* TOMBOL DASHBOARD KHUSUS ROLE TERTENTU (MOBILE) */}
+                        {user.role &&
+                            ["kaling", "petugas", "dlh"].includes(
+                                user.role.toLowerCase(),
+                            ) && (
+                                <Link
+                                    href={route("dashboard")}
+                                    className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#a7e94a] text-slate-900 text-sm font-extrabold shadow-lg shadow-[#a7e94a]/30 hover:bg-[#95d43e] hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        strokeWidth={2.5}
+                                        stroke="currentColor"
+                                        className="w-5 h-5"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+                                        />
+                                    </svg>
+                                    {lang === "id"
+                                        ? "Buka Dashboard"
+                                        : "Open Dashboard"}
+                                </Link>
+                            )}
                     </div>
 
                     {/* Posts card */}
@@ -326,7 +359,9 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                         className={`rounded-3xl p-5 border flex flex-col gap-4 ${cardBg}`}
                     >
                         <h3 className="text-base font-black">
-                            {lang === "id" ? "Riwayat Diskusi" : "Discussion History"}
+                            {lang === "id"
+                                ? "Riwayat Diskusi"
+                                : "Discussion History"}
                         </h3>
                         <div className="flex gap-2 flex-wrap">
                             {[
@@ -475,8 +510,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 {report.status === "selesai"
                                                     ? t.statusCompleted
                                                     : report.status === "proses"
-                                                        ? t.statusInProcess
-                                                        : t.statusWaiting}
+                                                      ? t.statusInProcess
+                                                      : t.statusWaiting}
                                             </span>
                                             <p className="text-white text-[10px] font-semibold line-clamp-2">
                                                 {report.description}
@@ -509,7 +544,9 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 Photo
                             </span>
                             <div className="mt-4 flex items-center gap-5">
-                                <div className={`w-28 h-28 rounded-3xl overflow-hidden shadow-xl ring-4 shrink-0 ${isDark ? "ring-[#a7e94a]/10" : "ring-[#a7e94a]/20"}`}>
+                                <div
+                                    className={`w-28 h-28 rounded-3xl overflow-hidden shadow-xl ring-4 shrink-0 ${isDark ? "ring-[#a7e94a]/10" : "ring-[#a7e94a]/20"}`}
+                                >
                                     <img
                                         src={avatarSrc}
                                         alt={user.name}
@@ -600,7 +637,10 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 <span
                                                     className={`text-[10px] font-bold ${user.warga?.is_terverifikasi ? "text-[#a7e94a]" : subtle}`}
                                                 >
-                                                    {user.warga?.is_terverifikasi ? t.verified : t.unverified}
+                                                    {user.warga
+                                                        ?.is_terverifikasi
+                                                        ? t.verified
+                                                        : t.unverified}
                                                 </span>
                                             </div>
                                         </div>
@@ -623,12 +663,45 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 )}
                             </div>
                         )}
+
+                        {/* TOMBOL DASHBOARD KHUSUS ROLE TERTENTU (DESKTOP) */}
+                        {user.role &&
+                            ["kaling", "petugas", "dlh"].includes(
+                                user.role.toLowerCase(),
+                            ) && (
+                                <div className="mt-2">
+                                    <Link
+                                        href={route("dashboard")}
+                                        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#a7e94a] text-slate-900 text-sm font-extrabold shadow-lg shadow-[#a7e94a]/30 hover:bg-[#95d43e] hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={2.5}
+                                            stroke="currentColor"
+                                            className="w-5 h-5"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+                                            />
+                                        </svg>
+                                        {lang === "id"
+                                            ? "Buka Dashboard"
+                                            : "Open Dashboard"}
+                                    </Link>
+                                </div>
+                            )}
                     </div>
 
                     {/* Col 2: Posts */}
                     <div className="flex flex-col gap-6">
                         <h3 className="text-lg font-black">
-                            {lang === "id" ? "Riwayat Diskusi" : "Discussion History"}
+                            {lang === "id"
+                                ? "Riwayat Diskusi"
+                                : "Discussion History"}
                         </h3>
                         <div className="flex gap-2 flex-wrap">
                             {[
@@ -780,8 +853,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 {report.status === "selesai"
                                                     ? t.statusCompleted
                                                     : report.status === "proses"
-                                                        ? t.statusInProcess
-                                                        : t.statusWaiting}
+                                                      ? t.statusInProcess
+                                                      : t.statusWaiting}
                                             </span>
                                             <p className="text-white text-xs font-semibold line-clamp-2">
                                                 {report.description}
@@ -815,7 +888,9 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                         key={report.id}
                                         className={`border rounded-[22px] p-4 flex gap-3 items-start shadow-sm ${inBg}`}
                                     >
-                                        <div className={`w-12 h-12 rounded-xl overflow-hidden shrink-0 ${isDark ? "bg-slate-800" : "bg-slate-200"}`}>
+                                        <div
+                                            className={`w-12 h-12 rounded-xl overflow-hidden shrink-0 ${isDark ? "bg-slate-800" : "bg-slate-200"}`}
+                                        >
                                             <img
                                                 src={`/storage/${report.photo_path}`}
                                                 className={`w-full h-full object-cover ${report.status === "selesai" ? "grayscale opacity-80" : ""}`}
@@ -847,8 +922,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                         ? t.statusCompleted
                                                         : report.status ===
                                                             "proses"
-                                                            ? t.statusInProcess
-                                                            : t.statusWaiting}
+                                                          ? t.statusInProcess
+                                                          : t.statusWaiting}
                                                 </span>
                                                 <div className="flex gap-2 text-[10px] font-bold text-slate-400">
                                                     <span>
