@@ -11,8 +11,8 @@ class ReportComment extends Model
     protected $fillable = [
         'report_id',
         'user_id',
-        'parent_id',
         'body',
+        'parent_id'
     ];
 
     public function report(): BelongsTo
@@ -27,6 +27,6 @@ class ReportComment extends Model
 
     public function replies(): HasMany
     {
-        return $this->hasMany(ReportComment::class, 'parent_id')->with('user:id,name,role')->oldest();
+        return $this->hasMany(ReportComment::class, 'parent_id');
     }
 }
