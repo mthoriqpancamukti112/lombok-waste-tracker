@@ -227,7 +227,8 @@ export default function Login({
                 isOpen={isForgotModalOpen}
                 onClose={() => setIsForgotModalOpen(false)}
                 onBackToLogin={() => setIsForgotModalOpen(false)}
-                isDark={false} // GuestLayout biasanya default light mode, tapi bisa disesuaikan
+                isDark={false}
+                lang={lang}
             />
         </GuestLayout>
     );

@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { X, Mail, Lock, ShieldCheck, Eye, EyeOff } from "@mynaui/icons-react";
 import { toast } from "react-hot-toast";
 import axios from "axios";
+import { landingDict } from "@/Lang/Landing";
 
 interface ForgotPasswordModalProps {
     isOpen: boolean;
     onClose: () => void;
     onBackToLogin: () => void;
     isDark?: boolean;
+    lang?: "id" | "en"; // Tambahkan prop bahasa
 }
 
 export default function ForgotPasswordModal({
@@ -15,7 +17,10 @@ export default function ForgotPasswordModal({
     onClose,
     onBackToLogin,
     isDark = false,
+    lang = "id", // Default bahasa Indonesia
 }: ForgotPasswordModalProps) {
+    const t = landingDict[lang]; // Panggil variabel kamus
+
     // State untuk mengontrol tahapan form (1: Email, 2: OTP, 3: Password Baru)
     const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -48,13 +53,17 @@ export default function ForgotPasswordModal({
         setIsLoading(true);
         try {
             await axios.post("/forgot-password/send-otp", { email });
-            toast.success("Kode OTP telah dikirim ke email Anda!");
+            toast.success(t.toastOtpSent);
             setStep(2);
         } catch (error: any) {
-            toast.error(
-                error.response?.data?.message ||
-                    "Gagal mengirim OTP. Pastikan email benar.",
-            );
+            if (
+                error.response?.status === 422 ||
+                error.response?.data?.errors?.email
+            ) {
+                toast.error(t.forgotErrEmailNotFound);
+            } else {
+                toast.error(t.forgotErrSendOtp);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -65,12 +74,11 @@ export default function ForgotPasswordModal({
         setIsLoading(true);
         try {
             await axios.post("/forgot-password/verify-otp", { email, otp });
-            toast.success("OTP Valid! Silakan buat kata sandi baru.");
+            toast.success(t.toastOtpValid);
             setStep(3);
         } catch (error: any) {
-            toast.error(
-                error.response?.data?.message || "OTP Salah atau Kedaluwarsa.",
-            );
+            // Selalu gunakan teks terjemahan dari React
+            toast.error(t.forgotErrInvalidOtp);
         } finally {
             setIsLoading(false);
         }
@@ -79,7 +87,7 @@ export default function ForgotPasswordModal({
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
         if (password !== passwordConfirm) {
-            toast.error("Konfirmasi kata sandi tidak cocok!");
+            toast.error(t.toastPassMismatch);
             return;
         }
 
@@ -90,13 +98,11 @@ export default function ForgotPasswordModal({
                 otp,
                 password,
             });
-            toast.success("Kata sandi berhasil diubah! Silakan login.");
+            toast.success(t.toastPassChanged);
             onClose();
             onBackToLogin();
         } catch (error: any) {
-            toast.error(
-                error.response?.data?.message || "Gagal mengubah kata sandi.",
-            );
+            toast.error(t.forgotErrResetPass);
         } finally {
             setIsLoading(false);
         }
@@ -138,26 +144,24 @@ export default function ForgotPasswordModal({
                         <h2
                             className={`text-xl font-extrabold tracking-tight ${isDark ? "text-slate-100" : "text-slate-800"}`}
                         >
-                            {step === 1 && "Lupa Kata Sandi?"}
-                            {step === 2 && "Masukkan Kode OTP"}
-                            {step === 3 && "Buat Kata Sandi Baru"}
+                            {step === 1 && t.forgotTitle1}
+                            {step === 2 && t.forgotTitle2}
+                            {step === 3 && t.forgotTitle3}
                         </h2>
                         <p
                             className={`text-xs mt-2 font-medium leading-relaxed px-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}
                         >
-                            {step === 1 &&
-                                "Masukkan email yang terdaftar. Kami akan mengirimkan 6 digit kode OTP ke email tersebut."}
+                            {step === 1 && t.forgotDesc1}
                             {step === 2 && (
                                 <>
-                                    Kode telah dikirim ke{" "}
+                                    {t.forgotDesc2A}
                                     <span className="font-bold text-[#a7e94a]">
                                         {email}
                                     </span>
-                                    . Silakan cek Inbox atau folder Spam Anda.
+                                    {t.forgotDesc2B}
                                 </>
                             )}
-                            {step === 3 &&
-                                "Pastikan kata sandi baru Anda kuat dan mudah diingat."}
+                            {step === 3 && t.forgotDesc3}
                         </p>
                     </div>
 
@@ -175,7 +179,7 @@ export default function ForgotPasswordModal({
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="Alamat Email Anda"
+                                    placeholder={t.forgotEmailPlaceholder}
                                     className={`w-full border focus:ring-2 focus:ring-[#a7e94a]/20 focus:border-[#a7e94a] rounded-xl h-12 pl-11 pr-4 text-sm font-semibold outline-none transition-all ${inputBg}`}
                                     required
                                 />
@@ -188,7 +192,7 @@ export default function ForgotPasswordModal({
                                 {isLoading ? (
                                     <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
                                 ) : (
-                                    "Kirim OTP"
+                                    t.forgotBtnSendOtp
                                 )}
                             </button>
                         </form>
@@ -221,7 +225,7 @@ export default function ForgotPasswordModal({
                                 {isLoading ? (
                                     <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
                                 ) : (
-                                    "Verifikasi OTP"
+                                    t.forgotBtnVerifyOtp
                                 )}
                             </button>
                             <div className="text-center mt-2">
@@ -230,7 +234,7 @@ export default function ForgotPasswordModal({
                                     onClick={() => setStep(1)}
                                     className="text-[11px] text-slate-400 hover:text-[#a7e94a] font-bold transition-colors"
                                 >
-                                    Salah email? Ganti email
+                                    {t.forgotWrongEmail}
                                 </button>
                             </div>
                         </form>
@@ -252,7 +256,7 @@ export default function ForgotPasswordModal({
                                     onChange={(e) =>
                                         setPassword(e.target.value)
                                     }
-                                    placeholder="Kata Sandi Baru"
+                                    placeholder={t.forgotNewPassPlaceholder}
                                     className={`w-full border focus:ring-2 focus:ring-[#a7e94a]/20 focus:border-[#a7e94a] rounded-xl h-12 pl-11 pr-10 text-sm font-semibold outline-none transition-all ${inputBg}`}
                                     required
                                 />
@@ -280,7 +284,7 @@ export default function ForgotPasswordModal({
                                     onChange={(e) =>
                                         setPasswordConfirm(e.target.value)
                                     }
-                                    placeholder="Ulangi Kata Sandi"
+                                    placeholder={t.forgotRepeatPassPlaceholder}
                                     className={`w-full border focus:ring-2 focus:ring-[#a7e94a]/20 focus:border-[#a7e94a] rounded-xl h-12 pl-11 pr-10 text-sm font-semibold outline-none transition-all ${inputBg}`}
                                     required
                                 />
@@ -293,7 +297,7 @@ export default function ForgotPasswordModal({
                                 {isLoading ? (
                                     <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
                                 ) : (
-                                    "Simpan Kata Sandi"
+                                    t.forgotBtnResetPass
                                 )}
                             </button>
                         </form>
@@ -307,9 +311,9 @@ export default function ForgotPasswordModal({
                                 onClose();
                                 onBackToLogin();
                             }}
-                            className={`text-xs font-bold transition-colors ${isDark ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-800"}`}
+                            className={`text-xs font-bold transition-colors flex items-center justify-center gap-2 mx-auto ${isDark ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-800"}`}
                         >
-                            &larr; Kembali ke halaman Login
+                            &larr; {t.forgotBackToLogin}
                         </button>
                     </div>
                 </div>

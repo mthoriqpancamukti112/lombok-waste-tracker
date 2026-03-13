@@ -1213,6 +1213,7 @@ export default function Welcome({
                         openAuthModal("login"); // Kembali ke form login
                     }}
                     isDark={isDarkMode}
+                    lang={lang}
                 />
 
                 <ReportModal

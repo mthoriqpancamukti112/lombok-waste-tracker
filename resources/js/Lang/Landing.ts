@@ -503,6 +503,38 @@ export const landingDict = {
         notifEmptyDesc:
             "Kami akan memberi tahu Anda di sini jika ada pembaruan laporan.",
         notifMarkAllRead: "Tandai Semua Dibaca",
+
+        // --- Forgot Password Modal ---
+        forgotTitle1: "Lupa Kata Sandi?",
+        forgotTitle2: "Masukkan Kode OTP",
+        forgotTitle3: "Buat Kata Sandi Baru",
+        forgotDesc1:
+            "Masukkan email yang terdaftar. Kami akan mengirimkan 6 digit kode OTP ke email tersebut.",
+        forgotDesc2A: "Kode telah dikirim ke ",
+        forgotDesc2B: ". Silakan cek Inbox atau folder Spam Anda.",
+        forgotDesc3: "Pastikan kata sandi baru Anda kuat dan mudah diingat.",
+
+        forgotEmailPlaceholder: "Alamat Email Anda",
+        forgotBtnSendOtp: "Kirim OTP",
+        forgotBtnVerifyOtp: "Verifikasi OTP",
+        forgotBtnResetPass: "Simpan Kata Sandi",
+
+        forgotWrongEmail: "Salah email? Ganti email",
+        forgotNewPassPlaceholder: "Kata Sandi Baru",
+        forgotRepeatPassPlaceholder: "Ulangi Kata Sandi",
+        forgotBackToLogin: "Kembali ke halaman Login",
+
+        // Pesan Toast
+        toastOtpSent: "Kode OTP telah dikirim ke email Anda!",
+        toastOtpValid: "OTP Valid! Silakan buat kata sandi baru.",
+        toastPassMismatch: "Konfirmasi kata sandi tidak cocok!",
+        toastPassChanged: "Kata sandi berhasil diubah! Silakan login.",
+
+        // Error Messages Forgot Password
+        forgotErrEmailNotFound: "Email ini tidak terdaftar di sistem kami.",
+        forgotErrSendOtp: "Gagal mengirim OTP. Pastikan email benar.",
+        forgotErrInvalidOtp: "Kode OTP salah atau sudah kedaluwarsa.",
+        forgotErrResetPass: "Gagal mengubah kata sandi. Silakan coba lagi.",
     },
 
     en: {
@@ -1010,5 +1042,39 @@ export const landingDict = {
         notifEmptyDesc:
             "We will notify you here if there are any updates on your reports.",
         notifMarkAllRead: "Mark All as Read",
+
+        // --- Forgot Password Modal ---
+        forgotTitle1: "Forgot Password?",
+        forgotTitle2: "Enter OTP Code",
+        forgotTitle3: "Create New Password",
+        forgotDesc1:
+            "Enter your registered email. We will send a 6-digit OTP code to that email.",
+        forgotDesc2A: "The code has been sent to ",
+        forgotDesc2B: ". Please check your Inbox or Spam folder.",
+        forgotDesc3:
+            "Make sure your new password is strong and easy to remember.",
+
+        forgotEmailPlaceholder: "Your Email Address",
+        forgotBtnSendOtp: "Send OTP",
+        forgotBtnVerifyOtp: "Verify OTP",
+        forgotBtnResetPass: "Save Password",
+
+        forgotWrongEmail: "Wrong email? Change email",
+        forgotNewPassPlaceholder: "New Password",
+        forgotRepeatPassPlaceholder: "Repeat Password",
+        forgotBackToLogin: "Back to Login page",
+
+        // Pesan Toast
+        toastOtpSent: "The OTP code has been sent to your email!",
+        toastOtpValid: "OTP is Valid! Please create a new password.",
+        toastPassMismatch: "Password confirmation does not match!",
+        toastPassChanged: "Password successfully changed! Please login.",
+
+        // Error Messages Forgot Password
+        forgotErrEmailNotFound: "This email is not registered in our system.",
+        forgotErrSendOtp:
+            "Failed to send OTP. Please ensure the email is correct.",
+        forgotErrInvalidOtp: "Invalid or expired OTP code.",
+        forgotErrResetPass: "Failed to change password. Please try again.",
     },
 };
