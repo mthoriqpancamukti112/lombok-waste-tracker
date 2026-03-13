@@ -488,15 +488,19 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
         return { ping: "bg-[#a7e94a]", dot: "bg-[#a7e94a]" };
     };
 
-    // Zoom 8 (Jauh/Pulau): Ukuran 50%
-    // Zoom 12 (Sedang/Kota): Ukuran 100%
-    // Zoom 16 (Dekat/Jalan): Ukuran 140%
     const calculateScale = (zoom: number) => {
-        if (zoom <= 8) return 0.5;
+        if (zoom <= 9) return 0.25;
         if (zoom >= 16) return 1.4;
-        return 0.5 + ((zoom - 8) / 8) * 0.9;
+        return 0.25 + ((zoom - 9) / 7) * 1.15;
     };
     const dynamicScale = calculateScale(currentZoom);
+
+    const calculatePingMultiplier = (zoom: number) => {
+        if (zoom <= 9) return 4; // Ping 4x lipat lebih besar saat dari jauh
+        if (zoom >= 14) return 1; // Ukuran ping normal saat dilihat dari dekat
+        return 4 - ((zoom - 9) / 5) * 3;
+    };
+    const pingMultiplier = calculatePingMultiplier(currentZoom);
 
     return (
         <Map
@@ -621,14 +625,25 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                                 title={zone.name}
                                 className="relative flex items-center justify-center w-8 h-8 cursor-pointer hover:scale-125 transition-transform"
                             >
-                                <span
-                                    className={`absolute w-8 h-8 rounded-full opacity-40 animate-ping`}
+                                {/* --- BUNGKUSAN KHUSUS UNTUK MEMBESARKAN PING SAAT JAUH --- */}
+                                <div
+                                    className="absolute flex items-center justify-center"
                                     style={{
-                                        backgroundColor:
-                                            severityColor[zone.severity] ||
-                                            "#ef4444",
+                                        transform: `scale(${pingMultiplier})`,
+                                        transition: "transform 0.1s ease-out",
                                     }}
-                                />
+                                >
+                                    <span
+                                        className={`absolute w-8 h-8 rounded-full opacity-80 animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite] shadow-[0_0_15px_rgba(0,0,0,0.5)]`}
+                                        style={{
+                                            backgroundColor:
+                                                severityColor[zone.severity] ||
+                                                "#ef4444",
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Dot utama */}
                                 <span
                                     className={`absolute w-3 h-3 rounded-full border-2 border-white shadow-lg`}
                                     style={{
@@ -678,12 +693,25 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                                 }}
                             >
                                 <div className="relative flex items-center justify-center w-10 h-10 cursor-pointer hover:scale-110 transition-transform duration-300 group">
-                                    <span
-                                        className={`absolute w-10 h-10 opacity-50 rounded-full animate-ping ${ping}`}
-                                    />
+                                    {/* --- BUNGKUSAN KHUSUS UNTUK MEMBESARKAN PING SAAT JAUH --- */}
+                                    <div
+                                        className="absolute flex items-center justify-center"
+                                        style={{
+                                            transform: `scale(${pingMultiplier})`,
+                                            transition:
+                                                "transform 0.1s ease-out",
+                                        }}
+                                    >
+                                        <span
+                                            className={`absolute w-10 h-10 opacity-80 rounded-full animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite] shadow-[0_0_15px_rgba(0,0,0,0.5)] ${ping}`}
+                                        />
+                                    </div>
+
+                                    {/* Dot utama */}
                                     <span
                                         className={`absolute w-4 h-4 rounded-full border-2 border-white shadow-md ${dot}`}
                                     />
+
                                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                                         <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
                                             {report.severity_level?.toUpperCase()}
