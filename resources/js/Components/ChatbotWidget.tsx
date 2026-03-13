@@ -70,7 +70,7 @@ const formatMessage = (
                         key={`l-${i}`}
                         type="button"
                         onClick={() => onFocus(reportId)}
-                        className="text-[#a7e94a] hover:text-[#92ce40] underline font-bold transition-colors cursor-pointer"
+                        className="text-blue-400 hover:text-blue-300 underline font-bold transition-colors cursor-pointer"
                     >
                         {linkText}
                     </button>,
