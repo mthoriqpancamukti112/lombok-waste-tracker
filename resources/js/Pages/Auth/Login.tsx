@@ -2,7 +2,15 @@ import InputError from "@/Components/InputError";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEventHandler, useState, useEffect } from "react";
-import { User, Lock, Eye, EyeOff } from "@mynaui/icons-react";
+// Tambahkan import SunSolid dan MoonSolid
+import {
+    User,
+    Lock,
+    Eye,
+    EyeOff,
+    SunSolid,
+    MoonSolid,
+} from "@mynaui/icons-react";
 import { landingDict } from "@/Lang/Landing";
 import ForgotPasswordModal from "@/Components/ForgotPasswordModal";
 
@@ -13,18 +21,46 @@ export default function Login({
     status?: string;
     canResetPassword: boolean;
 }) {
-    // --- STATE BAHASA (Otomatis dari localStorage) ---
+    // --- STATE BAHASA ---
     const [lang, setLang] = useState<"id" | "en">("id");
 
     // --- STATE MODAL LUPA PASSWORD ---
     const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+
+    // --- STATE DARK MODE ---
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     useEffect(() => {
         const savedLang = localStorage.getItem("appLang") as "id" | "en";
         if (savedLang) {
             setLang(savedLang);
         }
+
+        // --- INISIALISASI DARK MODE ---
+        const savedTheme = localStorage.getItem("appTheme");
+        if (savedTheme === "dark") {
+            setIsDarkMode(true);
+            document.documentElement.classList.add("dark");
+        } else if (savedTheme === "light") {
+            setIsDarkMode(false);
+            document.documentElement.classList.remove("dark");
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            setIsDarkMode(true);
+            document.documentElement.classList.add("dark");
+        }
     }, []);
+
+    // --- PERSIST DARK MODE SAAT BERUBAH ---
+    useEffect(() => {
+        localStorage.setItem("appTheme", isDarkMode ? "dark" : "light");
+        if (isDarkMode) {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    }, [isDarkMode]);
+
+    const toggleDark = () => setIsDarkMode((prev) => !prev);
 
     // Ambil kamus terjemahan berdasarkan state `lang` saat ini
     const t = landingDict[lang];
@@ -55,14 +91,14 @@ export default function Login({
                     <h2 className="text-3xl font-extrabold text-[#a7e94a] tracking-tight mb-2">
                         {t.authWelcomeBack}
                     </h2>
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                         {t.authLoginSubtitle}
                     </p>
                 </div>
 
                 {/* Status Message */}
                 {status && (
-                    <div className="mb-6 text-sm font-bold text-emerald-600 bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex items-center gap-3">
+                    <div className="mb-6 text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800/50 flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
                         {status}
                     </div>
@@ -71,11 +107,11 @@ export default function Login({
                 <form onSubmit={submit} className="space-y-5">
                     {/* Email Input */}
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 ml-1">
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
                             {t.authEmailLabel}
                         </label>
                         <div className="relative group">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-[#a7e94a] dark:group-focus-within:text-[#a7e94a] transition-colors duration-300">
                                 <User className="w-5 h-5" />
                             </div>
                             <input
@@ -85,7 +121,7 @@ export default function Login({
                                     setData("email", e.target.value)
                                 }
                                 placeholder={t.authEmailPlaceholder}
-                                className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
+                                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:border-[#a7e94a] dark:focus:border-[#a7e94a] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all duration-300"
                                 required
                             />
                         </div>
@@ -94,11 +130,11 @@ export default function Login({
 
                     {/* Password Input */}
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 ml-1">
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
                             {t.authPasswordLabel}
                         </label>
                         <div className="relative group">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-[#a7e94a] dark:group-focus-within:text-[#a7e94a] transition-colors duration-300">
                                 <Lock className="w-5 h-5" />
                             </div>
                             <input
@@ -108,13 +144,13 @@ export default function Login({
                                     setData("password", e.target.value)
                                 }
                                 placeholder={t.authPasswordPlaceholder}
-                                className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-12 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
+                                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:border-[#a7e94a] dark:focus:border-[#a7e94a] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-12 text-sm font-semibold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all duration-300"
                                 required
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none transition-colors"
                             >
                                 {showPassword ? (
                                     <EyeOff className="w-5 h-5" />
@@ -136,16 +172,15 @@ export default function Login({
                                     onChange={(e) =>
                                         setData("remember", e.target.checked)
                                     }
-                                    className="peer w-5 h-5 rounded-md border-2 border-slate-300 text-[#a7e94a] focus:ring-[#a7e94a]/20 transition-all cursor-pointer"
+                                    className="peer w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 dark:bg-slate-900 text-[#a7e94a] focus:ring-[#a7e94a]/20 transition-all cursor-pointer"
                                 />
                             </div>
-                            <span className="text-sm font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">
+                            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
                                 {t.authRememberMe}
                             </span>
                         </label>
 
                         {canResetPassword && (
-                            // MENGUBAH <Link> MENJADI <button> UNTUK MEMBUKA MODAL
                             <button
                                 type="button"
                                 onClick={() => setIsForgotModalOpen(true)}
@@ -173,9 +208,9 @@ export default function Login({
                 {/* Divider */}
                 <div className="relative my-8">
                     <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-slate-200" />
+                        <div className="w-full border-t border-slate-200 dark:border-slate-700" />
                     </div>
-                    <div className="relative flex justify-center text-xs font-bold text-slate-400 bg-white px-4 uppercase tracking-widest">
+                    <div className="relative flex justify-center text-xs font-bold text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-4 uppercase tracking-widest transition-colors duration-300">
                         {t.authOrUse}
                     </div>
                 </div>
@@ -183,7 +218,7 @@ export default function Login({
                 {/* Google Sign In Button */}
                 <a
                     href={route("google.redirect")}
-                    className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 h-14 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 h-14 rounded-2xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 active:scale-[0.98]"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path
@@ -203,14 +238,14 @@ export default function Login({
                             fill="#EA4335"
                         />
                     </svg>
-                    <span className="text-sm font-bold text-slate-700 tracking-tight">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight">
                         {t.authGoogleLogin}
                     </span>
                 </a>
 
                 {/* Sign Up Link */}
                 <div className="text-center mt-8">
-                    <p className="text-sm text-slate-500 font-medium">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                         {t.authNoAccount}{" "}
                         <Link
                             href={route("register")}
@@ -222,12 +257,12 @@ export default function Login({
                 </div>
             </div>
 
-            {/* ─── PANGGIL MODAL LUPA PASSWORD DI SINI ─── */}
+            {/* MODAL LUPA PASSWORD (Sekarang membaca state isDarkMode) */}
             <ForgotPasswordModal
                 isOpen={isForgotModalOpen}
                 onClose={() => setIsForgotModalOpen(false)}
                 onBackToLogin={() => setIsForgotModalOpen(false)}
-                isDark={false}
+                isDark={isDarkMode}
                 lang={lang}
             />
         </GuestLayout>

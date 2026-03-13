@@ -103,23 +103,26 @@ export default function KalingLayout({
                         : "-translate-x-full lg:translate-x-0"
                 }`}
             >
-                {/* Logo */}
-                <div className="h-20 flex flex-shrink-0 items-center px-6 border-b border-indigo-900 dark:border-slate-800 justify-between lg:justify-start">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]">
-                            <ShieldCheck className="w-6 h-6" strokeWidth={2} />
-                        </div>
-                        <div>
-                            <h1 className="font-black text-lg tracking-tight leading-tight">
-                                EcoLombok
-                            </h1>
-                            <p className="text-[10px] text-indigo-300 dark:text-slate-400 font-bold uppercase tracking-widest">
-                                {t.kalingPortal}
-                            </p>
-                        </div>
+                {/* Logo Area */}
+                <div className="h-20 flex flex-shrink-0 items-center px-6 border-b border-slate-800 dark:border-slate-800/50 relative justify-center">
+                    <div className="flex items-center justify-center">
+                        {/* Logo Mode Terang (Tampil biasa, tapi disembunyikan saat mode gelap) */}
+                        <img
+                            src="/assets/logo-dashboard.png"
+                            alt="Logo Dashboard"
+                            className="h-10 w-auto object-contain block dark:hidden"
+                        />
+
+                        {/* Logo Mode Gelap (Disembunyikan biasa, tapi ditampilkan saat mode gelap) */}
+                        <img
+                            src="/assets/logo-dashboard-dark.png"
+                            alt="Logo Dashboard Dark"
+                            className="h-10 w-auto object-contain hidden dark:block"
+                        />
                     </div>
+
                     <button
-                        className="lg:hidden text-indigo-300 hover:text-white"
+                        className="lg:hidden text-slate-400 hover:text-white absolute right-6"
                         onClick={() => setIsSidebarOpen(false)}
                     >
                         <X className="w-6 h-6" />

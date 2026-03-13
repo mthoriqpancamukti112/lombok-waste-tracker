@@ -2,19 +2,56 @@ import InputError from "@/Components/InputError";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEventHandler, useState, useEffect } from "react";
-import { User, Mail, Lock, Eye, EyeOff } from "@mynaui/icons-react";
+// Tambahkan import SunSolid dan MoonSolid
+import {
+    User,
+    Mail,
+    Lock,
+    Eye,
+    EyeOff,
+    SunSolid,
+    MoonSolid,
+} from "@mynaui/icons-react";
 import { landingDict } from "@/Lang/Landing"; // Import dictionary
 
 export default function Register() {
-    // --- STATE BAHASA (Otomatis dari localStorage) ---
+    // --- STATE BAHASA ---
     const [lang, setLang] = useState<"id" | "en">("id");
+
+    // --- STATE DARK MODE ---
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     useEffect(() => {
         const savedLang = localStorage.getItem("appLang") as "id" | "en";
         if (savedLang) {
             setLang(savedLang);
         }
+
+        // --- INISIALISASI DARK MODE ---
+        const savedTheme = localStorage.getItem("appTheme");
+        if (savedTheme === "dark") {
+            setIsDarkMode(true);
+            document.documentElement.classList.add("dark");
+        } else if (savedTheme === "light") {
+            setIsDarkMode(false);
+            document.documentElement.classList.remove("dark");
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            setIsDarkMode(true);
+            document.documentElement.classList.add("dark");
+        }
     }, []);
+
+    // --- PERSIST DARK MODE SAAT BERUBAH ---
+    useEffect(() => {
+        localStorage.setItem("appTheme", isDarkMode ? "dark" : "light");
+        if (isDarkMode) {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    }, [isDarkMode]);
+
+    const toggleDark = () => setIsDarkMode((prev) => !prev);
 
     // Ambil kamus terjemahan berdasarkan state `lang` saat ini
     const t = landingDict[lang];
@@ -47,7 +84,7 @@ export default function Register() {
                     <h2 className="text-3xl font-extrabold text-[#a7e94a] tracking-tight mb-2">
                         {t.authJoinUs}
                     </h2>
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-[280px] mx-auto">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-[280px] mx-auto">
                         {t.authRegisterSubtitle}
                     </p>
                 </div>
@@ -55,11 +92,11 @@ export default function Register() {
                 <form onSubmit={submit} className="space-y-5">
                     {/* Full Name Input */}
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 ml-1 block">
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 block">
                             {t.authNameLabel}
                         </label>
                         <div className="relative group">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-[#a7e94a] dark:group-focus-within:text-[#a7e94a] transition-colors duration-300">
                                 <User className="w-5 h-5" />
                             </div>
                             <input
@@ -70,7 +107,7 @@ export default function Register() {
                                     setData("name", e.target.value)
                                 }
                                 placeholder={t.authNamePlaceholder}
-                                className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
+                                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:border-[#a7e94a] dark:focus:border-[#a7e94a] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all duration-300"
                                 required
                             />
                         </div>
@@ -79,11 +116,11 @@ export default function Register() {
 
                     {/* Email Address Input */}
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 ml-1 block">
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 block">
                             {t.authEmailLabel}
                         </label>
                         <div className="relative group">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-[#a7e94a] dark:group-focus-within:text-[#a7e94a] transition-colors duration-300">
                                 <Mail className="w-5 h-5" />
                             </div>
                             <input
@@ -94,7 +131,7 @@ export default function Register() {
                                     setData("email", e.target.value)
                                 }
                                 placeholder={t.authEmailPlaceholder}
-                                className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
+                                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:border-[#a7e94a] dark:focus:border-[#a7e94a] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all duration-300"
                                 required
                             />
                         </div>
@@ -104,11 +141,11 @@ export default function Register() {
                     {/* Password & Confirm Password (Grid) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 ml-1 block">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 block">
                                 {t.authPasswordLabel}
                             </label>
                             <div className="relative group">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-[#a7e94a] dark:group-focus-within:text-[#a7e94a] transition-colors duration-300">
                                     <Lock className="w-5 h-5" />
                                 </div>
                                 <input
@@ -119,18 +156,18 @@ export default function Register() {
                                         setData("password", e.target.value)
                                     }
                                     placeholder={t.authPasswordPlaceholder}
-                                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
+                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:border-[#a7e94a] dark:focus:border-[#a7e94a] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all duration-300"
                                     required
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 ml-1 block">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 block">
                                 {t.authConfirmPasswordLabel}
                             </label>
                             <div className="relative group">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-[#a7e94a] dark:group-focus-within:text-[#a7e94a] transition-colors duration-300">
                                     <Lock className="w-5 h-5" />
                                 </div>
                                 <input
@@ -144,7 +181,7 @@ export default function Register() {
                                         )
                                     }
                                     placeholder={t.authPasswordPlaceholder}
-                                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#a7e94a] focus:bg-white focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all duration-300"
+                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:border-[#a7e94a] dark:focus:border-[#a7e94a] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-[#a7e94a]/10 rounded-2xl h-14 pl-12 pr-4 text-sm font-semibold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all duration-300"
                                     required
                                 />
                             </div>
@@ -156,7 +193,7 @@ export default function Register() {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="text-xs font-bold text-slate-400 hover:text-[#a7e94a] transition-colors flex items-center gap-1.5"
+                            className="text-xs font-bold text-slate-400 dark:text-slate-500 hover:text-[#a7e94a] dark:hover:text-[#a7e94a] transition-colors flex items-center gap-1.5"
                         >
                             {showPassword ? (
                                 <>
@@ -193,9 +230,9 @@ export default function Register() {
                 {/* Divider */}
                 <div className="relative my-8">
                     <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-slate-200" />
+                        <div className="w-full border-t border-slate-200 dark:border-slate-700" />
                     </div>
-                    <div className="relative flex justify-center text-xs font-bold text-slate-400 bg-white px-4 uppercase tracking-widest">
+                    <div className="relative flex justify-center text-xs font-bold text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 px-4 uppercase tracking-widest transition-colors duration-300">
                         {t.authOrUse}
                     </div>
                 </div>
@@ -203,7 +240,7 @@ export default function Register() {
                 {/* Google Sign Up Button */}
                 <a
                     href={route("google.redirect")}
-                    className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 h-14 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 h-14 rounded-2xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 active:scale-[0.98]"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path
@@ -223,14 +260,14 @@ export default function Register() {
                             fill="#EA4335"
                         />
                     </svg>
-                    <span className="text-sm font-bold text-slate-700 tracking-tight">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight">
                         {t.authGoogleLogin}
                     </span>
                 </a>
 
                 {/* Sign In Link */}
                 <div className="text-center mt-8">
-                    <p className="text-sm text-slate-500 font-medium">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                         {t.authHasAccount}{" "}
                         <Link
                             href={route("login")}

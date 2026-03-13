@@ -6,8 +6,10 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
 import { router } from "@inertiajs/react";
 
+const appName = "TRACEA";
+
 createInertiaApp({
-    title: (title) => title,
+    title: (title) => (title ? `${title} | ${appName}` : appName),
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.tsx`,

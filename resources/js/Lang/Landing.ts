@@ -476,7 +476,7 @@ export const landingDict = {
         authRegisterSubtitle:
             "Daftar untuk mulai melaporkan sampah dan menjaga kebersihan.",
         authEmailLabel: "Alamat Email",
-        authEmailPlaceholder: "email@anda.com",
+        authEmailPlaceholder: "email@gmail.com",
         authPasswordLabel: "Kata Sandi",
         authPasswordPlaceholder: "••••••••",
         authConfirmPasswordLabel: "Konfirmasi Sandi",
@@ -1015,7 +1015,7 @@ export const landingDict = {
         authRegisterSubtitle:
             "Sign up to start reporting waste and help the environment.",
         authEmailLabel: "Email Address",
-        authEmailPlaceholder: "your@email.com",
+        authEmailPlaceholder: "your@gmail.com",
         authPasswordLabel: "Password",
         authPasswordPlaceholder: "••••••••",
         authConfirmPasswordLabel: "Confirm Password",
