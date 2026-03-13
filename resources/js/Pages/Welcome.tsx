@@ -27,6 +27,7 @@ import {
     LayersThree,
     Bell,
     BellSolid,
+    CheckCircleSolid,
 } from "@mynaui/icons-react";
 
 interface User {
@@ -560,7 +561,7 @@ export default function Welcome({
                             </span>
                         </button>
 
-                        {/* Notifications */}
+                        {/* Notifications (Mobile) */}
                         {auth.user && (
                             <div className="relative">
                                 <button
@@ -575,95 +576,143 @@ export default function Welcome({
                                         <Bell className="w-[18px] h-[18px]" />
                                     )}
                                     {unreadNotifications.length > 0 && (
-                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
+                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white dark:border-slate-800 rounded-full animate-pulse"></span>
                                     )}
                                 </button>
+
                                 {showNotifications && (
-                                    <div className="absolute top-12 right-0 w-[85vw] max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 flex flex-col">
-                                        <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                                            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                                                Notifikasi
-                                            </h3>
-                                            {unreadNotifications.length > 0 && (
-                                                <button
-                                                    onClick={
-                                                        handleMarkAllAsRead
-                                                    }
-                                                    className="text-[10px] font-bold text-[#a7e94a]"
-                                                >
-                                                    Tandai semua dibaca
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className="max-h-[60vh] overflow-y-auto p-2 flex flex-col gap-1">
-                                            {auth.user.notifications?.length ===
-                                            0 ? (
-                                                <div className="p-6 text-center text-xs text-slate-400">
-                                                    Tidak ada notifikasi
-                                                </div>
-                                            ) : (
-                                                auth.user.notifications?.map(
-                                                    (notif: any) => (
-                                                        <button
-                                                            key={notif.id}
-                                                            onClick={() => {
-                                                                if (
-                                                                    !notif.read_at
-                                                                )
-                                                                    handleMarkAsRead(
-                                                                        notif.id,
-                                                                    );
-                                                                if (
-                                                                    notif.data
-                                                                        .report_id
-                                                                )
-                                                                    handleReportSelect(
-                                                                        notif
-                                                                            .data
-                                                                            .report_id,
-                                                                    );
-                                                                setShowNotifications(
-                                                                    false,
-                                                                );
-                                                            }}
-                                                            className={`w-full text-left p-2.5 rounded-xl transition-all ${!notif.read_at ? "bg-slate-50 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/50"}`}
+                                    <>
+                                        {/* Backdrop penutup layar mobile saat notifikasi terbuka */}
+                                        <div
+                                            className="fixed inset-0 z-40"
+                                            onClick={() =>
+                                                setShowNotifications(false)
+                                            }
+                                        ></div>
+
+                                        <div className="fixed top-[120px] right-4 w-[calc(100vw-32px)] max-w-[340px] bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 flex flex-col animate-in slide-in-from-top-2 duration-200">
+                                            <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                                                <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                                                    Notifikasi Anda
+                                                </h3>
+                                                {unreadNotifications.length >
+                                                    0 && (
+                                                    <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
+                                                        {
+                                                            unreadNotifications.length
+                                                        }{" "}
+                                                        Baru
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar flex flex-col">
+                                                {/* --- EMPTY STATE JIKA KOSONG --- */}
+                                                {!auth.user.notifications ||
+                                                auth.user.notifications
+                                                    .length === 0 ? (
+                                                    <div className="p-8 text-center flex flex-col items-center justify-center">
+                                                        <CheckCircleSolid
+                                                            className={`w-10 h-10 mb-3 transition-opacity ${isDarkMode ? "text-slate-600 opacity-50" : "text-slate-300 opacity-70"}`}
+                                                        />
+                                                        <p
+                                                            className={`text-sm font-semibold mb-1 ${isDarkMode ? "text-slate-300" : "text-slate-700"}`}
                                                         >
-                                                            <div className="flex gap-2">
-                                                                <div
-                                                                    className={`mt-1 w-1.5 h-1.5 shrink-0 rounded-full ${!notif.read_at ? "bg-[#a7e94a]" : "bg-transparent"}`}
-                                                                />
-                                                                <div className="flex-1">
-                                                                    <p
-                                                                        className={`text-[11px] ${!notif.read_at ? "font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-600 dark:text-slate-400"}`}
-                                                                    >
-                                                                        {
+                                                            Belum Ada Info Baru!
+                                                        </p>
+                                                        <p
+                                                            className={`text-[11px] ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}
+                                                        >
+                                                            Kami akan memberi
+                                                            tahu Anda di sini
+                                                            jika ada pembaruan
+                                                            laporan.
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    /* --- LIST NOTIFIKASI JIKA ADA --- */
+                                                    <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                                                        {auth.user.notifications.map(
+                                                            (notif: any) => (
+                                                                <button
+                                                                    key={
+                                                                        notif.id
+                                                                    }
+                                                                    onClick={() => {
+                                                                        if (
+                                                                            !notif.read_at
+                                                                        )
+                                                                            handleMarkAsRead(
+                                                                                notif.id,
+                                                                            );
+                                                                        if (
                                                                             notif
                                                                                 .data
-                                                                                .message
-                                                                        }
-                                                                    </p>
-                                                                    <p className="text-[9px] text-slate-400 mt-0.5">
-                                                                        {new Date(
-                                                                            notif.created_at,
-                                                                        ).toLocaleDateString(
-                                                                            "id-ID",
+                                                                                .report_id
+                                                                        )
+                                                                            handleReportSelect(
+                                                                                notif
+                                                                                    .data
+                                                                                    .report_id,
+                                                                            );
+                                                                        setShowNotifications(
+                                                                            false,
+                                                                        );
+                                                                    }}
+                                                                    className={`w-full text-left p-3 transition-all flex gap-3 ${!notif.read_at ? "bg-slate-50 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+                                                                >
+                                                                    <div
+                                                                        className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm ${!notif.read_at ? "bg-[#a7e94a]/20 text-[#a7e94a]" : "bg-slate-100 dark:bg-slate-700 text-slate-400"}`}
+                                                                    >
+                                                                        <Bell className="w-4 h-4" />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <p
+                                                                            className={`text-xs leading-snug ${!notif.read_at ? "font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-600 dark:text-slate-400"}`}
+                                                                        >
                                                                             {
-                                                                                year: "numeric",
-                                                                                month: "short",
-                                                                                day: "numeric",
-                                                                                hour: "2-digit",
-                                                                                minute: "2-digit",
-                                                                            },
-                                                                        )}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    ),
-                                                )
+                                                                                notif
+                                                                                    .data
+                                                                                    .message
+                                                                            }
+                                                                        </p>
+                                                                        <p className="text-[9px] text-slate-400 mt-1 font-semibold">
+                                                                            {new Date(
+                                                                                notif.created_at,
+                                                                            ).toLocaleDateString(
+                                                                                "id-ID",
+                                                                                {
+                                                                                    day: "numeric",
+                                                                                    month: "short",
+                                                                                    hour: "2-digit",
+                                                                                    minute: "2-digit",
+                                                                                },
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+                                                                </button>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* --- TOMBOL TANDAI SEMUA DIBACA --- */}
+                                            {unreadNotifications.length > 0 && (
+                                                <div className="p-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                                                    <button
+                                                        onClick={
+                                                            handleMarkAllAsRead
+                                                        }
+                                                        className="w-full py-2.5 text-xs font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-[#a7e94a] dark:hover:text-[#a7e94a] hover:bg-[#a7e94a]/10 dark:hover:bg-slate-800"
+                                                    >
+                                                        <CheckCircleSolid className="w-4 h-4" />
+                                                        Tandai Semua Dibaca
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
+                                    </>
                                 )}
                             </div>
                         )}
@@ -826,7 +875,7 @@ export default function Welcome({
                             <ChevronDown className="w-3 h-3 text-slate-400" />
                         </button>
 
-                        {/* Notifications */}
+                        {/* Notifications (Desktop) */}
                         {auth.user && (
                             <div className="relative">
                                 <button
@@ -841,95 +890,147 @@ export default function Welcome({
                                         <Bell className="w-5 h-5" />
                                     )}
                                     {unreadNotifications.length > 0 && (
-                                        <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
+                                        <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-slate-800 rounded-full animate-pulse"></span>
                                     )}
                                 </button>
+
                                 {showNotifications && (
-                                    <div className="absolute top-16 right-0 w-80 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 flex flex-col">
-                                        <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                                            <h3 className="font-bold text-slate-800 dark:text-slate-200">
-                                                Notifikasi
-                                            </h3>
-                                            {unreadNotifications.length > 0 && (
-                                                <button
-                                                    onClick={
-                                                        handleMarkAllAsRead
-                                                    }
-                                                    className="text-[10px] font-bold text-[#a7e94a] hover:underline"
-                                                >
-                                                    Tandai semua dibaca
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className="max-h-96 overflow-y-auto p-2 flex flex-col gap-1">
-                                            {auth.user.notifications?.length ===
-                                            0 ? (
-                                                <div className="p-6 text-center text-sm text-slate-400">
-                                                    Tidak ada notifikasi
-                                                </div>
-                                            ) : (
-                                                auth.user.notifications?.map(
-                                                    (notif: any) => (
-                                                        <button
-                                                            key={notif.id}
-                                                            onClick={() => {
-                                                                if (
-                                                                    !notif.read_at
-                                                                )
-                                                                    handleMarkAsRead(
-                                                                        notif.id,
-                                                                    );
-                                                                if (
-                                                                    notif.data
-                                                                        .report_id
-                                                                )
-                                                                    handleReportSelect(
-                                                                        notif
-                                                                            .data
-                                                                            .report_id,
-                                                                    );
-                                                                setShowNotifications(
-                                                                    false,
-                                                                );
-                                                            }}
-                                                            className={`w-full text-left p-3 rounded-2xl transition-all ${!notif.read_at ? "bg-slate-50 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/50"}`}
+                                    <>
+                                        {/* Backdrop untuk klik di luar dropdown */}
+                                        <div
+                                            className="fixed inset-0 z-40"
+                                            onClick={() =>
+                                                setShowNotifications(false)
+                                            }
+                                        ></div>
+
+                                        <div className="absolute top-16 right-0 w-80 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 flex flex-col animate-in slide-in-from-top-4 duration-200 origin-top-right">
+                                            <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                                                <h3 className="font-bold text-slate-800 dark:text-slate-200">
+                                                    Notifikasi Anda
+                                                </h3>
+                                                {unreadNotifications.length >
+                                                    0 && (
+                                                    <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
+                                                        {
+                                                            unreadNotifications.length
+                                                        }{" "}
+                                                        Baru
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="max-h-96 overflow-y-auto custom-scrollbar flex flex-col">
+                                                {/* --- EMPTY STATE JIKA KOSONG --- */}
+                                                {!auth.user.notifications ||
+                                                auth.user.notifications
+                                                    .length === 0 ? (
+                                                    <div className="p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
+                                                        <div
+                                                            className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${isDarkMode ? "bg-slate-700/50" : "bg-slate-100"}`}
                                                         >
-                                                            <div className="flex gap-3">
-                                                                <div
-                                                                    className={`mt-1.5 w-2 h-2 shrink-0 rounded-full ${!notif.read_at ? "bg-[#a7e94a]" : "bg-transparent"}`}
-                                                                />
-                                                                <div className="flex-1">
-                                                                    <p
-                                                                        className={`text-xs ${!notif.read_at ? "font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-600 dark:text-slate-400"}`}
-                                                                    >
-                                                                        {
+                                                            <CheckCircleSolid
+                                                                className={`w-7 h-7 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}
+                                                            />
+                                                        </div>
+                                                        <p
+                                                            className={`text-sm font-bold mb-1 ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}
+                                                        >
+                                                            Belum Ada Info Baru!
+                                                        </p>
+                                                        <p
+                                                            className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}
+                                                        >
+                                                            Kami akan memberi
+                                                            tahu Anda jika ada
+                                                            pembaruan laporan di
+                                                            sini.
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    /* --- LIST NOTIFIKASI JIKA ADA --- */
+                                                    <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                                                        {auth.user.notifications.map(
+                                                            (notif: any) => (
+                                                                <button
+                                                                    key={
+                                                                        notif.id
+                                                                    }
+                                                                    onClick={() => {
+                                                                        if (
+                                                                            !notif.read_at
+                                                                        )
+                                                                            handleMarkAsRead(
+                                                                                notif.id,
+                                                                            );
+                                                                        if (
                                                                             notif
                                                                                 .data
-                                                                                .message
-                                                                        }
-                                                                    </p>
-                                                                    <p className="text-[9px] text-slate-400 mt-1">
-                                                                        {new Date(
-                                                                            notif.created_at,
-                                                                        ).toLocaleDateString(
-                                                                            "id-ID",
+                                                                                .report_id
+                                                                        )
+                                                                            handleReportSelect(
+                                                                                notif
+                                                                                    .data
+                                                                                    .report_id,
+                                                                            );
+                                                                        setShowNotifications(
+                                                                            false,
+                                                                        );
+                                                                    }}
+                                                                    className={`w-full text-left p-4 transition-all flex gap-3.5 ${!notif.read_at ? "bg-slate-50 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+                                                                >
+                                                                    <div
+                                                                        className={`w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm ${!notif.read_at ? "bg-[#a7e94a]/20 text-[#a7e94a]" : "bg-slate-100 dark:bg-slate-700 text-slate-400"}`}
+                                                                    >
+                                                                        <Bell className="w-4 h-4" />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <p
+                                                                            className={`text-sm leading-snug ${!notif.read_at ? "font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-600 dark:text-slate-400"}`}
+                                                                        >
                                                                             {
-                                                                                year: "numeric",
-                                                                                month: "short",
-                                                                                day: "numeric",
-                                                                                hour: "2-digit",
-                                                                                minute: "2-digit",
-                                                                            },
-                                                                        )}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    ),
-                                                )
+                                                                                notif
+                                                                                    .data
+                                                                                    .message
+                                                                            }
+                                                                        </p>
+                                                                        <p className="text-[10px] text-slate-400 mt-1.5 font-semibold">
+                                                                            {new Date(
+                                                                                notif.created_at,
+                                                                            ).toLocaleDateString(
+                                                                                "id-ID",
+                                                                                {
+                                                                                    day: "numeric",
+                                                                                    month: "short",
+                                                                                    hour: "2-digit",
+                                                                                    minute: "2-digit",
+                                                                                },
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+                                                                </button>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* --- TOMBOL TANDAI SEMUA DIBACA --- */}
+                                            {unreadNotifications.length > 0 && (
+                                                <div className="p-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                                                    <button
+                                                        onClick={
+                                                            handleMarkAllAsRead
+                                                        }
+                                                        className="w-full py-3 text-xs font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-[#a7e94a] dark:hover:text-[#a7e94a] hover:bg-[#a7e94a]/10 dark:hover:bg-slate-800"
+                                                    >
+                                                        <CheckCircleSolid className="w-4 h-4" />
+                                                        Tandai Semua Dibaca
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
+                                    </>
                                 )}
                             </div>
                         )}
