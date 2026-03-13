@@ -21,7 +21,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function markRead(AppNotification $notification): JsonResponse
+    public function markRead(AppNotification $notification)
     {
         if ($notification->user_id !== Auth::id()) {
             abort(403);
@@ -29,16 +29,16 @@ class NotificationController extends Controller
 
         $notification->markAsRead();
 
-        return response()->json(['success' => true]);
+        return back();
     }
 
-    public function markAllRead(): JsonResponse
+    public function markAllRead()
     {
         AppNotification::where('user_id', Auth::id())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return response()->json(['success' => true]);
+        return back();
     }
 
     public function unreadCount(): JsonResponse

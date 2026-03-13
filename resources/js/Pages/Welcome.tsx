@@ -81,7 +81,10 @@ export default function Welcome({
     dangerZones,
     wasteDensityZones,
 }: PageProps<{
-    auth: { user: (User & { notifications?: any[] }) | null };
+    auth: {
+        user: User | null;
+        notifications: any[];
+    };
     reports: Report[];
     dangerZones: DangerZone[];
     wasteDensityZones: WasteDensityZone[];
@@ -356,7 +359,7 @@ export default function Welcome({
     };
 
     const unreadNotifications =
-        auth.user?.notifications?.filter((n: any) => !n.read_at) || [];
+        auth.notifications?.filter((n: any) => !n.read_at) || [];
 
     const handleMarkAsRead = async (id: string) => {
         try {
@@ -566,13 +569,12 @@ export default function Welcome({
                                             )}
                                         </div>
                                         <div className="max-h-[60vh] overflow-y-auto p-2 flex flex-col gap-1">
-                                            {auth.user.notifications?.length ===
-                                            0 ? (
+                                            {!auth.notifications || auth.notifications.length === 0 ? (
                                                 <div className="p-6 text-center text-xs text-slate-400">
                                                     Tidak ada notifikasi
                                                 </div>
                                             ) : (
-                                                auth.user.notifications?.map(
+                                                auth.notifications.map(
                                                     (notif: any) => (
                                                         <button
                                                             key={notif.id}
@@ -832,13 +834,12 @@ export default function Welcome({
                                             )}
                                         </div>
                                         <div className="max-h-96 overflow-y-auto p-2 flex flex-col gap-1">
-                                            {auth.user.notifications?.length ===
-                                            0 ? (
+                                            {!auth.notifications || auth.notifications.length === 0 ? (
                                                 <div className="p-6 text-center text-sm text-slate-400">
                                                     Tidak ada notifikasi
                                                 </div>
                                             ) : (
-                                                auth.user.notifications?.map(
+                                                auth.notifications.map(
                                                     (notif: any) => (
                                                         <button
                                                             key={notif.id}
@@ -1012,8 +1013,14 @@ export default function Welcome({
                             <ProfileContent
                                 user={auth.user}
                                 reports={reports.filter(
-                                    (r) => r.user?.id === auth.user?.id,
+                                    (r) =>
+                                        r.user?.id === auth.user?.id ||
+                                        (r as any).comments?.some(
+                                            (c: any) =>
+                                                c.user_id === auth.user?.id,
+                                        ),
                                 )}
+                                notifications={auth.notifications}
                                 isDark={isDarkMode}
                                 lang={lang}
                                 onClose={() => setActivePanel("none")}

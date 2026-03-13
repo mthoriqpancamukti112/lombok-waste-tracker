@@ -58,9 +58,12 @@ class ReportController extends Controller
         $severity = $request->severity_level ?? 'low';
         // Normalize severity to match case if needed, but 'low', 'moderate', 'high' is standard
         $severity = strtolower($severity);
-        if ($severity === 'ringan') $severity = 'low';
-        if ($severity === 'sedang') $severity = 'moderate';
-        if ($severity === 'parah') $severity = 'high';
+        if ($severity === 'ringan')
+            $severity = 'low';
+        if ($severity === 'sedang')
+            $severity = 'moderate';
+        if ($severity === 'parah')
+            $severity = 'high';
 
         $desc = $request->description;
 
@@ -80,11 +83,16 @@ class ReportController extends Controller
 
             // Ekstrak nama kota/kabupaten jika ada di dalam alamat
             if (!$city) {
-                if (str_contains($addressLower, 'mataram')) $city = 'Mataram';
-                elseif (str_contains($addressLower, 'lombok barat')) $city = 'Lombok Barat';
-                elseif (str_contains($addressLower, 'lombok tengah')) $city = 'Lombok Tengah';
-                elseif (str_contains($addressLower, 'lombok timur')) $city = 'Lombok Timur';
-                elseif (str_contains($addressLower, 'lombok utara')) $city = 'Lombok Utara';
+                if (str_contains($addressLower, 'mataram'))
+                    $city = 'Mataram';
+                elseif (str_contains($addressLower, 'lombok barat'))
+                    $city = 'Lombok Barat';
+                elseif (str_contains($addressLower, 'lombok tengah'))
+                    $city = 'Lombok Tengah';
+                elseif (str_contains($addressLower, 'lombok timur'))
+                    $city = 'Lombok Timur';
+                elseif (str_contains($addressLower, 'lombok utara'))
+                    $city = 'Lombok Utara';
             }
 
             $kalings = Kaling::all();
@@ -126,6 +134,19 @@ class ReportController extends Controller
             'severity_level' => $severity,
             'waste_type' => $request->waste_type,
             'needs' => $request->needs,
+        ]);
+
+        // --- NOTIFIKASI APP KE WARGA ---
+        AppNotification::create([
+            'user_id' => $report->user_id,
+            'type' => 'report_submitted',
+            'notifiable_type' => Report::class,
+            'notifiable_id' => $report->id,
+            'data' => [
+                'report_id' => $report->id,
+                'title' => 'Laporan Terkirim',
+                'message' => 'Anda mengajukan laporan. Laporan anda sedang menunggu validasi Kaling.',
+            ],
         ]);
 
         // --- NOTIFIKASI WHATSAPP KE KALING ---
@@ -237,6 +258,18 @@ class ReportController extends Controller
 
         // Notifikasi
         if ($report->user_id !== Auth::id()) {
+            $msg = 'Status laporan Anda telah diperbarui menjadi: ' . $newStatus;
+
+            if ($oldStatus === 'menunggu' && $newStatus === 'divalidasi') {
+                $msg = 'Laporan anda telah divalidasi kaling anda mendapatkan 5 poin';
+            } elseif ($newStatus === 'proses') {
+                $msg = 'Laporan anda di proses oleh petugas';
+            } elseif ($oldStatus === 'proses' && $newStatus === 'selesai') {
+                $msg = 'Laporan anda selesai di bersihkan oleh petugas dinas lingkungan hidup anda mendapatkan 10 poin';
+            } elseif ($newStatus === 'ditolak') {
+                $msg = 'Maaf, laporan anda ditolak.';
+            }
+
             AppNotification::create([
                 'user_id' => $report->user_id,
                 'type' => 'report_status_updated',
@@ -246,7 +279,8 @@ class ReportController extends Controller
                     'report_id' => $report->id,
                     'old_status' => $oldStatus,
                     'new_status' => $newStatus,
-                    'message' => 'Status laporan Anda telah diperbarui menjadi: ' . $newStatus,
+                    'title' => 'Update Laporan',
+                    'message' => $msg,
                 ],
             ]);
         }

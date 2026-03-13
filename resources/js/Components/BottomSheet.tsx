@@ -39,13 +39,21 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
                 [data-rsbs-root] {
                     --rsbs-bg: ${isDark ? '#0f172a' : '#fff'};
                     --rsbs-handle-bg: ${isDark ? '#334155' : 'rgba(0, 0, 0, 0.15)'};
+                    --rsbs-antigravity-radius: 40px;
                 }
                 [data-rsbs-header] {
                     background: ${isDark ? '#0f172a' : '#fff'} !important;
                     padding: 0 !important;
+                    border-top-left-radius: var(--rsbs-antigravity-radius) !important;
+                    border-top-right-radius: var(--rsbs-antigravity-radius) !important;
                 }
                 [data-rsbs-bg] {
                     background: ${isDark ? '#0f172a' : '#fff'} !important;
+                    border-top-left-radius: var(--rsbs-antigravity-radius) !important;
+                    border-top-right-radius: var(--rsbs-antigravity-radius) !important;
+                }
+                [data-rsbs-overlay] {
+                    z-index: 100;
                 }
             ` }} />
         </SpringBottomSheet>
