@@ -42,15 +42,27 @@ class MapDataController extends Controller
 
     public function reportDetail($id): JsonResponse
     {
-        $report = Report::with(['user:id,name,avatar', 'comments.user:id,name,avatar'])
+        // Ambil data Report dan hitung totalnya (TIDAK usah load comments di sini)
+        $report = Report::with(['user:id,name,avatar'])
             ->withCount(['likes', 'comments'])
             ->findOrFail($id);
 
+        // Ambil Komentar secara terpisah: HANYA komentar utama + balasan (replies)
+        $comments = \App\Models\ReportComment::where('report_id', $id)
+            ->whereNull('parent_id') // Kunci utamanya di sini: hanya ambil komentar induk
+            ->with([
+                'user:id,name,avatar',
+                'replies.user:id,name,avatar' // Sekalian ambil data balasan dan usernya
+            ])
+            ->latest() // Urutkan dari yang terbaru
+            ->get();
+
+        // Cek apakah user login sudah me-like
         $isLiked = Auth::check() ? $report->likes()->where('user_id', Auth::id())->exists() : false;
 
         return response()->json([
             'report' => $report,
-            'comments' => $report->comments,
+            'comments' => $comments, // Masukkan variabel $comments yang sudah difilter
             'isLiked' => $isLiked,
         ]);
     }

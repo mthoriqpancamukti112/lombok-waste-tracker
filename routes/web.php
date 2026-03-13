@@ -15,6 +15,7 @@ use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\PetugasManagementController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicReportController;
+use App\Http\Controllers\ReportCommentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\WargaController;
 use App\Http\Controllers\WasteDensityController;
@@ -105,10 +106,10 @@ Route::middleware('auth')->group(function () {
         };
     })->middleware('verified')->name('dashboard');
 
-    Route::get('/laporan-publik', [PublicReportController::class, 'index'])->name('laporan-publik.index');
-    Route::get('/profil/{id}', [PublicReportController::class, 'profile'])->name('laporan-publik.profile');
-    Route::post('/laporan-publik/{id}/like', [PublicReportController::class, 'toggleLike'])->name('laporan-publik.like');
-    Route::post('/laporan-publik/{id}/comment', [PublicReportController::class, 'storeComment'])->name('laporan-publik.comment');
+    // Route::get('/laporan-publik', [PublicReportController::class, 'index'])->name('laporan-publik.index');
+    // Route::get('/profil/{id}', [PublicReportController::class, 'profile'])->name('laporan-publik.profile');
+    Route::post('/report/{report}/like', [PublicReportController::class, 'toggleLike'])->name('report.like');
+    Route::post('/report/{id}/comment', [ReportCommentController::class, 'store'])->name('report.comment');
 
     // Warga dashboard
     Route::middleware('role:warga')->get('/dashboard/warga', [WargaController::class, 'index'])->name('dashboard.warga');
@@ -166,9 +167,6 @@ Route::middleware('auth')->group(function () {
     // Comments
     Route::post('/report/{report}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
-
-    // Likes (AJAX)
-    Route::post('/report/{report}/like', [LikeController::class, 'toggle'])->name('likes.toggle');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
