@@ -183,8 +183,8 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
             features: reports.map((r) => {
                 const severityWeight: Record<string, number> = {
                     low: 1,
-                    medium: 3,
-                    high: 6,
+                    medium: 4,
+                    high: 8,
                     critical: 10,
                 };
                 return {
@@ -321,37 +321,62 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
         minzoom: 7,
         layout: {
             visibility: mapSettings.showMarkers ? "visible" : "none",
+            "circle-sort-key": ["get", "mag"],
         },
         paint: {
+            // --- 1. RADIUS DINAMIS: Skala membesar raksasa saat di-zoom ---
             "circle-radius": [
                 "interpolate",
                 ["linear"],
                 ["zoom"],
                 7,
-                ["interpolate", ["linear"], ["get", "mag"], 1, 1, 6, 4],
+                ["interpolate", ["linear"], ["get", "mag"], 1, 2, 8, 6],
+                12,
+                ["interpolate", ["linear"], ["get", "mag"], 1, 5, 8, 18],
                 16,
-                ["interpolate", ["linear"], ["get", "mag"], 1, 5, 6, 50],
+                ["interpolate", ["linear"], ["get", "mag"], 1, 15, 8, 50], // Di zoom 16, titik High menjadi 50px
+                20,
+                ["interpolate", ["linear"], ["get", "mag"], 1, 25, 8, 80],
             ],
+
             "circle-color": [
                 "interpolate",
                 ["linear"],
                 ["get", "mag"],
                 1,
-                "rgba(33,102,172,0)",
-                2,
-                "rgb(103,169,207)",
-                3,
-                "rgb(253,219,199)",
+                "rgb(250, 204, 21)", // Low (Kuning)
                 4,
-                "rgb(239,138,98)",
-                5,
-                "rgb(178,24,43)",
-                6,
-                "rgb(178,24,43)",
+                "rgb(249, 115, 22)", // Moderate (Oranye)
+                8,
+                "rgb(178, 24, 43)", // High (Merah)
             ],
+
+            // --- 3. STROKE: Garis putih luar yang proporsional ---
             "circle-stroke-color": "white",
-            "circle-stroke-width": 1,
+            "circle-stroke-width": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7,
+                1,
+                12,
+                2,
+                16,
+                4, // Sesuai dengan ukuran 50px
+                20,
+                6,
+            ],
+
             "circle-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 8, 1],
+            "circle-stroke-opacity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7,
+                0,
+                8,
+                1,
+            ],
         },
     };
 
