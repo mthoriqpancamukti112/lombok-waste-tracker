@@ -474,6 +474,13 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
             mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
             attributionControl={false}
             logoPosition="bottom-left"
+            // --- TAMBAHKAN BARIS INI ---
+            onClick={(e) => {
+                // Pastikan klik terjadi pada peta, bukan pada elemen di dalamnya (seperti marker)
+                if (e.originalEvent.target instanceof HTMLCanvasElement) {
+                    setSelectedReport(null);
+                }
+            }}
         >
             <style>{`.mapboxgl-ctrl-logo { display: none !important; } .mapboxgl-ctrl-attrib { display: none !important; } .mapboxgl-ctrl-geolocate { display: none !important; }`}</style>
 
