@@ -124,7 +124,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/report/{id}/comment', [ReportCommentController::class, 'store'])->name('report.comment');
 
     // Warga dashboard
-    Route::middleware('role:warga')->get('/dashboard/warga', [WargaController::class, 'index'])->name('dashboard.warga');
+    // Route::middleware('role:warga')->get('/dashboard/warga', [WargaController::class, 'index'])->name('dashboard.warga');
 
     // Kaling dashboard
     Route::middleware('role:kaling')->group(function () {
