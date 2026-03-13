@@ -168,8 +168,9 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
             mapRef.current?.flyTo({
                 center: [lng, lat],
                 zoom: 16,
+                padding: { top: 250 },
                 essential: true,
-                duration: 2000,
+                duration: 1500,
             });
         },
         openPopup: (report: Report) => {
@@ -519,7 +520,12 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
             }}
             onZoom={(e) => setCurrentZoom(e.viewState.zoom)}
         >
-            <style>{`.mapboxgl-ctrl-logo { display: none !important; } .mapboxgl-ctrl-attrib { display: none !important; } .mapboxgl-ctrl-geolocate { display: none !important; }`}</style>
+            <style>{`
+                .mapboxgl-ctrl-logo { display: none !important; }
+                .mapboxgl-ctrl-attrib { display: none !important; }
+                .mapboxgl-ctrl-geolocate { display: none !important; }
+                .mapboxgl-popup { z-index: 999 !important; }
+            `}</style>
 
             <div style={{ display: "none" }}>
                 <GeolocateControl
@@ -652,6 +658,17 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                             onClick={(e) => {
                                 e.originalEvent.stopPropagation();
                                 setSelectedReport(report);
+
+                                // --- MENGGESER KAMERA OTOMATIS SAAT MARKER DIKLIK ---
+                                mapRef.current?.flyTo({
+                                    center: [
+                                        parseFloat(report.longitude),
+                                        parseFloat(report.latitude),
+                                    ],
+                                    zoom: 16,
+                                    padding: { top: 350 }, // Jarak aman ekstra agar popup bebas hambatan
+                                    duration: 800,
+                                });
                             }}
                         >
                             <div
@@ -688,7 +705,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                     onClose={() => setSelectedReport(null)}
                     closeOnClick={false}
                     closeButton={false}
-                    className="z-50"
+                    className="!z-[999]"
                     maxWidth="320px"
                 >
                     <div className="flex flex-col w-[240px] gap-0 rounded-2xl overflow-hidden shadow-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
@@ -823,7 +840,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                         onClose={onClearSearchLocation}
                         closeOnClick={false}
                         closeButton={false}
-                        className="z-50"
+                        className="!z-[999]"
                     >
                         <div className="px-4 py-3 bg-white dark:bg-slate-800 rounded-2xl shadow-xl flex flex-col gap-2 w-[220px] relative border border-slate-100 dark:border-slate-700">
                             <button
