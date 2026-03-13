@@ -497,6 +497,12 @@ export const landingDict = {
         authTermsLink: "Syarat & Ketentuan",
         authLoginSuccess: "Login Berhasil! Selamat datang kembali.",
         authRegisterSuccess: "Akun Berhasil Dibuat! Silakan masuk.",
+        notifTitle: "Notifikasi Anda",
+        notifNew: "Baru",
+        notifEmptyTitle: "Belum Ada Info Baru!",
+        notifEmptyDesc:
+            "Kami akan memberi tahu Anda di sini jika ada pembaruan laporan.",
+        notifMarkAllRead: "Tandai Semua Dibaca",
     },
 
     en: {
@@ -998,5 +1004,11 @@ export const landingDict = {
         authTermsLink: "Terms & Conditions",
         authLoginSuccess: "Login Successful! Welcome back.",
         authRegisterSuccess: "Account Created! Please sign in.",
+        notifTitle: "Your Notifications",
+        notifNew: "New",
+        notifEmptyTitle: "No New Notifications!",
+        notifEmptyDesc:
+            "We will notify you here if there are any updates on your reports.",
+        notifMarkAllRead: "Mark All as Read",
     },
 };

@@ -582,7 +582,6 @@ export default function Welcome({
 
                                 {showNotifications && (
                                     <>
-                                        {/* Backdrop penutup layar mobile saat notifikasi terbuka */}
                                         <div
                                             className="fixed inset-0 z-40"
                                             onClick={() =>
@@ -593,7 +592,7 @@ export default function Welcome({
                                         <div className="fixed top-[120px] right-4 w-[calc(100vw-32px)] max-w-[340px] bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 flex flex-col animate-in slide-in-from-top-2 duration-200">
                                             <div className="p-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                                                 <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                                                    Notifikasi Anda
+                                                    {t.notifTitle}
                                                 </h3>
                                                 {unreadNotifications.length >
                                                     0 && (
@@ -601,13 +600,12 @@ export default function Welcome({
                                                         {
                                                             unreadNotifications.length
                                                         }{" "}
-                                                        Baru
+                                                        {t.notifNew}
                                                     </span>
                                                 )}
                                             </div>
 
                                             <div className="max-h-[60vh] overflow-y-auto custom-scrollbar flex flex-col">
-                                                {/* --- EMPTY STATE JIKA KOSONG --- */}
                                                 {!auth.user.notifications ||
                                                 auth.user.notifications
                                                     .length === 0 ? (
@@ -618,19 +616,15 @@ export default function Welcome({
                                                         <p
                                                             className={`text-sm font-semibold mb-1 ${isDarkMode ? "text-slate-300" : "text-slate-700"}`}
                                                         >
-                                                            Belum Ada Info Baru!
+                                                            {t.notifEmptyTitle}
                                                         </p>
                                                         <p
                                                             className={`text-[11px] ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}
                                                         >
-                                                            Kami akan memberi
-                                                            tahu Anda di sini
-                                                            jika ada pembaruan
-                                                            laporan.
+                                                            {t.notifEmptyDesc}
                                                         </p>
                                                     </div>
                                                 ) : (
-                                                    /* --- LIST NOTIFIKASI JIKA ADA --- */
                                                     <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
                                                         {auth.user.notifications.map(
                                                             (notif: any) => (
@@ -680,7 +674,10 @@ export default function Welcome({
                                                                             {new Date(
                                                                                 notif.created_at,
                                                                             ).toLocaleDateString(
-                                                                                "id-ID",
+                                                                                lang ===
+                                                                                    "id"
+                                                                                    ? "id-ID"
+                                                                                    : "en-US",
                                                                                 {
                                                                                     day: "numeric",
                                                                                     month: "short",
@@ -697,7 +694,6 @@ export default function Welcome({
                                                 )}
                                             </div>
 
-                                            {/* --- TOMBOL TANDAI SEMUA DIBACA --- */}
                                             {unreadNotifications.length > 0 && (
                                                 <div className="p-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
                                                     <button
@@ -707,7 +703,7 @@ export default function Welcome({
                                                         className="w-full py-2.5 text-xs font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-[#a7e94a] dark:hover:text-[#a7e94a] hover:bg-[#a7e94a]/10 dark:hover:bg-slate-800"
                                                     >
                                                         <CheckCircleSolid className="w-4 h-4" />
-                                                        Tandai Semua Dibaca
+                                                        {t.notifMarkAllRead}
                                                     </button>
                                                 </div>
                                             )}
@@ -896,7 +892,6 @@ export default function Welcome({
 
                                 {showNotifications && (
                                     <>
-                                        {/* Backdrop untuk klik di luar dropdown */}
                                         <div
                                             className="fixed inset-0 z-40"
                                             onClick={() =>
@@ -907,7 +902,7 @@ export default function Welcome({
                                         <div className="absolute top-16 right-0 w-80 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 flex flex-col animate-in slide-in-from-top-4 duration-200 origin-top-right">
                                             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                                                 <h3 className="font-bold text-slate-800 dark:text-slate-200">
-                                                    Notifikasi Anda
+                                                    {t.notifTitle}
                                                 </h3>
                                                 {unreadNotifications.length >
                                                     0 && (
@@ -915,13 +910,12 @@ export default function Welcome({
                                                         {
                                                             unreadNotifications.length
                                                         }{" "}
-                                                        Baru
+                                                        {t.notifNew}
                                                     </span>
                                                 )}
                                             </div>
 
                                             <div className="max-h-96 overflow-y-auto custom-scrollbar flex flex-col">
-                                                {/* --- EMPTY STATE JIKA KOSONG --- */}
                                                 {!auth.user.notifications ||
                                                 auth.user.notifications
                                                     .length === 0 ? (
@@ -936,19 +930,15 @@ export default function Welcome({
                                                         <p
                                                             className={`text-sm font-bold mb-1 ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}
                                                         >
-                                                            Belum Ada Info Baru!
+                                                            {t.notifEmptyTitle}
                                                         </p>
                                                         <p
                                                             className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}
                                                         >
-                                                            Kami akan memberi
-                                                            tahu Anda jika ada
-                                                            pembaruan laporan di
-                                                            sini.
+                                                            {t.notifEmptyDesc}
                                                         </p>
                                                     </div>
                                                 ) : (
-                                                    /* --- LIST NOTIFIKASI JIKA ADA --- */
                                                     <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
                                                         {auth.user.notifications.map(
                                                             (notif: any) => (
@@ -998,7 +988,10 @@ export default function Welcome({
                                                                             {new Date(
                                                                                 notif.created_at,
                                                                             ).toLocaleDateString(
-                                                                                "id-ID",
+                                                                                lang ===
+                                                                                    "id"
+                                                                                    ? "id-ID"
+                                                                                    : "en-US",
                                                                                 {
                                                                                     day: "numeric",
                                                                                     month: "short",
@@ -1015,7 +1008,6 @@ export default function Welcome({
                                                 )}
                                             </div>
 
-                                            {/* --- TOMBOL TANDAI SEMUA DIBACA --- */}
                                             {unreadNotifications.length > 0 && (
                                                 <div className="p-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
                                                     <button
@@ -1025,7 +1017,7 @@ export default function Welcome({
                                                         className="w-full py-3 text-xs font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-[#a7e94a] dark:hover:text-[#a7e94a] hover:bg-[#a7e94a]/10 dark:hover:bg-slate-800"
                                                     >
                                                         <CheckCircleSolid className="w-4 h-4" />
-                                                        Tandai Semua Dibaca
+                                                        {t.notifMarkAllRead}
                                                     </button>
                                                 </div>
                                             )}
