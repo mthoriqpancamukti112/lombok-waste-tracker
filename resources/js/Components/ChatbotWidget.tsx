@@ -12,13 +12,18 @@ interface ChatbotWidgetProps {
     isDark?: boolean;
     userId?: number;
     onFocusReport?: (id: number) => void;
+    onOpenReportModal?: () => void;
 }
 
 // Batas maksimal gelembung chat yang dirender agar browser tidak lag
 const MAX_HISTORY = 40;
 
 // --- FUNGSI FORMAT MESSAGE ---
-const formatMessage = (text: string, onFocus?: (id: number) => void) => {
+const formatMessage = (
+    text: string,
+    onFocus?: (id: number) => void,
+    onOpenReportModal?: () => void,
+) => {
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     const boldRegex = /\*\*([^*]+)\*\*/g;
 
@@ -57,7 +62,7 @@ const formatMessage = (text: string, onFocus?: (id: number) => void) => {
             const linkText = parts[i + 1];
             const linkUrl = parts[i + 2];
 
-            // --- JIKA LINK ADALAH FOCUS MAP ---
+            // 1. JIKA LINK ADALAH FOCUS PETA
             if (linkUrl.startsWith("/?focus=") && onFocus) {
                 const reportId = parseInt(linkUrl.replace("/?focus=", ""), 10);
                 formatted.push(
@@ -70,12 +75,31 @@ const formatMessage = (text: string, onFocus?: (id: number) => void) => {
                         {linkText}
                     </button>,
                 );
-            } else {
-                // Link biasa
+            }
+            // 2. JIKA LINK ADALAH BUKA MODAL LAPORAN
+            else if (linkUrl === "#buka-modal-lapor" && onOpenReportModal) {
+                formatted.push(
+                    <button
+                        key={`l-${i}`}
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onOpenReportModal();
+                        }}
+                        className="text-blue-400 hover:text-blue-300 underline font-bold transition-colors cursor-pointer"
+                    >
+                        {linkText}
+                    </button>,
+                );
+            }
+            // 3. JIKA LINK BIASA
+            else {
                 formatted.push(
                     <a
                         key={`l-${i}`}
                         href={linkUrl}
+                        target="_blank"
+                        rel="noreferrer"
                         className="text-blue-400 hover:text-blue-300 underline font-bold transition-colors"
                     >
                         {linkText}
@@ -91,6 +115,7 @@ export default function ChatbotWidget({
     isDark = false,
     userId,
     onFocusReport,
+    onOpenReportModal,
 }: ChatbotWidgetProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
@@ -238,7 +263,11 @@ export default function ChatbotWidget({
                                             : `${bgBotBubble} rounded-bl-sm border ${isDark ? "border-slate-700" : "border-slate-200"}`
                                     }`}
                                 >
-                                    {formatMessage(msg.text, onFocusReport)}
+                                    {formatMessage(
+                                        msg.text,
+                                        onFocusReport,
+                                        onOpenReportModal,
+                                    )}
                                 </div>
                                 <span
                                     className={`text-[9px] mt-1 ${textMuted}`}

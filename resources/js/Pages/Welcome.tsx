@@ -216,6 +216,36 @@ export default function Welcome({
         }
     }, [auth.user]);
 
+    // Auto-open Report Modal jika ada query ?action=lapor di URL (misal dari Chatbot)
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get("action");
+
+        if (action === "lapor") {
+            // Cek apakah user sudah login
+            if (!auth.user) {
+                // Jika belum, arahkan ke login dan simpan niatnya
+                sessionStorage.setItem("pendingAction", "lapor");
+                openAuthModal("login");
+            } else {
+                // Jika sudah login, langsung buka modal laporan
+                setIsReportModalOpen(true);
+            }
+
+            // Opsional: Bersihkan URL agar tidak terus-terusan terbuka saat refresh
+            // window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Pengecekan setelah login sukses
+        if (auth.user) {
+            const pendingAction = sessionStorage.getItem("pendingAction");
+            if (pendingAction === "lapor") {
+                setIsReportModalOpen(true);
+                sessionStorage.removeItem("pendingAction");
+            }
+        }
+    }, [auth.user]);
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString(lang === "id" ? "id-ID" : "en-US", {
@@ -1098,6 +1128,13 @@ export default function Welcome({
                     isDark={isDarkMode}
                     userId={auth.user?.id}
                     onFocusReport={handleFocusReportFromChatbot}
+                    onOpenReportModal={() => {
+                        if (!auth.user) {
+                            openAuthModal("login");
+                        } else {
+                            setIsReportModalOpen(true);
+                        }
+                    }}
                 />
 
                 <Toaster
