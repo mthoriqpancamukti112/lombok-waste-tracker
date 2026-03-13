@@ -11,6 +11,7 @@ interface AuthModalProps {
     initialTab?: "login" | "register";
     lang?: "id" | "en";
     isDark?: boolean;
+    onOpenForgot?: () => void;
 }
 
 export default function AuthModal({
@@ -19,23 +20,29 @@ export default function AuthModal({
     initialTab = "login",
     lang = "id",
     isDark = false,
+    onOpenForgot,
 }: AuthModalProps) {
     const t = landingDict[lang];
 
-    const [activeTab, setActiveTab] = useState<"login" | "register">(
-        initialTab,
-    );
+    const [activeTab, setActiveTab] = useState<
+        "login" | "register" | "forgot_password"
+    >(initialTab);
+    const [resetStatus, setResetStatus] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setActiveTab(initialTab);
+            setResetStatus(null);
         } else {
             loginForm.reset();
             registerForm.reset();
+            forgotForm.reset();
             loginForm.clearErrors();
             registerForm.clearErrors();
+            forgotForm.clearErrors();
             setShowPassword(false);
+            setResetStatus(null);
         }
     }, [isOpen, initialTab]);
 
@@ -50,6 +57,10 @@ export default function AuthModal({
         email: "",
         password: "",
         password_confirmation: "",
+    });
+
+    const forgotForm = useForm({
+        email: "",
     });
 
     const handleLogin = (e: React.FormEvent) => {
@@ -76,6 +87,22 @@ export default function AuthModal({
             },
             onFinish: () =>
                 registerForm.reset("password", "password_confirmation"),
+        });
+    };
+
+    const handleForgot = (e: React.FormEvent) => {
+        e.preventDefault();
+        setResetStatus(null);
+
+        // Laravel Breeze default route untuk send reset link
+        forgotForm.post(route("password.email"), {
+            onSuccess: () => {
+                setResetStatus(
+                    "Tautan reset kata sandi telah dikirim ke email Anda. Silakan periksa kotak masuk (inbox) atau spam Anda.",
+                );
+                forgotForm.reset();
+                // Sengaja modal tidak langsung ditutup agar user bisa baca pesannya
+            },
         });
     };
 
@@ -149,20 +176,74 @@ export default function AuthModal({
                         <h2
                             className={`text-xl sm:text-2xl font-extrabold tracking-tight ${isDark ? "text-slate-100" : "text-[#a7e94a]"}`}
                         >
-                            {activeTab === "login"
-                                ? t.authWelcome
-                                : t.authJoinUs}
+                            {activeTab === "login" && t.authWelcome}
+                            {activeTab === "register" && t.authJoinUs}
+                            {activeTab === "forgot_password" &&
+                                "Lupa Kata Sandi"}
                         </h2>
                         <p
-                            className={`text-xs sm:text-sm mt-1.5 font-medium leading-relaxed max-w-[260px] mx-auto ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                            className={`text-xs sm:text-sm mt-1.5 font-medium leading-relaxed max-w-[280px] mx-auto ${isDark ? "text-slate-400" : "text-slate-500"}`}
                         >
-                            {activeTab === "login"
-                                ? t.authLoginSubtitle
-                                : t.authRegisterSubtitle}
+                            {activeTab === "login" && t.authLoginSubtitle}
+                            {activeTab === "register" && t.authRegisterSubtitle}
+                            {activeTab === "forgot_password" &&
+                                "Masukkan email Anda dan kami akan mengirimkan tautan untuk mereset kata sandi."}
                         </p>
                     </div>
 
                     {/* Form Switcher */}
+                    {activeTab === "forgot_password" && (
+                        /* ================= FORGOT PASSWORD FORM ================= */
+                        <form
+                            onSubmit={handleForgot}
+                            className="space-y-4 animate-in fade-in zoom-in-95 duration-200"
+                        >
+                            {resetStatus && (
+                                <div className="p-3 text-xs font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded-xl text-center">
+                                    {resetStatus}
+                                </div>
+                            )}
+
+                            <div className="space-y-1.5">
+                                <label
+                                    className={`text-xs font-bold ml-1 ${isDark ? "text-slate-300" : "text-slate-700"}`}
+                                >
+                                    {t.authEmailLabel}
+                                </label>
+                                <div className="relative group">
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#a7e94a] transition-colors duration-300">
+                                        <Mail className="w-4 h-4" />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        value={forgotForm.data.email}
+                                        onChange={(e) =>
+                                            forgotForm.setData(
+                                                "email",
+                                                e.target.value,
+                                            )
+                                        }
+                                        placeholder="your@email.com"
+                                        className={`w-full border focus:ring-2 focus:ring-[#a7e94a]/20 focus:border-[#a7e94a] rounded-xl h-12 pl-10 pr-4 text-sm font-semibold outline-none transition-all duration-300 ${inputBg}`}
+                                        required
+                                    />
+                                </div>
+                                <InputError message={forgotForm.errors.email} />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={forgotForm.processing}
+                                className="w-full bg-[#a7e94a] text-slate-900 rounded-xl text-sm font-bold shadow-md shadow-[#a7e94a]/20 hover:shadow-lg hover:shadow-[#a7e94a]/30 hover:bg-[#96d242] active:scale-[0.98] transition-all duration-300 disabled:opacity-70 mt-4 h-12 flex items-center justify-center"
+                            >
+                                {forgotForm.processing ? (
+                                    <span className="w-4 h-4 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
+                                ) : (
+                                    "Kirim Tautan Reset"
+                                )}
+                            </button>
+                        </form>
+                    )}
                     {activeTab === "login" ? (
                         /* ================= LOGIN FORM ================= */
                         <form onSubmit={handleLogin} className="space-y-4">
@@ -261,6 +342,9 @@ export default function AuthModal({
                                 </label>
                                 <button
                                     type="button"
+                                    onClick={() =>
+                                        onOpenForgot && onOpenForgot()
+                                    }
                                     className="text-xs font-bold text-[#a7e94a] hover:text-[#96d242] transition-colors"
                                 >
                                     {t.authForgotPassword}

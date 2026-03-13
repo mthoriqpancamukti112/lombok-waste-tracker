@@ -8,6 +8,7 @@ import BottomSheet from "@/Components/BottomSheet";
 import ReportListContent from "@/Components/ReportListContent";
 import ProfileContent from "@/Components/ProfileContent";
 import AuthModal from "@/Components/AuthModal";
+import ForgotPasswordModal from "@/Components/ForgotPasswordModal";
 import ReportModal from "@/Components/ReportModal";
 import ReportDetailContent from "@/Components/ReportDetailContent";
 import ChatbotWidget from "@/Components/ChatbotWidget";
@@ -98,6 +99,7 @@ export default function Welcome({
     const [isDesktop, setIsDesktop] = useState(true);
     const [isLoadingDetail, setIsLoadingDetail] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [selectedReportDetail, setSelectedReportDetail] = useState<any>(null);
     const [activePanel, setActivePanel] = useState<
@@ -1194,6 +1196,22 @@ export default function Welcome({
                     onClose={() => setIsAuthModalOpen(false)}
                     initialTab={authModalTab}
                     lang={lang}
+                    isDark={isDarkMode}
+                    // TAMBAHKAN PROP INI (Lihat Langkah 3)
+                    onOpenForgot={() => {
+                        setIsAuthModalOpen(false); // Tutup login
+                        setIsForgotModalOpen(true); // Buka Lupa Password
+                    }}
+                />
+
+                {/* ─── Forgot Password Modal OTP ─── */}
+                <ForgotPasswordModal
+                    isOpen={isForgotModalOpen}
+                    onClose={() => setIsForgotModalOpen(false)}
+                    onBackToLogin={() => {
+                        setIsForgotModalOpen(false);
+                        openAuthModal("login"); // Kembali ke form login
+                    }}
                     isDark={isDarkMode}
                 />
 

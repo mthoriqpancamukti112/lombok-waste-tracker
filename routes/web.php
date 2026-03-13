@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\MapDataController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Auth\OtpPasswordResetController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DangerZoneController;
 use App\Http\Controllers\DlhController;
@@ -31,7 +32,7 @@ use Illuminate\Http\Request;
 // ──────────────────────────────────────────
 Route::get('/', function (Request $request) {
     $user = $request->user();
-    
+
     // For logged in users, we pull more reports so their "Riwayat Diskusi" is more likely to be populated
     // without having to do a very complex union query for the initial page load.
     $limit = $user ? 200 : 100;
@@ -65,6 +66,10 @@ Route::get('/', function (Request $request) {
 // ──────────────────────────────────────────
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
+
+Route::post('/forgot-password/send-otp', [OtpPasswordResetController::class, 'sendOtp']);
+Route::post('/forgot-password/verify-otp', [OtpPasswordResetController::class, 'verifyOtp']);
+Route::post('/forgot-password/reset', [OtpPasswordResetController::class, 'resetPassword']);
 
 // ──────────────────────────────────────────
 // API: Map Data (public — no auth needed)
