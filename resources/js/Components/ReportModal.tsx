@@ -531,7 +531,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 sm:p-0">
+            <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

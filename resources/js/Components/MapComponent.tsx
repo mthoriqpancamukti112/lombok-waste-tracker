@@ -159,9 +159,11 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
             }
         }));
 
+        const activeReports = useMemo(() => reports.filter(r => r.status !== 'selesai'), [reports]);
+
         const reportsGeoJson = useMemo(() => ({
             type: "FeatureCollection" as const,
-            features: reports.map(r => {
+            features: activeReports.map(r => {
                 const severityWeight: Record<string, number> = {
                     low: 1,
                     medium: 3,
@@ -180,7 +182,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                     },
                 };
             }),
-        }), [reports]);
+        }), [activeReports]);
 
         // ── Danger Zones GeoJSON (polygons or circles) ──
         const dangerGeoJson = useMemo(() => ({
@@ -484,7 +486,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(
                 ))}
 
                 {/* Report markers */}
-                {mapSettings.showMarkers && reports.map(report => {
+                {mapSettings.showMarkers && activeReports.map(report => {
                     const { ping, dot } = statusColor(report.status);
                     return (
                         <Marker

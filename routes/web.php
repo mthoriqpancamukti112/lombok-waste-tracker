@@ -28,11 +28,18 @@ use Illuminate\Http\Request;
 // ──────────────────────────────────────────
 // Public: Welcome / Map
 // ──────────────────────────────────────────
-Route::get('/', function () {
-    $reports = Report::with('user:id,name,avatar')
+Route::get('/', function (Request $request) {
+    $user = $request->user();
+    
+    // For logged in users, we pull more reports so their "Riwayat Diskusi" is more likely to be populated
+    // without having to do a very complex union query for the initial page load.
+    $limit = $user ? 200 : 100;
+
+    $reports = Report::with(['user:id,name,avatar', 'comments:id,report_id,user_id'])
         ->withCount(['likes', 'comments'])
-        ->whereIn('status', ['menunggu', 'divalidasi', 'proses'])
+        ->whereIn('status', ['menunggu', 'divalidasi', 'proses', 'selesai'])
         ->latest()
+        ->take($limit)
         ->get();
 
     $dangerZones = DangerZone::active()

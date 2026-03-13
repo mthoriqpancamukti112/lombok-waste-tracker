@@ -29,9 +29,22 @@ interface User {
     } | null;
 }
 
+interface Notification {
+    id: string;
+    type: string;
+    data: {
+        message?: string;
+        title?: string;
+        report_id?: number;
+    };
+    read_at: string | null;
+    created_at: string;
+}
+
 interface ProfileContentProps {
     user: User;
     reports: Report[];
+    notifications?: Notification[];
     onClose?: () => void;
     isDark?: boolean;
     lang?: "id" | "en";
@@ -46,6 +59,7 @@ const statusCls: Record<string, string> = {
 const ProfileContent: React.FC<ProfileContentProps> = ({
     user,
     reports,
+    notifications = [],
     onClose,
     isDark = false,
     lang = "id",
@@ -54,20 +68,65 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
     const t = landingDict[lang];
     const [activeTab, setActiveTab] = useState("all");
 
+    const handleMarkRead = (n: Notification) => {
+        if (n.read_at) return;
+        router.post(
+            route("notifications.read", n.id),
+            {},
+            {
+                only: ["auth"],
+                onSuccess: () => {
+                    toast.success(
+                        lang === "id"
+                            ? "Berhasil ditandai sebagai dibaca"
+                            : "Marked as read",
+                    );
+                },
+            },
+        );
+    };
+
+    const handleMarkAllRead = () => {
+        router.post(
+            route("notifications.read-all"),
+            {},
+            {
+                only: ["auth"],
+                onSuccess: () => {
+                    toast.success(
+                        lang === "id"
+                            ? "Semua notifikasi dibaca"
+                            : "All notifications read",
+                    );
+                },
+            },
+        );
+    };
+
     const avatarSrc =
         user.avatar ||
         `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=a7e94a&color=fff&size=256`;
 
     const isGoogleLinked = !!user.google_id;
 
+    const sortedReports = useMemo(() => {
+        return [...reports].sort((a, b) => {
+            if (a.status === "selesai" && b.status !== "selesai") return 1;
+            if (a.status !== "selesai" && b.status === "selesai") return -1;
+            return 0;
+        });
+    }, [reports]);
+
     const filteredReports =
         activeTab === "all"
-            ? reports
+            ? sortedReports
             : activeTab === "high-upvote"
-                ? [...reports]
+                ? [...sortedReports]
                     .sort((a, b) => b.likes_count - a.likes_count)
                     .slice(0, 6)
-                : reports.filter((r) => r.status === "selesai");
+                : activeTab === "notifications"
+                    ? sortedReports
+                    : sortedReports.filter((r) => r.status === "selesai");
 
     const totalLikes = reports.reduce((sum, r) => sum + r.likes_count, 0);
     const totalComments = reports.reduce((sum, r) => sum + r.comments_count, 0);
@@ -271,23 +330,128 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                     <div
                         className={`rounded-3xl p-5 border flex flex-col gap-4 ${cardBg}`}
                     >
-                        <h3 className="text-base font-black">{t.myReports}</h3>
+                        <h3 className="text-base font-black">
+                            {lang === "id" ? "Riwayat Diskusi" : "Discussion History"}
+                        </h3>
                         <div className="flex gap-2 flex-wrap">
                             {[
-                                ["all", t.filterAll],
-                                ["high-upvote", t.mostPopular],
-                                ["selesai", t.filterCompleted],
-                            ].map(([val, label]) => (
+                                ["all", t.filterAll, reports.length],
+                                [
+                                    "notifications",
+                                    lang === "id"
+                                        ? "Notifikasi"
+                                        : "Notifications",
+                                    notifications.filter((n) => !n.read_at)
+                                        .length,
+                                ],
+                                [
+                                    "selesai",
+                                    t.filterCompleted,
+                                    reports.filter(
+                                        (r) => r.status === "selesai",
+                                    ).length,
+                                ],
+                            ].map(([val, label, count]) => (
                                 <button
-                                    key={val}
-                                    onClick={() => setActiveTab(val)}
-                                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all ${activeTab === val ? "bg-[#a7e94a] text-white shadow-md" : isDark ? "bg-slate-700 text-slate-300" : "bg-white text-slate-400 border border-slate-100"}`}
+                                    key={val as string}
+                                    onClick={() => setActiveTab(val as string)}
+                                    className={`relative px-4 py-2 rounded-2xl text-xs font-bold transition-all ${activeTab === val ? "bg-[#a7e94a] text-white shadow-md" : isDark ? "bg-slate-700 text-slate-300" : "bg-white text-slate-400 border border-slate-100"}`}
                                 >
-                                    {label}
+                                    {label as string}
+                                    {typeof count === "number" &&
+                                        count > 0 &&
+                                        val === "notifications" && (
+                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center">
+                                                {count}
+                                            </span>
+                                        )}
                                 </button>
                             ))}
+                            {activeTab === "notifications" &&
+                                notifications.some((n) => !n.read_at) && (
+                                    <button
+                                        onClick={handleMarkAllRead}
+                                        className={`px-4 py-2 rounded-2xl text-[10px] font-black transition-all ${isDark ? "bg-[#a7e94a]/10 text-[#a7e94a]" : "bg-[#a7e94a]/10 text-[#5a8a1a]"}`}
+                                    >
+                                        {lang === "id"
+                                            ? "Tandai Semua"
+                                            : "Mark All Read"}
+                                    </button>
+                                )}
                         </div>
-                        {filteredReports.length === 0 ? (
+                        {activeTab === "notifications" ? (
+                            <div className="flex flex-col gap-3">
+                                {notifications.length === 0 ? (
+                                    <p
+                                        className={`text-sm text-center py-8 ${subtle}`}
+                                    >
+                                        {lang === "id"
+                                            ? "Belum ada notifikasi"
+                                            : "No notifications yet"}
+                                    </p>
+                                ) : (
+                                    notifications.map((n) => (
+                                        <div
+                                            key={n.id}
+                                            onClick={() => handleMarkRead(n)}
+                                            className={`p-4 rounded-2xl border flex gap-3 items-start cursor-pointer transition-all hover:scale-[1.01] ${n.read_at ? inBg : isDark ? "bg-[#a7e94a]/10 border-[#a7e94a]/20" : "bg-[#a7e94a]/5 border-[#a7e94a]/10"}`}
+                                        >
+                                            <div
+                                                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.read_at ? (isDark ? "bg-slate-800" : "bg-slate-100") : "bg-[#a7e94a] text-white"}`}
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    strokeWidth={2}
+                                                    stroke="currentColor"
+                                                    className="w-5 h-5"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-xs font-bold leading-tight">
+                                                    {n.data.title ||
+                                                        (lang === "id"
+                                                            ? "Pemberitahuan"
+                                                            : "Notification")}
+                                                </p>
+                                                <p
+                                                    className={`text-[11px] mt-1 leading-snug ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                                                >
+                                                    {n.data.message}
+                                                </p>
+                                                <p
+                                                    className={`text-[9px] mt-2 font-medium ${subtle}`}
+                                                >
+                                                    {new Date(
+                                                        n.created_at,
+                                                    ).toLocaleDateString(
+                                                        lang === "id"
+                                                            ? "id-ID"
+                                                            : "en-US",
+                                                        {
+                                                            day: "numeric",
+                                                            month: "short",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        },
+                                                    )}
+                                                </p>
+                                            </div>
+                                            {!n.read_at && (
+                                                <div className="w-2 h-2 rounded-full bg-[#a7e94a] mt-1.5" />
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        ) : filteredReports.length === 0 ? (
                             <p className={`text-sm text-center py-8 ${subtle}`}>
                                 {t.noReports}
                             </p>
@@ -300,7 +464,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                     >
                                         <img
                                             src={`/storage/${report.photo_path}`}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${report.status === "selesai" ? "grayscale opacity-80" : ""}`}
                                             alt=""
                                             onError={(e) => {
                                                 (
@@ -474,23 +638,129 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
 
                     {/* Col 2: Posts */}
                     <div className="flex flex-col gap-6">
-                        <h3 className="text-lg font-black">{t.myReports}</h3>
+                        <h3 className="text-lg font-black">
+                            {lang === "id" ? "Riwayat Diskusi" : "Discussion History"}
+                        </h3>
                         <div className="flex gap-2 flex-wrap">
                             {[
-                                ["all", t.filterAll],
-                                ["high-upvote", t.mostPopular],
-                                ["selesai", t.filterCompleted],
-                            ].map(([val, label]) => (
+                                ["all", t.filterAll, reports.length],
+                                [
+                                    "notifications",
+                                    lang === "id"
+                                        ? "Notifikasi"
+                                        : "Notifications",
+                                    notifications.filter((n) => !n.read_at)
+                                        .length,
+                                ],
+                                [
+                                    "selesai",
+                                    t.filterCompleted,
+                                    reports.filter(
+                                        (r) => r.status === "selesai",
+                                    ).length,
+                                ],
+                            ].map(([val, label, count]) => (
                                 <button
-                                    key={val}
-                                    onClick={() => setActiveTab(val)}
-                                    className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all ${activeTab === val ? "bg-[#a7e94a] text-white shadow-lg shadow-[#a7e94a]/25" : isDark ? "bg-slate-700 text-slate-300 hover:bg-slate-600" : "bg-slate-100 text-slate-400 hover:bg-slate-200"}`}
+                                    key={val as string}
+                                    onClick={() => setActiveTab(val as string)}
+                                    className={`relative px-5 py-2.5 rounded-2xl text-xs font-bold transition-all ${activeTab === val ? "bg-[#a7e94a] text-white shadow-lg shadow-[#a7e94a]/25" : isDark ? "bg-slate-700 text-slate-300 hover:bg-slate-600" : "bg-slate-100 text-slate-400 hover:bg-slate-200"}`}
                                 >
-                                    {label}
+                                    {label as string}
+                                    {typeof count === "number" &&
+                                        count > 0 &&
+                                        val === "notifications" && (
+                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center">
+                                                {count}
+                                            </span>
+                                        )}
                                 </button>
                             ))}
+                            {activeTab === "notifications" &&
+                                notifications.some((n) => !n.read_at) && (
+                                    <button
+                                        onClick={handleMarkAllRead}
+                                        className={`px-4 py-2 rounded-2xl text-[10px] font-black transition-all ${isDark ? "bg-[#a7e94a]/10 text-[#a7e94a]" : "bg-[#a7e94a]/10 text-[#5a8a1a]"}`}
+                                    >
+                                        {lang === "id"
+                                            ? "Tandai Semua"
+                                            : "Mark All Read"}
+                                    </button>
+                                )}
                         </div>
-                        {filteredReports.length === 0 ? (
+                        {activeTab === "notifications" ? (
+                            <div className="flex flex-col gap-3">
+                                {notifications.length === 0 ? (
+                                    <p
+                                        className={`text-sm text-center py-12 ${subtle}`}
+                                    >
+                                        {lang === "id"
+                                            ? "Belum ada notifikasi"
+                                            : "No notifications yet"}
+                                    </p>
+                                ) : (
+                                    notifications.map((n) => (
+                                        <div
+                                            key={n.id}
+                                            onClick={() => handleMarkRead(n)}
+                                            className={`p-5 rounded-[28px] border flex gap-4 items-start cursor-pointer transition-all hover:scale-[1.01] ${n.read_at ? inBg : isDark ? "bg-[#a7e94a]/10 border-[#a7e94a]/20" : "bg-[#a7e94a]/5 border-[#a7e94a]/10"}`}
+                                        >
+                                            <div
+                                                className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${n.read_at ? (isDark ? "bg-slate-800" : "bg-white") : "bg-[#a7e94a] text-white"}`}
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    strokeWidth={2}
+                                                    stroke="currentColor"
+                                                    className="w-6 h-6"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm font-black leading-tight">
+                                                    {n.data.title ||
+                                                        (lang === "id"
+                                                            ? "Pemberitahuan"
+                                                            : "Notification")}
+                                                </p>
+                                                <p
+                                                    className={`text-xs mt-1.5 leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                                                >
+                                                    {n.data.message}
+                                                </p>
+                                                <p
+                                                    className={`text-[10px] mt-3 font-bold ${subtle}`}
+                                                >
+                                                    {new Date(
+                                                        n.created_at,
+                                                    ).toLocaleDateString(
+                                                        lang === "id"
+                                                            ? "id-ID"
+                                                            : "en-US",
+                                                        {
+                                                            day: "numeric",
+                                                            month: "long",
+                                                            year: "numeric",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        },
+                                                    )}
+                                                </p>
+                                            </div>
+                                            {!n.read_at && (
+                                                <div className="w-2.5 h-2.5 rounded-full bg-[#a7e94a] mt-2" />
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        ) : filteredReports.length === 0 ? (
                             <p
                                 className={`text-sm text-center py-12 ${subtle}`}
                             >
@@ -505,7 +775,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                     >
                                         <img
                                             src={`/storage/${report.photo_path}`}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                            className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${report.status === "selesai" ? "grayscale opacity-80" : ""}`}
                                             alt=""
                                             onError={(e) => {
                                                 (
@@ -559,7 +829,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                         <div className={`w-12 h-12 rounded-xl overflow-hidden shrink-0 ${isDark ? "bg-slate-800" : "bg-slate-200"}`}>
                                             <img
                                                 src={`/storage/${report.photo_path}`}
-                                                className="w-full h-full object-cover"
+                                                className={`w-full h-full object-cover ${report.status === "selesai" ? "grayscale opacity-80" : ""}`}
                                                 alt=""
                                                 onError={(e) => {
                                                     (

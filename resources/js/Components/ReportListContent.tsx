@@ -66,16 +66,29 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
     const [searchTerm, setSearchTerm] = useState("");
     const [activeFilter, setActiveFilter] = useState("all");
 
-    const filteredReports = reports.filter((r) => {
-        const matchesSearch =
-            r.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (r.address ?? "").toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter =
-            activeFilter === "all" ||
-            r.status === activeFilter ||
-            r.severity_level === activeFilter;
-        return matchesSearch && matchesFilter;
-    });
+    const filteredReports = useMemo(() => {
+        return reports
+            .filter((r) => {
+                const matchesSearch =
+                    r.description
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()) ||
+                    (r.address ?? "")
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase());
+                const matchesFilter =
+                    activeFilter === "all" ||
+                    r.status === activeFilter ||
+                    r.severity_level === activeFilter;
+                return matchesSearch && matchesFilter;
+            })
+            .sort((a, b) => {
+                // Selesai (completed) reports always go to the bottom
+                if (a.status === "selesai" && b.status !== "selesai") return 1;
+                if (a.status !== "selesai" && b.status === "selesai") return -1;
+                return 0; // Maintain relative order if status is same or neither is selesai
+            });
+    }, [reports, searchTerm, activeFilter]);
 
     const bg = isDark ? "bg-slate-900" : "bg-white";
     const textBase = isDark ? "text-slate-100" : "text-slate-900";
@@ -243,7 +256,7 @@ const ReportListContent: React.FC<ReportListContentProps> = ({
                                     <img
                                         src={`/storage/${report.photo_path}`}
                                         alt="Waste"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${report.status === "selesai" ? "grayscale opacity-70" : ""}`}
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src =
                                                 "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=600&auto=format&fit=crop";
