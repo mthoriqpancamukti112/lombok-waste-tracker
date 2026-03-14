@@ -535,6 +535,26 @@ export const landingDict = {
         forgotErrSendOtp: "Gagal mengirim OTP. Pastikan email benar.",
         forgotErrInvalidOtp: "Kode OTP salah atau sudah kedaluwarsa.",
         forgotErrResetPass: "Gagal mengubah kata sandi. Silakan coba lagi.",
+
+        dlhMenuUnassigned: "Laporan Nyasar",
+        // --- TERJEMAHAN HALAMAN LAPORAN NYASAR ---
+        dlhUnassignedTitle: "Laporan Belum Terdisposisi",
+        dlhUnassignedPageTitle: "Laporan Nyasar",
+        dlhUnassignedAlertTitle: "Butuh Perhatian Segera!",
+        dlhUnassignedAlertDescPart1: "Terdapat",
+        dlhUnassignedAlertDescPart2: "laporan",
+        dlhUnassignedAlertDescPart3:
+            "yang lokasinya tidak dikenali secara otomatis oleh sistem (berada di luar area jangkauan wilayah Kaling). Silakan baca deskripsi alamat pelapor dan tugaskan ke Kaling yang tepat.",
+        dlhUnassignedEmptyTitle: "Tidak Ada Laporan Nyasar",
+        dlhUnassignedEmptyDesc:
+            "Hebat! Sistem otomatis berhasil mendisposisikan semua laporan ke Kaling masing-masing dengan baik.",
+        dlhUnassignedSystemAddress: "Alamat Sistem:",
+        dlhUnassignedNotFound: "Tidak Ditemukan",
+        dlhUnassignedSelectKaling: "Pilih & Tugaskan Kaling...",
+        dlhUnassignedSearchPlaceholder: "Kaling atau nama lingkungan...",
+        dlhUnassignedSearchEmpty: "Pencarian tidak ditemukan",
+        dlhUnassignedSuccess: "Laporan berhasil diteruskan ke Kaling!",
+        dlhUnassignedError: "Gagal meneruskan laporan.",
     },
 
     en: {
@@ -1076,5 +1096,25 @@ export const landingDict = {
             "Failed to send OTP. Please ensure the email is correct.",
         forgotErrInvalidOtp: "Invalid or expired OTP code.",
         forgotErrResetPass: "Failed to change password. Please try again.",
+
+        dlhMenuUnassigned: "Unassigned Reports",
+        // --- UNASSIGNED REPORTS PAGE TRANSLATIONS ---
+        dlhUnassignedTitle: "Unassigned Reports",
+        dlhUnassignedPageTitle: "Unassigned Reports",
+        dlhUnassignedAlertTitle: "Immediate Attention Required!",
+        dlhUnassignedAlertDescPart1: "There are",
+        dlhUnassignedAlertDescPart2: "reports",
+        dlhUnassignedAlertDescPart3:
+            "whose locations are not automatically recognized by the system (outside the covered region). Please read the reporter's address description and manually assign it to the appropriate Local Leader (Kaling).",
+        dlhUnassignedEmptyTitle: "No Unassigned Reports",
+        dlhUnassignedEmptyDesc:
+            "Great! The automated system successfully dispatched all reports to their respective Local Leaders.",
+        dlhUnassignedSystemAddress: "System Address:",
+        dlhUnassignedNotFound: "Not Found",
+        dlhUnassignedSelectKaling: "Select & Assign Leader...",
+        dlhUnassignedSearchPlaceholder: "Leader or region name...",
+        dlhUnassignedSearchEmpty: "Search not found",
+        dlhUnassignedSuccess: "Report successfully forwarded to the Leader!",
+        dlhUnassignedError: "Failed to forward the report.",
     },
 };

@@ -3,7 +3,18 @@ import { Head } from "@inertiajs/react";
 import DLHLayout from "@/Layouts/DLHLayout";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Map as MapIcon, InfoCircle, Check } from "@mynaui/icons-react";
+// 1. Import renderToString untuk merender icon ke HTML murni
+import { renderToString } from "react-dom/server";
+// 2. Import ikon-ikon MyNaui yang dibutuhkan
+import {
+    Map as MapIcon,
+    InfoCircle,
+    Check,
+    MapPinHouseInside,
+    Calendar,
+    Clock4,
+    User,
+} from "@mynaui/icons-react";
 import { landingDict } from "@/Lang/Landing";
 
 interface Report {
@@ -13,9 +24,13 @@ interface Report {
     photo_path: string;
     latitude: string;
     longitude: string;
+    created_at: string;
     user: {
         name: string;
     };
+    // Tambahkan field opsional untuk data Kaling
+    kaling_name?: string;
+    nama_wilayah?: string;
 }
 
 interface Props {
@@ -25,7 +40,6 @@ interface Props {
 }
 
 export default function MapIndex({ auth, reports, mapboxToken }: Props) {
-    // === STATE UNTUK BAHASA ===
     const [lang, setLang] = useState<"id" | "en">("id");
     const t = landingDict[lang];
 
@@ -33,13 +47,9 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
     const map = useRef<mapboxgl.Map | null>(null);
     const markersRef = useRef<mapboxgl.Marker[]>([]);
     const [activeFilter, setActiveFilter] = useState<string>("semua");
-
-    // State untuk mendeteksi Dark Mode pada peta
     const [isDarkMode, setIsDarkMode] = useState(false);
 
-    // Efek Inisialisasi Peta (Hanya berjalan sekali di awal)
     useEffect(() => {
-        // Ambil bahasa dari localStorage
         const savedLang = localStorage.getItem("appLang") as "id" | "en";
         if (savedLang) setLang(savedLang);
 
@@ -49,7 +59,6 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
 
         checkDarkMode();
 
-        // Observer untuk memantau perubahan tema secara real-time
         const observer = new MutationObserver(checkDarkMode);
         observer.observe(document.documentElement, {
             attributes: true,
@@ -74,15 +83,13 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
 
         map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-        // Ketika peta selesai loading, langsung gambar marker pertama kali (Semua)
         map.current.on("load", () => {
             renderMarkers("semua");
         });
 
         return () => observer.disconnect();
-    }, []); // <-- Dependencies kosong agar peta tidak ter-reset
+    }, []);
 
-    // Efek untuk merubah Style Peta jika Dark Mode di-toggle
     useEffect(() => {
         if (!map.current) return;
 
@@ -93,21 +100,16 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
         map.current.setStyle(newStyle);
     }, [isDarkMode]);
 
-    // Fungsi Utama: Menggambar Marker Berdasarkan Filter
-    // Menggunakan useCallback agar `t` selalu terupdate saat re-render
     const renderMarkers = useCallback(
         (filterStatus: string) => {
             if (!map.current) return;
 
-            // 1. Hapus SEMUA marker yang ada di peta saat ini
             markersRef.current.forEach((marker) => marker.remove());
             markersRef.current = [];
 
-            // 2. Loop dan gambar ulang marker yang SESUAI filter
             reports.forEach((report) => {
                 if (!report.latitude || !report.longitude) return;
 
-                // Logika Penyaringan
                 if (filterStatus !== "semua") {
                     if (filterStatus === "proses") {
                         if (
@@ -120,10 +122,9 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
                     }
                 }
 
-                // Tentukan style
                 let markerColor = "#ef4444";
                 let statusText = t.dlhMapFilterWaiting;
-                let bgBadge = "bg-red-500 text-white";
+                let bgBadge = "bg-red-500/90 text-white border-red-400";
 
                 if (
                     report.status === "divalidasi" ||
@@ -131,19 +132,18 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
                 ) {
                     markerColor = "#3b82f6";
                     statusText = t.dlhMapFilterProcess;
-                    bgBadge = "bg-blue-500 text-white";
+                    bgBadge = "bg-blue-500/90 text-white border-blue-400";
                 } else if (report.status === "selesai") {
                     markerColor = "#22c55e";
                     statusText = t.dlhMapFilterClean;
-                    bgBadge = "bg-green-500 text-white";
+                    bgBadge = "bg-green-500/90 text-white border-green-400";
                 }
 
-                // Desain Popup (Menyesuaikan dengan Dark Mode)
                 const isMapDark =
                     document.documentElement.classList.contains("dark");
                 const popupBg = isMapDark ? "bg-slate-800" : "bg-white";
                 const popupText = isMapDark
-                    ? "text-slate-200"
+                    ? "text-slate-100"
                     : "text-slate-800";
                 const popupBorder = isMapDark
                     ? "border-slate-700"
@@ -151,43 +151,111 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
                 const popupMuted = isMapDark
                     ? "text-slate-400"
                     : "text-slate-500";
-                const popupBtnBg = isMapDark ? "bg-slate-700" : "bg-slate-50";
-                const popupBtnHover = isMapDark
-                    ? "hover:bg-slate-600"
-                    : "hover:bg-slate-100";
+                const popupBtnBg = isMapDark
+                    ? "bg-indigo-600 text-white hover:bg-indigo-500 border-indigo-500"
+                    : "bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-700";
+
+                // Format Tanggal dan Waktu
+                let dateStr = "N/A";
+                let timeStr = "N/A";
+                if (report.created_at) {
+                    const dateObj = new Date(report.created_at);
+                    dateStr = dateObj.toLocaleDateString(
+                        lang === "id" ? "id-ID" : "en-US",
+                        {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                        },
+                    );
+                    timeStr = dateObj.toLocaleTimeString(
+                        lang === "id" ? "id-ID" : "en-US",
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        },
+                    );
+                }
+
+                // Render string HTML untuk icon MyNaui
+                const mapIconHTML = renderToString(
+                    <MapPinHouseInside className="w-4 h-4 shrink-0" />,
+                );
+                const calendarIconHTML = renderToString(
+                    <Calendar className="w-3.5 h-3.5 shrink-0" />,
+                );
+                const clockIconHTML = renderToString(
+                    <Clock4 className="w-3.5 h-3.5 shrink-0" />,
+                );
+                const userIconHTML = renderToString(
+                    <User className="w-3.5 h-3.5 shrink-0 text-indigo-500" />,
+                );
+
+                // Tentukan data Kaling dan Lingkungan (gunakan fallback jika tidak tersedia)
+                // Tentukan data Kaling dan Lingkungan
+                const kalingInfo = report.kaling_name
+                    ? `${report.kaling_name} - ${report.nama_wilayah || "Lingkungan Tidak Diketahui"}`
+                    : "Data Kaling Belum Ditentukan";
 
                 const popupHTML = `
-                <div class="w-56 font-sans ${popupBg}">
-                    <div class="h-32 w-full mb-3 rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-700 relative border ${popupBorder}">
+                <div class="w-64 font-sans ${popupBg}">
+                    <div class="h-36 w-full mb-3 rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-700 relative border ${popupBorder}">
                         <img src="/storage/${report.photo_path}" class="w-full h-full object-cover" alt="Foto Sampah" />
+
+                        <div class="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg text-[9px] font-extrabold shadow-lg backdrop-blur-md border uppercase tracking-widest ${bgBadge}">
+                            ${statusText}
+                        </div>
                     </div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] ${popupMuted} font-bold">${t.dlhMapPopupBy} ${report.user.name}</span>
-                        <span class="text-[9px] font-black px-2 py-0.5 rounded shadow-sm ${bgBadge}">${statusText}</span>
+
+                    <div class="flex flex-col mb-2.5 border-b ${isMapDark ? "border-slate-700" : "border-slate-100"} pb-2.5 px-1">
+                        <span class="text-xs ${popupText} font-black mb-1">
+                            ${t.dlhMapPopupBy} ${report.user.name}
+                        </span>
+
+                        <div class="flex items-start gap-1.5 mb-2">
+                            ${userIconHTML}
+                            <span class="text-[10px] ${popupMuted} font-semibold leading-tight">
+                                <span class="text-indigo-500 dark:text-indigo-400 font-bold">Kaling:</span> ${kalingInfo}
+                            </span>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <span class="flex items-center gap-1.5 text-[10px] ${popupMuted} font-bold bg-slate-50 dark:bg-slate-700/50 px-2 py-1 rounded-md border border-slate-100 dark:border-slate-600/50">
+                                ${calendarIconHTML}
+                                ${dateStr}
+                            </span>
+                            <span class="flex items-center gap-1.5 text-[10px] ${popupMuted} font-bold bg-slate-50 dark:bg-slate-700/50 px-2 py-1 rounded-md border border-slate-100 dark:border-slate-600/50">
+                                ${clockIconHTML}
+                                ${timeStr}
+                            </span>
+                        </div>
                     </div>
-                    <p class="text-xs font-semibold ${popupText} line-clamp-2 leading-snug mt-1.5">
+
+                    <p class="text-xs font-medium ${popupMuted} line-clamp-2 leading-relaxed px-1 mb-3">
                         ${report.description || t.dlhMapPopupNoDesc}
                     </p>
-                    <a href="https://maps.google.com/?q=$$$$${report.latitude},${report.longitude}" target="_blank" class="mt-4 block w-full text-center ${popupBtnBg} ${popupBtnHover} ${popupText} text-xs font-bold py-2.5 rounded-lg transition-colors border ${popupBorder}">
-                        ${t.dlhMapPopupOpenRoute}
+
+                    <a href="https://maps.google.com/?q=${report.latitude},${report.longitude}" target="_blank" rel="noopener noreferrer" class="mt-1 w-full flex items-center justify-center gap-2 ${popupBtnBg} text-xs font-black py-2.5 rounded-xl shadow-md transition-all hover:scale-[1.02] active:scale-95 border">
+                        ${mapIconHTML}
+                        ${lang === "id" ? "Buka Rute Maps" : "Open Route Maps"}
                     </a>
                 </div>
             `;
 
                 const popup = new mapboxgl.Popup({
-                    offset: 25,
+                    offset: 35, // Jarak popup dari marker (agar tidak tumpang tindih)
+                    anchor: "bottom", // Paksa popup terbuka ke atas
                     closeButton: true,
                     closeOnClick: true,
-                    maxWidth: "280px",
+                    maxWidth: "320px",
                     className: isMapDark
                         ? "custom-popup dark-popup"
                         : "custom-popup",
                 }).setHTML(popupHTML);
 
-                // Buat marker dan SANGKUTKAN KE PETA
                 const marker = new mapboxgl.Marker({
                     color: markerColor,
-                    scale: 0.85,
+                    scale: 0.9,
                 })
                     .setLngLat([
                         parseFloat(report.longitude),
@@ -196,17 +264,28 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
                     .setPopup(popup)
                     .addTo(map.current!);
 
-                // Simpan referensi marker ke array agar nanti bisa dihapus
+                // 3. EVENT LISTENER: Bergeser dan Zoom saat klik marker
+                marker.getElement().addEventListener("click", () => {
+                    map.current?.flyTo({
+                        center: [
+                            parseFloat(report.longitude),
+                            parseFloat(report.latitude),
+                        ],
+                        zoom: 16.5,
+                        pitch: 45,
+                        offset: [0, 130], // Geser tampilan agar popup tepat di tengah layar
+                        duration: 1200,
+                        essential: true,
+                    });
+                });
+
                 markersRef.current.push(marker);
             });
         },
-        [reports, t],
+        [reports, t, lang],
     );
 
-    // Efek Samping: Jika State 'activeFilter' atau 'isDarkMode' berubah, panggil ulang fungsi renderMarkers
-    // Perlu di-re-render saat isDarkMode berubah agar isi HTML dari popup ikut menyesuaikan warnanya
     useEffect(() => {
-        // Mencegah error jika peta belum selesai di-load
         if (map.current && map.current.isStyleLoaded()) {
             renderMarkers(activeFilter);
         }
@@ -232,54 +311,60 @@ export default function MapIndex({ auth, reports, mapboxToken }: Props) {
             <Head title={t.dlhMapTitle} />
             <style>
                 {`
-                    /* Memaksa background popup menjadi putih solid dan cantik */
+                    /* --- DESAIN PADDING BAWAH POPUP DIPERBESAR --- */
                     .custom-popup .mapboxgl-popup-content {
                         background-color: #ffffff !important;
-                        border-radius: 16px !important;
-                        padding: 12px !important;
-                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+                        border-radius: 24px !important;
+                        /* PADDING BAWAH DIPERBESAR */
+                        padding: 16px !important;
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
                         border: 1px solid #f1f5f9 !important;
                         transition: background-color 0.3s ease, border-color 0.3s ease;
                     }
-                    /* Memastikan panah (segitiga) popup juga berwarna putih solid */
+                    /* Mengatur Panah (Segitiga Bawah) */
                     .custom-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
                         border-top-color: #ffffff !important;
                         transition: border-top-color 0.3s ease;
                     }
-                    .custom-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
-                        border-bottom-color: #ffffff !important;
-                        transition: border-bottom-color 0.3s ease;
-                    }
-                    /* Mempercantik tombol X close */
+
+                    /* --- DESAIN TOMBOL X (CLOSE) ESTETIK MELAYANG --- */
                     .custom-popup .mapboxgl-popup-close-button {
-                        font-size: 16px;
-                        color: #94a3b8;
-                        padding: 4px 8px;
-                        border-radius: 0 16px 0 8px;
+                        font-size: 18px;
+                        font-weight: bold;
+                        color: #ffffff;
+                        background-color: rgba(0, 0, 0, 0.45);
+                        padding: 0;
+                        width: 28px;
+                        height: 28px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        /* Posisi absolute di atas gambar */
+                        top: 24px;
+                        right: 24px;
+                        backdrop-filter: blur(8px);
+                        border: 1px solid rgba(255,255,255,0.3);
+                        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                        z-index: 50;
                     }
                     .custom-popup .mapboxgl-popup-close-button:hover {
-                        background-color: #fee2e2;
-                        color: #ef4444;
+                        background-color: #ef4444; /* red-500 */
+                        color: white;
+                        transform: scale(1.1) rotate(90deg); /* Efek putar & zoom */
+                        border-color: #ef4444;
                     }
 
-                    /* --- Dark Mode Overrides untuk Popup Mapbox --- */
+                    /* --- DARK MODE OVERRIDES --- */
                     .dark-popup.mapboxgl-popup .mapboxgl-popup-content {
                         background-color: #1e293b !important; /* slate-800 */
                         border-color: #334155 !important; /* slate-700 */
-                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3) !important;
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
                     }
-                    .dark-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
-                        border-top-color: #1e293b !important;
-                    }
-                    .dark-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
-                        border-bottom-color: #1e293b !important;
-                    }
+                    .dark-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: #1e293b !important; }
+
                     .dark-popup .mapboxgl-popup-close-button {
-                        color: #cbd5e1;
-                    }
-                    .dark-popup .mapboxgl-popup-close-button:hover {
-                        background-color: #7f1d1d; /* red-900 */
-                        color: #fca5a5; /* red-300 */
+                        background-color: rgba(15, 23, 42, 0.6);
                     }
                 `}
             </style>

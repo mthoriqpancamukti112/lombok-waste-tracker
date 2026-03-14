@@ -149,6 +149,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/kaling-management/{id}', [KalingManagementController::class, 'update'])->name('kaling-management.update');
         Route::delete('/kaling-management/{id}', [KalingManagementController::class, 'destroy'])->name('kaling-management.destroy');
 
+        Route::get('/dlh/unassigned-reports', [DlhController::class, 'unassignedReports'])->name('dlh.unassigned');
+        Route::patch('/dlh/reports/{report}/assign-kaling', [DlhController::class, 'assignKaling'])->name('dlh.reports.assign');
+
         Route::get('/petugas-management', [PetugasManagementController::class, 'index'])->name('petugas-management.index');
         Route::post('/petugas-management', [PetugasManagementController::class, 'store'])->name('petugas-management.store');
         Route::put('/petugas-management/{id}', [PetugasManagementController::class, 'update'])->name('petugas-management.update');

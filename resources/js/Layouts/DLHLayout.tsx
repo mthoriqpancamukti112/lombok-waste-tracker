@@ -1,5 +1,6 @@
 import { useState, PropsWithChildren, ReactNode, useEffect } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
+import { PageProps } from "@/types";
 import {
     Grid,
     Map,
@@ -15,10 +16,12 @@ import {
     User,
     ChevronDown,
     Earth,
-    Moon, // Tambahan icon Moon
-    Sun, // Tambahan icon Sun
+    Moon,
+    Sun,
+    Inbox,
 } from "@mynaui/icons-react";
 import { landingDict } from "@/Lang/Landing";
+import { Toaster } from "react-hot-toast";
 
 interface DLHLayoutProps {
     auth: any;
@@ -30,6 +33,8 @@ export default function DLHLayout({
     header,
     children,
 }: PropsWithChildren<DLHLayoutProps>) {
+    const { unassignedCount } = usePage<any>().props;
+
     // STATE UNTUK BAHASA
     const [lang, setLang] = useState<"id" | "en">("id");
     const t = landingDict[lang];
@@ -105,6 +110,13 @@ export default function DLHLayout({
             active: route().current("petugas-management.*"),
         },
         {
+            name: t.dlhMenuUnassigned,
+            icon: <Inbox />,
+            href: route("dlh.unassigned"),
+            active: route().current("dlh.unassigned"),
+            badge: unassignedCount,
+        },
+        {
             name: t.dlhMenuAnalytics,
             icon: <ChartPie />,
             href: route("laporan.index"),
@@ -156,7 +168,7 @@ export default function DLHLayout({
                     </button>
                 </div>
 
-                {/* Navigasi */}
+                {/* Navigasi Sidebar */}
                 <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
                     <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
                         {t.dlhMainMenu}
@@ -165,26 +177,35 @@ export default function DLHLayout({
                         <Link
                             key={index}
                             href={menu.href}
-                            className={`flex items-center justify-start gap-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
+                            className={`flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 group ${
                                 menu.active
                                     ? "bg-[#a7e94a] text-slate-900 font-bold shadow-md"
                                     : "text-slate-400 hover:bg-slate-800 hover:text-white font-medium"
                             }`}
                         >
-                            <div
-                                className={`flex items-center justify-center w-5 h-5 flex-shrink-0 transition-transform ${
-                                    menu.active
-                                        ? "scale-110"
-                                        : "group-hover:scale-110"
-                                }`}
-                            >
-                                <div className="[&>svg]:w-5 [&>svg]:h-5">
-                                    {menu.icon}
+                            <div className="flex items-center gap-3">
+                                <div
+                                    className={`flex items-center justify-center w-5 h-5 flex-shrink-0 transition-transform ${
+                                        menu.active
+                                            ? "scale-110"
+                                            : "group-hover:scale-110"
+                                    }`}
+                                >
+                                    <div className="[&>svg]:w-5 [&>svg]:h-5">
+                                        {menu.icon}
+                                    </div>
                                 </div>
+                                <span className="text-sm leading-none mt-0.5">
+                                    {menu.name}
+                                </span>
                             </div>
-                            <span className="text-sm leading-none mt-0.5">
-                                {menu.name}
-                            </span>
+
+                            {/* RENDER BADGE JIKA ADA DATA */}
+                            {menu.badge ? (
+                                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in">
+                                    {menu.badge > 99 ? "99+" : menu.badge}
+                                </span>
+                            ) : null}
                         </Link>
                     ))}
                 </nav>
@@ -358,6 +379,40 @@ export default function DLHLayout({
                     {children}
                 </div>
             </main>
+
+            {/* 2. TAMBAHKAN TOASTER DI SINI UNTUK SELURUH HALAMAN DLH */}
+            <Toaster
+                position="top-center"
+                reverseOrder={false}
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: isDarkMode ? "#1e293b" : "#fff",
+                        color: isDarkMode ? "#f1f5f9" : "#1e293b",
+                        borderRadius: "1rem",
+                        padding: "16px",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+                        border: isDarkMode
+                            ? "1px solid #334155"
+                            : "1px solid #f1f5f9",
+                        zIndex: 99999, // Pastikan selalu di atas
+                    },
+                    success: {
+                        iconTheme: {
+                            primary: "#a7e94a",
+                            secondary: "#fff",
+                        },
+                    },
+                    error: {
+                        iconTheme: {
+                            primary: "#ef4444",
+                            secondary: "#fff",
+                        },
+                    },
+                }}
+            />
 
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }

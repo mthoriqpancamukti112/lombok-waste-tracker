@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,12 +30,17 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+
+        // CEK APAKAH USER ADALAH DLH
+        $isDlh = $request->user() && $request->user()->role === 'dlh';
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user() ? $request->user()->load('warga') : null,
                 'notifications' => $request->user() ? $request->user()->appNotifications()->latest()->take(20)->get() : [],
             ],
+            'unassignedCount' => $isDlh ? Report::whereNull('kaling_id')->count() : 0,
         ];
     }
 }
