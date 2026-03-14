@@ -105,12 +105,12 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                 ? "border-red-500/20 text-red-400 bg-red-500/10"
                 : "border-red-400 text-red-500 bg-red-50"
             : report.severity_level === "moderate"
-              ? isDark
-                  ? "border-orange-500/20 text-orange-400 bg-orange-500/10"
-                  : "border-orange-400 text-orange-500 bg-orange-50"
-              : isDark
-                ? "border-emerald-500/20 text-emerald-400 bg-emerald-500/10"
-                : "border-[#a7e94a] text-[#5a8a1a] bg-[#a7e94a]/10";
+                ? isDark
+                    ? "border-orange-500/20 text-orange-400 bg-orange-500/10"
+                    : "border-orange-400 text-orange-500 bg-orange-50"
+                : isDark
+                    ? "border-emerald-500/20 text-emerald-400 bg-emerald-500/10"
+                    : "border-[#a7e94a] text-[#5a8a1a] bg-[#a7e94a]/10";
 
     const distanceText = useMemo(() => {
         if (!userLocation) return null;
@@ -146,6 +146,7 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
         setData({ body: "", parent_id: null });
 
         try {
+            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? "";
             const response = await axios.post(
                 route("report.comment", report.id),
                 {
@@ -155,6 +156,7 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                 {
                     headers: {
                         "X-Requested-With": "XMLHttpRequest",
+                        "X-CSRF-TOKEN": csrfToken,
                     },
                 },
             );
@@ -181,14 +183,22 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
             }
         } catch (error: any) {
             setData({ body: newCommentBody, parent_id: newParentId }); // Rollback
-            if (error.response && error.response.status === 401) {
+            if (error.response?.status === 401) {
                 toast.error(
                     lang === "id"
                         ? "Silakan login terlebih dahulu untuk berkomentar."
                         : "Please login to leave a comment.",
                 );
+            } else if (error.response?.status === 419) {
+                toast.error(
+                    lang === "id"
+                        ? "Sesi kadaluarsa. Silakan muat ulang halaman."
+                        : "Session expired. Please refresh the page.",
+                );
             } else {
-                toast.error("Gagal mengirim komentar.");
+                toast.error(
+                    lang === "id" ? "Gagal mengirim komentar." : "Failed to send comment.",
+                );
             }
         }
     };
@@ -287,27 +297,26 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                         {report.severity_level === "high"
                             ? t.urgencyHigh
                             : report.severity_level === "moderate"
-                              ? t.urgencyModerate
-                              : t.urgencyLow}
+                                ? t.urgencyModerate
+                                : t.urgencyLow}
                     </span>
 
                     <span
-                        className={`px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wide ${
-                            report.status === "selesai"
+                        className={`px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wide ${report.status === "selesai"
                                 ? isDark
                                     ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
                                     : "bg-[#a7e94a]/20 text-ds-primary border-[#a7e94a]/30"
                                 : isDark
-                                  ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
-                                  : "bg-blue-50 text-blue-600 border-blue-100"
-                        }`}
+                                    ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                                    : "bg-blue-50 text-blue-600 border-blue-100"
+                            }`}
                     >
                         {t.status}:{" "}
                         {report.status === "selesai"
                             ? t.statusCompleted
                             : report.status === "proses"
-                              ? t.statusInProcess
-                              : t.statusWaiting}
+                                ? t.statusInProcess
+                                : t.statusWaiting}
                     </span>
                 </div>
             </div>
