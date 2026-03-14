@@ -534,12 +534,20 @@ export default function Welcome({
                     element: isDesktop ? '#btn-lapor-desktop' : '#btn-lapor-mobile',
                     popover: {
                         title: lang === 'id' ? '📢 Tombol Lapor' : '📢 Report Button',
-                        description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!'
+                        description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!',
+                        side: "top",
+                        align: "center",
                     },
-                    onHighlightStarted: () => {
+                    padding: 10,
+                    onHighlightStarted: (element) => {
                         // Force desktop dock to remain visible during this step
                         if (isDesktop) {
                             window.dispatchEvent(new CustomEvent('force-dock', { detail: { visible: true } }));
+                            // Give a small delay for the dock to animate/render before driver.js calculates position
+                            setTimeout(() => {
+                                // Trigger a refresh of the highlight position if possible, 
+                                // though driver.js usually handles this if the element moves.
+                            }, 100);
                         }
                     },
                     onDeselected: () => {
