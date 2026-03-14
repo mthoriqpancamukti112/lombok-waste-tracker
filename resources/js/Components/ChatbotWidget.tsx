@@ -15,6 +15,9 @@ interface ChatbotWidgetProps {
     onFocusReport?: (id: number) => void;
     onOpenReportModal?: () => void;
     onStartTour?: () => void;
+    // Controlled open state (optional – parent can override)
+    isOpen?: boolean;
+    onClose?: () => void;
 }
 
 // Batas maksimal gelembung chat yang dirender agar browser tidak lag
@@ -120,8 +123,17 @@ export default function ChatbotWidget({
     onFocusReport,
     onOpenReportModal,
     onStartTour,
+    isOpen: isOpenProp,
+    onClose,
 }: ChatbotWidgetProps) {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpenLocal, setIsOpenLocal] = useState(false);
+
+    // Support both controlled (parent) and uncontrolled mode
+    const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenLocal;
+    const setIsOpen = (value: boolean) => {
+        setIsOpenLocal(value);
+        if (!value && onClose) onClose();
+    };
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "1",
@@ -196,11 +208,14 @@ export default function ChatbotWidget({
             // Simpan balasan bot, dan batasi array history
             setMessages((prev) => [...prev, botMessage].slice(-MAX_HISTORY));
 
-            // Check for tour trigger
+            // Check for tour trigger – close chatbot first, then start tour
             if (data.response.includes("#start-tour") && onStartTour) {
                 setTimeout(() => {
-                    onStartTour();
-                }, 1000);
+                    setIsOpen(false); // tutup chatbot dulu
+                    setTimeout(() => {
+                        onStartTour();
+                    }, 350); // beri animasi close selesai
+                }, 800);
             }
         } catch (error) {
             console.error("Error connecting to Python API:", error);

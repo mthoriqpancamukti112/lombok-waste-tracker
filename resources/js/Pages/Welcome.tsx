@@ -439,16 +439,97 @@ export default function Welcome({
     };
 
     const startReportingTour = () => {
+        // ── Inject theme-aware styles for driver.js popover ─────────────────
+        const styleId = 'driver-tour-theme';
+        let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+        }
+
+        if (isDarkMode) {
+            styleEl.textContent = `
+                .driver-tour-themed {
+                    background-color: #1e293b !important;
+                    color: #f1f5f9 !important;
+                    border: 1px solid #334155 !important;
+                    border-radius: 16px !important;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
+                }
+                .driver-tour-themed .driver-popover-title { color: #f1f5f9 !important; }
+                .driver-tour-themed .driver-popover-description { color: #cbd5e1 !important; }
+                .driver-tour-themed .driver-popover-progress-text { color: #64748b !important; }
+                .driver-tour-themed .driver-popover-close-btn { color: #64748b !important; }
+                .driver-tour-themed .driver-popover-close-btn:hover { color: #f1f5f9 !important; }
+                .driver-tour-themed .driver-popover-footer button {
+                    background-color: #334155 !important;
+                    color: #cbd5e1 !important;
+                    border-color: #475569 !important;
+                    border-radius: 8px !important;
+                }
+                .driver-tour-themed .driver-popover-footer button:hover {
+                    background-color: #475569 !important;
+                }
+                .driver-tour-themed .driver-popover-navigation-btns button:last-child {
+                    background-color: #a7e94a !important;
+                    color: #0f172a !important;
+                    border-color: #a7e94a !important;
+                    font-weight: 700 !important;
+                }
+                .driver-tour-themed .driver-popover-navigation-btns button:last-child:hover {
+                    background-color: #b5f260 !important;
+                }
+                .driver-tour-themed .driver-popover-arrow { border-color: #1e293b !important; }
+            `;
+        } else {
+            styleEl.textContent = `
+                .driver-tour-themed {
+                    background-color: #ffffff !important;
+                    color: #1e293b !important;
+                    border: 1px solid #e2e8f0 !important;
+                    border-radius: 16px !important;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.12) !important;
+                }
+                .driver-tour-themed .driver-popover-title { color: #0f172a !important; }
+                .driver-tour-themed .driver-popover-description { color: #475569 !important; }
+                .driver-tour-themed .driver-popover-progress-text { color: #94a3b8 !important; }
+                .driver-tour-themed .driver-popover-close-btn { color: #cbd5e1 !important; }
+                .driver-tour-themed .driver-popover-close-btn:hover { color: #64748b !important; }
+                .driver-tour-themed .driver-popover-footer button {
+                    background-color: #f8fafc !important;
+                    color: #475569 !important;
+                    border-color: #e2e8f0 !important;
+                    border-radius: 8px !important;
+                }
+                .driver-tour-themed .driver-popover-footer button:hover {
+                    background-color: #f1f5f9 !important;
+                }
+                .driver-tour-themed .driver-popover-navigation-btns button:last-child {
+                    background-color: #a7e94a !important;
+                    color: #0f172a !important;
+                    border-color: #a7e94a !important;
+                    font-weight: 700 !important;
+                }
+                .driver-tour-themed .driver-popover-navigation-btns button:last-child:hover {
+                    background-color: #8fd63a !important;
+                }
+                .driver-tour-themed .driver-popover-arrow { border-color: #ffffff !important; }
+            `;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const driverObj = driver({
             showProgress: true,
-            nextBtnText: lang === 'id' ? 'Lanjut' : 'Next',
-            prevBtnText: lang === 'id' ? 'Kembali' : 'Previous',
-            doneBtnText: lang === 'id' ? 'Selesai' : 'Done',
+            popoverClass: 'driver-tour-themed',
+            nextBtnText: lang === 'id' ? 'Lanjut →' : 'Next →',
+            prevBtnText: lang === 'id' ? '← Kembali' : '← Previous',
+            doneBtnText: lang === 'id' ? '✓ Selesai' : '✓ Done',
             steps: [
-                { element: '#map-container', popover: { title: lang === 'id' ? 'Peta Interaktif' : 'Interactive Map', description: lang === 'id' ? 'Di sini Anda bisa melihat semua titik tumpukan sampah yang dilaporkan warga.' : 'Here you can see all waste reports from citizens.', side: "left", align: 'start' } },
-                { element: isDesktop ? '#search-input-desktop' : '#search-input-mobile', popover: { title: lang === 'id' ? 'Cari Lokasi' : 'Search Location', description: lang === 'id' ? 'Cari alamat atau lokasi spesifik di mana tumpukan sampah berada.' : 'Search for specific addresses or locations of waste piles.' } },
-                { element: '#btn-geolocate', popover: { title: lang === 'id' ? 'Lokasi Saya' : 'My Location', description: lang === 'id' ? 'Gunakan tombol ini untuk mencocokkan peta dengan posisi Anda saat ini.' : 'Use this button to center the map on your current position.' } },
-                { element: '#btn-lapor', popover: { title: lang === 'id' ? 'Tombol Lapor' : 'Report Button', description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!' } },
+                { element: '#map-container', popover: { title: lang === 'id' ? '🗺️ Peta Interaktif' : '🗺️ Interactive Map', description: lang === 'id' ? 'Di sini Anda bisa melihat semua titik tumpukan sampah yang dilaporkan warga.' : 'Here you can see all waste reports from citizens.', side: "left", align: 'start' } },
+                { element: isDesktop ? '#search-input-desktop' : '#search-input-mobile', popover: { title: lang === 'id' ? '🔍 Cari Lokasi' : '🔍 Search Location', description: lang === 'id' ? 'Cari alamat atau lokasi spesifik di mana tumpukan sampah berada.' : 'Search for specific addresses or locations of waste piles.' } },
+                { element: '#btn-geolocate', popover: { title: lang === 'id' ? '📍 Lokasi Saya' : '📍 My Location', description: lang === 'id' ? 'Gunakan tombol ini untuk mencocokkan peta dengan posisi Anda saat ini.' : 'Use this button to center the map on your current position.' } },
+                { element: '#btn-lapor', popover: { title: lang === 'id' ? '📢 Tombol Lapor' : '📢 Report Button', description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!' } },
             ]
         });
 
