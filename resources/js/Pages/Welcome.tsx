@@ -538,7 +538,6 @@ export default function Welcome({
                         side: "top",
                         align: "center",
                     },
-                    padding: 10,
                     onHighlightStarted: (element) => {
                         // Force desktop dock to remain visible during this step
                         if (isDesktop) {
