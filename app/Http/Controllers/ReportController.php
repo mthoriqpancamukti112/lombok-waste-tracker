@@ -75,46 +75,49 @@ class ReportController extends Controller
 
         // --- SISTEM OTOMATIS PENENTUAN KALING (SMART MATCHING) ---
         $kalingId = null;
-        // Parsing Kota sederhana dari alamat jika city kosong
         $city = $request->city;
+        $addressLower = strtolower($request->address ?? '');
 
-        if ($request->address) {
-            $addressLower = strtolower($request->address);
-
+        if ($addressLower) {
             // Ekstrak nama kota/kabupaten jika ada di dalam alamat
             if (!$city) {
-                if (str_contains($addressLower, 'mataram'))
-                    $city = 'Mataram';
-                elseif (str_contains($addressLower, 'lombok barat'))
-                    $city = 'Lombok Barat';
-                elseif (str_contains($addressLower, 'lombok tengah'))
-                    $city = 'Lombok Tengah';
-                elseif (str_contains($addressLower, 'lombok timur'))
-                    $city = 'Lombok Timur';
-                elseif (str_contains($addressLower, 'lombok utara'))
-                    $city = 'Lombok Utara';
+                if (str_contains($addressLower, 'mataram')) $city = 'Mataram';
+                elseif (str_contains($addressLower, 'lombok barat')) $city = 'Lombok Barat';
+                elseif (str_contains($addressLower, 'lombok tengah')) $city = 'Lombok Tengah';
+                elseif (str_contains($addressLower, 'lombok timur')) $city = 'Lombok Timur';
+                elseif (str_contains($addressLower, 'lombok utara')) $city = 'Lombok Utara';
             }
 
             $kalings = Kaling::all();
             $maxScore = 0;
+            $threshold = 1; // Syarat: Minimal harus dapat skor lebih dari 1 (misal 2 kata cocok) untuk mencegah salah alamat.
 
             foreach ($kalings as $k) {
                 $wilLower = strtolower($k->nama_wilayah);
-                // Bersihkan kata-kata umum wilayah
-                $cleanWilayah = preg_replace('/\b(lingkungan|kel\.|kelurahan|kec\.|kecamatan|desa)\b/i', ' ', $wilLower);
 
-                // Ambil kata kunci (lebih dari 3 huruf)
-                preg_match_all('/[a-z]{4,}/i', $cleanWilayah, $matches);
+                // Hapus kata arah angin yang sering memicu "false positive"
+                $cleanWilayah = preg_replace('/\b(lingkungan|kel\.|kelurahan|kec\.|kecamatan|desa|timur|barat|utara|selatan|tengah)\b/i', ' ', $wilLower);
+
+                // Ambil kata kunci nama spesifik daerahnya
+                preg_match_all('/[a-z]{3,}/i', $cleanWilayah, $matches);
                 $keywords = $matches[0] ?? [];
 
                 $currentScore = 0;
                 foreach ($keywords as $kw) {
                     if (str_contains($addressLower, strtolower($kw))) {
-                        $currentScore++;
+                        $currentScore += 2; // Beri bobot besar jika kata uniknya cocok
                     }
                 }
 
-                if ($currentScore > $maxScore) {
+                // Cek juga kecocokan nama aslinya secara utuh (bonus skor tinggi)
+                // Contoh: Jika alamat mengandung persis kata "Jempong Barat"
+                $rawWilayahName = trim(preg_replace('/\b(lingkungan|kel\.|kelurahan|kec\.|kecamatan|desa)\b/i', '', $wilLower));
+                if (strlen($rawWilayahName) > 4 && str_contains($addressLower, $rawWilayahName)) {
+                    $currentScore += 5;
+                }
+
+                // Hanya assign jika skor melewati batas threshold DAN lebih besar dari skor Kaling lain
+                if ($currentScore > $threshold && $currentScore > $maxScore) {
                     $maxScore = $currentScore;
                     $kalingId = $k->id;
                 }
