@@ -54,6 +54,7 @@ interface Report {
     user: { id: number; name: string; avatar?: string | null };
     likes_count: number;
     comments_count: number;
+    comments?: { id: number; report_id: number; user_id: number }[];
     created_at: string;
 }
 
@@ -1261,6 +1262,12 @@ export default function Welcome({
                                 reports={reports.filter(
                                     (r) => r.user?.id === auth.user?.id,
                                 )}
+                                discussionReports={reports.filter(
+                                    (r) =>
+                                        r.comments?.some(
+                                            (c) => c.user_id === auth.user?.id,
+                                        ) && r.user?.id !== auth.user?.id,
+                                )}
                                 isDark={isDarkMode}
                                 lang={lang}
                                 onClose={() => setActivePanel("none")}
@@ -1288,6 +1295,7 @@ export default function Welcome({
                                 lang={lang}
                                 formatDate={formatDate}
                                 onClose={() => setActivePanel("none")}
+                                onCommentAdded={() => router.reload({ only: ["reports"] })}
                             />
                         ) : (
                             <div className="py-12 text-center text-slate-400 text-sm">

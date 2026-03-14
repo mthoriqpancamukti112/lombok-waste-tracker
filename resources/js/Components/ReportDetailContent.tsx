@@ -48,6 +48,7 @@ interface ReportDetailContentProps {
     formatDate: (d: string) => string;
     lang?: "id" | "en";
     userLocation?: { lat: number; lng: number } | null;
+    onCommentAdded?: () => void;
 }
 
 const AvatarImage = ({ user }: { user: User }) => {
@@ -75,6 +76,7 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
     formatDate,
     lang = "id",
     userLocation,
+    onCommentAdded,
 }) => {
     const t = landingDict[lang];
 
@@ -181,6 +183,7 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
                 // Jika komentar utama, taruh di atas
                 setLocalComments((prev) => [savedComment, ...prev]);
             }
+            onCommentAdded?.();
         } catch (error: any) {
             setData({ body: newCommentBody, parent_id: newParentId }); // Rollback
             if (error.response?.status === 401) {
@@ -303,12 +306,12 @@ const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
 
                     <span
                         className={`px-3 py-1 rounded-lg border text-[10px] font-extrabold uppercase tracking-wide ${report.status === "selesai"
-                                ? isDark
-                                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                                    : "bg-[#a7e94a]/20 text-ds-primary border-[#a7e94a]/30"
-                                : isDark
-                                    ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
-                                    : "bg-blue-50 text-blue-600 border-blue-100"
+                            ? isDark
+                                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                                : "bg-[#a7e94a]/20 text-ds-primary border-[#a7e94a]/30"
+                            : isDark
+                                ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                                : "bg-blue-50 text-blue-600 border-blue-100"
                             }`}
                     >
                         {t.status}:{" "}

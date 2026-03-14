@@ -44,6 +44,7 @@ interface Notification {
 interface ProfileContentProps {
     user: User;
     reports: Report[];
+    discussionReports?: Report[];
     notifications?: Notification[];
     onClose?: () => void;
     isDark?: boolean;
@@ -59,6 +60,7 @@ const statusCls: Record<string, string> = {
 const ProfileContent: React.FC<ProfileContentProps> = ({
     user,
     reports,
+    discussionReports = [],
     notifications = [],
     onClose,
     isDark = false,
@@ -121,12 +123,12 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
         activeTab === "all"
             ? sortedReports
             : activeTab === "high-upvote"
-              ? [...sortedReports]
+                ? [...sortedReports]
                     .sort((a, b) => b.likes_count - a.likes_count)
                     .slice(0, 6)
-              : activeTab === "notifications"
-                ? sortedReports
-                : sortedReports.filter((r) => r.status === "selesai");
+                : activeTab === "notifications"
+                    ? sortedReports
+                    : sortedReports.filter((r) => r.status === "selesai");
 
     const totalLikes = reports.reduce((sum, r) => sum + r.likes_count, 0);
     const totalComments = reports.reduce((sum, r) => sum + r.comments_count, 0);
@@ -360,8 +362,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                     >
                         <h3 className="text-base font-black">
                             {lang === "id"
-                                ? "Riwayat Diskusi"
-                                : "Discussion History"}
+                                ? "Riwayat Laporan"
+                                : "Report History"}
                         </h3>
                         <div className="flex gap-2 flex-wrap">
                             {[
@@ -510,8 +512,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 {report.status === "selesai"
                                                     ? t.statusCompleted
                                                     : report.status === "proses"
-                                                      ? t.statusInProcess
-                                                      : t.statusWaiting}
+                                                        ? t.statusInProcess
+                                                        : t.statusWaiting}
                                             </span>
                                             <p className="text-white text-[10px] font-semibold line-clamp-2">
                                                 {report.description}
@@ -531,6 +533,48 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                 ))}
                             </div>
                         )}
+                    </div>
+                </div>
+
+                {/* Mobile: Riwayat Diskusi */}
+                <div className="xl:hidden px-4 pb-24 mt-4">
+                    <div className={`rounded-3xl p-5 border flex flex-col gap-4 ${cardBg}`}>
+                        <h3 className="text-base font-black">
+                            {lang === "id" ? "Riwayat Diskusi" : "Discussion History"}
+                        </h3>
+                        <div className="space-y-3 mt-2">
+                            {discussionReports.length === 0 ? (
+                                <p className={`text-sm ${subtle}`}>{t.noReports}</p>
+                            ) : (
+                                discussionReports.slice(0, 5).map((report) => (
+                                    <div
+                                        key={report.id}
+                                        className={`border rounded-[22px] p-4 flex gap-3 items-start shadow-sm ${inBg}`}
+                                    >
+                                        <div className={`w-12 h-12 rounded-xl overflow-hidden shrink-0 ${isDark ? "bg-slate-800" : "bg-slate-200"}`}>
+                                            <img
+                                                src={`/storage/${report.photo_path}`}
+                                                className={`w-full h-full object-cover ${report.status === "selesai" ? "grayscale opacity-80" : ""}`}
+                                                alt=""
+                                                onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/48/e2e8f0/94a3b8?text=📷"; }}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold leading-snug line-clamp-2">{report.description}</p>
+                                            <div className="flex items-center justify-between mt-2">
+                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${statusCls[report.status] ?? "bg-slate-100 text-slate-500"}`}>
+                                                    {report.status === "selesai" ? t.statusCompleted : report.status === "proses" ? t.statusInProcess : t.statusWaiting}
+                                                </span>
+                                                <div className="flex gap-3 text-[10px] font-bold text-slate-400">
+                                                    <span className="flex items-center gap-1"><Like className="w-3.5 h-3.5" /> {report.likes_count}</span>
+                                                    <span className="flex items-center gap-1"><MessageDots className="w-3.5 h-3.5" /> {report.comments_count}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -702,8 +746,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                     <div className="flex flex-col gap-6">
                         <h3 className="text-lg font-black">
                             {lang === "id"
-                                ? "Riwayat Diskusi"
-                                : "Discussion History"}
+                                ? "Riwayat Laporan"
+                                : "Report History"}
                         </h3>
                         <div className="flex gap-2 flex-wrap">
                             {[
@@ -855,8 +899,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 {report.status === "selesai"
                                                     ? t.statusCompleted
                                                     : report.status === "proses"
-                                                      ? t.statusInProcess
-                                                      : t.statusWaiting}
+                                                        ? t.statusInProcess
+                                                        : t.statusWaiting}
                                             </span>
                                             <p className="text-white text-xs font-semibold line-clamp-2">
                                                 {report.description}
@@ -880,14 +924,16 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
 
                     {/* Col 3: Recent reports list */}
                     <div className="flex flex-col gap-6">
-                        <h3 className="text-lg font-black">{t.history}</h3>
+                        <h3 className="text-lg font-black">
+                            {lang === "id" ? "Riwayat Diskusi" : "Discussion History"}
+                        </h3>
                         <div className="space-y-3">
-                            {reports.length === 0 ? (
+                            {discussionReports.length === 0 ? (
                                 <p className={`text-sm ${subtle}`}>
                                     {t.noReports}
                                 </p>
                             ) : (
-                                reports.slice(0, 6).map((report) => (
+                                discussionReports.slice(0, 6).map((report) => (
                                     <div
                                         key={report.id}
                                         className={`border rounded-[22px] p-4 flex gap-3 items-start shadow-sm ${inBg}`}
@@ -927,8 +973,8 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                         ? t.statusCompleted
                                                         : report.status ===
                                                             "proses"
-                                                          ? t.statusInProcess
-                                                          : t.statusWaiting}
+                                                            ? t.statusInProcess
+                                                            : t.statusWaiting}
                                                 </span>
                                                 <div className="flex gap-3 text-[10px] font-bold text-slate-400">
                                                     <span className="flex items-center gap-1">
