@@ -13,6 +13,8 @@ import ReportModal from "@/Components/ReportModal";
 import ReportDetailContent from "@/Components/ReportDetailContent";
 import ChatbotWidget from "@/Components/ChatbotWidget";
 import { Toaster, toast } from "react-hot-toast";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import {
     Globe,
     GlobeSolid,
@@ -436,6 +438,23 @@ export default function Welcome({
         }
     };
 
+    const startReportingTour = () => {
+        const driverObj = driver({
+            showProgress: true,
+            nextBtnText: lang === 'id' ? 'Lanjut' : 'Next',
+            prevBtnText: lang === 'id' ? 'Kembali' : 'Previous',
+            doneBtnText: lang === 'id' ? 'Selesai' : 'Done',
+            steps: [
+                { element: '#map-container', popover: { title: lang === 'id' ? 'Peta Interaktif' : 'Interactive Map', description: lang === 'id' ? 'Di sini Anda bisa melihat semua titik tumpukan sampah yang dilaporkan warga.' : 'Here you can see all waste reports from citizens.', side: "left", align: 'start' } },
+                { element: isDesktop ? '#search-input-desktop' : '#search-input-mobile', popover: { title: lang === 'id' ? 'Cari Lokasi' : 'Search Location', description: lang === 'id' ? 'Cari alamat atau lokasi spesifik di mana tumpukan sampah berada.' : 'Search for specific addresses or locations of waste piles.' } },
+                { element: '#btn-geolocate', popover: { title: lang === 'id' ? 'Lokasi Saya' : 'My Location', description: lang === 'id' ? 'Gunakan tombol ini untuk mencocokkan peta dengan posisi Anda saat ini.' : 'Use this button to center the map on your current position.' } },
+                { element: '#btn-lapor', popover: { title: lang === 'id' ? 'Tombol Lapor' : 'Report Button', description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!' } },
+            ]
+        });
+
+        driverObj.drive();
+    };
+
     return (
         <>
             <Head title={t.title} />
@@ -444,7 +463,7 @@ export default function Welcome({
                 className={`fixed inset-0 w-full overflow-hidden ${isDarkMode ? "bg-slate-900" : "bg-slate-50"} h-[100dvh]`}
             >
                 {/* ─── Map fills full viewport ─── */}
-                <div className="absolute inset-0 z-0">
+                <div id="map-container" className="absolute inset-0 z-0">
                     <MapComponent
                         ref={mapRef}
                         reports={reports}
@@ -489,6 +508,7 @@ export default function Welcome({
                             className={`bg-white dark:bg-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center px-4 py-1`}
                         >
                             <input
+                                id="search-input-mobile"
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
@@ -598,19 +618,19 @@ export default function Welcome({
                                                 </h3>
                                                 {unreadNotifications.length >
                                                     0 && (
-                                                    <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
-                                                        {
-                                                            unreadNotifications.length
-                                                        }{" "}
-                                                        {t.notifNew}
-                                                    </span>
-                                                )}
+                                                        <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
+                                                            {
+                                                                unreadNotifications.length
+                                                            }{" "}
+                                                            {t.notifNew}
+                                                        </span>
+                                                    )}
                                             </div>
 
                                             <div className="max-h-[60vh] overflow-y-auto custom-scrollbar flex flex-col">
                                                 {!auth.user.notifications ||
-                                                auth.user.notifications
-                                                    .length === 0 ? (
+                                                    auth.user.notifications
+                                                        .length === 0 ? (
                                                     <div className="p-8 text-center flex flex-col items-center justify-center">
                                                         <CheckCircleSolid
                                                             className={`w-10 h-10 mb-3 transition-opacity ${isDarkMode ? "text-slate-600 opacity-50" : "text-slate-300 opacity-70"}`}
@@ -729,6 +749,7 @@ export default function Welcome({
 
                         {/* Geolocate */}
                         <button
+                            id="btn-geolocate"
                             onClick={handleGeolocate}
                             className={`${mobileBtnBase} bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-500`}
                         >
@@ -796,6 +817,7 @@ export default function Welcome({
                     <div className="flex-[7] relative">
                         <div className="bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center px-6 py-1.5 focus-within:ring-4 focus-within:ring-[#a7e94a]/15 transition-all">
                             <input
+                                id="search-input-desktop"
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
@@ -804,7 +826,7 @@ export default function Welcome({
                                     setShowSearchResults(true)
                                 }
                                 placeholder={t.searchPlaceholder}
-                                className="flex-1 bg-transparent border-none focus:ring-0 text-slate-800 dark:text-slate-200 placeholder-slate-400 font-medium"
+                                className="flex-1 bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200 placeholder-slate-400 text-sm font-medium"
                             />
                             {isSearching ? (
                                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#a7e94a] ml-2" />
@@ -908,19 +930,19 @@ export default function Welcome({
                                                 </h3>
                                                 {unreadNotifications.length >
                                                     0 && (
-                                                    <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
-                                                        {
-                                                            unreadNotifications.length
-                                                        }{" "}
-                                                        {t.notifNew}
-                                                    </span>
-                                                )}
+                                                        <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
+                                                            {
+                                                                unreadNotifications.length
+                                                            }{" "}
+                                                            {t.notifNew}
+                                                        </span>
+                                                    )}
                                             </div>
 
                                             <div className="max-h-96 overflow-y-auto custom-scrollbar flex flex-col">
                                                 {!auth.user.notifications ||
-                                                auth.user.notifications
-                                                    .length === 0 ? (
+                                                    auth.user.notifications
+                                                        .length === 0 ? (
                                                     <div className="p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
                                                         <div
                                                             className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${isDarkMode ? "bg-slate-700/50" : "bg-slate-100"}`}
@@ -1240,6 +1262,8 @@ export default function Welcome({
                     isDark={isDarkMode}
                     userId={auth.user?.id}
                     onFocusReport={handleFocusReportFromChatbot}
+                    onStartTour={startReportingTour}
+                    lang={lang}
                     onOpenReportModal={() => {
                         if (!auth.user) {
                             openAuthModal("login");

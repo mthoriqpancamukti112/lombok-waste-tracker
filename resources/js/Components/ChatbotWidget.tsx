@@ -11,8 +11,10 @@ interface Message {
 interface ChatbotWidgetProps {
     isDark?: boolean;
     userId?: number;
+    lang?: "id" | "en";
     onFocusReport?: (id: number) => void;
     onOpenReportModal?: () => void;
+    onStartTour?: () => void;
 }
 
 // Batas maksimal gelembung chat yang dirender agar browser tidak lag
@@ -114,8 +116,10 @@ const formatMessage = (
 export default function ChatbotWidget({
     isDark = false,
     userId,
+    lang = "id",
     onFocusReport,
     onOpenReportModal,
+    onStartTour,
 }: ChatbotWidgetProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
@@ -191,6 +195,13 @@ export default function ChatbotWidget({
 
             // Simpan balasan bot, dan batasi array history
             setMessages((prev) => [...prev, botMessage].slice(-MAX_HISTORY));
+
+            // Check for tour trigger
+            if (data.response.includes("#start-tour") && onStartTour) {
+                setTimeout(() => {
+                    onStartTour();
+                }, 1000);
+            }
         } catch (error) {
             console.error("Error connecting to Python API:", error);
             const errorMessage: Message = {
@@ -218,10 +229,10 @@ export default function ChatbotWidget({
     };
 
     const suggestions = [
-        { label: "💰 Poin Saya", text: "Bagaimana cara dapat poin?" },
-        { label: "♻️ Tips Pilah", text: "Tips memilah sampah" },
-        { label: "📊 Statistik", text: "statistik laporan" },
-        { label: "📞 Kontak", text: "kontak darurat" },
+        { label: lang === "id" ? "📋 Cara Lapor" : "📋 How to Report", text: "cara lapor" },
+        { label: lang === "id" ? "📞 Kontak" : "📞 Contact", text: "kontak petugas" },
+        { label: lang === "id" ? "💰 Poin Saya" : "💰 My Points", text: "Bagaimana cara dapat poin?" },
+        { label: lang === "id" ? "📊 Statistik" : "📊 Statistics", text: "statistik laporan" },
     ];
 
     // Styling theme
@@ -251,7 +262,7 @@ export default function ChatbotWidget({
                             </div>
                             <div>
                                 <h3 className="text-sm font-bold text-white leading-tight">
-                                    AI Assistant
+                                    Si Citra (Chatbot Pintar)
                                 </h3>
                                 <p className="text-[10px] text-[#a7e94a] font-medium flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#a7e94a] animate-pulse"></span>

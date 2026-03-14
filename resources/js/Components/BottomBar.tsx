@@ -189,6 +189,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
         const icon = size === "lg" ? "w-9 h-9" : "w-8 h-8";
         return (
             <Link
+                id="btn-lapor"
                 href={isLoggedIn ? route("report.create") : "#"}
                 className={`${dim} bg-[#a7e94a] rounded-[22px] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#a7e94a]/30`}
                 onClick={(e) => {
