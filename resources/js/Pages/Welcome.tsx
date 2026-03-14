@@ -530,7 +530,25 @@ export default function Welcome({
                 { element: '#map-container', popover: { title: lang === 'id' ? '🗺️ Peta Interaktif' : '🗺️ Interactive Map', description: lang === 'id' ? 'Di sini Anda bisa melihat semua titik tumpukan sampah yang dilaporkan warga.' : 'Here you can see all waste reports from citizens.', side: "left", align: 'start' } },
                 { element: isDesktop ? '#search-input-desktop' : '#search-input-mobile', popover: { title: lang === 'id' ? '🔍 Cari Lokasi' : '🔍 Search Location', description: lang === 'id' ? 'Cari alamat atau lokasi spesifik di mana tumpukan sampah berada.' : 'Search for specific addresses or locations of waste piles.' } },
                 { element: isDesktop ? '#btn-geolocate-desktop' : '#btn-geolocate', popover: { title: lang === 'id' ? '📍 Lokasi Saya' : '📍 My Location', description: lang === 'id' ? 'Gunakan tombol ini untuk mencocokkan peta dengan posisi Anda saat ini.' : 'Use this button to center the map on your current position.' } },
-                { element: isDesktop ? '#btn-lapor-desktop' : '#btn-lapor', popover: { title: lang === 'id' ? '📢 Tombol Lapor' : '📢 Report Button', description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!' } },
+                {
+                    element: isDesktop ? '#btn-lapor-desktop' : '#btn-lapor-mobile',
+                    popover: {
+                        title: lang === 'id' ? '📢 Tombol Lapor' : '📢 Report Button',
+                        description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!'
+                    },
+                    onHighlightStarted: () => {
+                        // Force desktop dock to remain visible during this step
+                        if (isDesktop) {
+                            window.dispatchEvent(new CustomEvent('force-dock', { detail: { visible: true } }));
+                        }
+                    },
+                    onDeselected: () => {
+                        // Allow dock to hide again after the step
+                        if (isDesktop) {
+                            window.dispatchEvent(new CustomEvent('force-dock', { detail: { visible: false } }));
+                        }
+                    }
+                },
             ]
         });
 
@@ -1180,24 +1198,6 @@ export default function Welcome({
                                 <Grid className="w-5 h-5" />
                             </button>
                         </div>
-
-                        {/* Lapor (desktop) */}
-                        <button
-                            id="btn-lapor-desktop"
-                            onClick={() => {
-                                if (!auth.user) {
-                                    openAuthModal('login');
-                                } else {
-                                    setIsReportModalOpen(true);
-                                }
-                            }}
-                            className={`${desktopBtn} gap-2 px-4 w-auto bg-[#a7e94a] hover:bg-[#8fd63a] text-slate-900 border-[#a7e94a] font-semibold`}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                                <path fillRule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-sm">{lang === 'id' ? 'Lapor' : 'Report'}</span>
-                        </button>
 
                         {/* Geolocate */}
                         <button
