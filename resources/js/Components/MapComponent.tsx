@@ -16,7 +16,16 @@ import Map, {
 import { Link } from "@inertiajs/react";
 import type { LayerProps, MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { ChevronLeft, ChevronRight } from "@mynaui/icons-react";
+import {
+    ChevronLeft,
+    ChevronRight,
+    MapPinHouseInside, // Import ikon Map
+    Calendar, // Import ikon Kalender
+    Clock4, // Import ikon Jam
+    Like, // Import ikon Jempol
+    MessageDots, // Import ikon Pesan
+    X, // Import ikon Silang (Close)
+} from "@mynaui/icons-react";
 import { landingDict } from "@/Lang/Landing";
 
 interface Report {
@@ -529,6 +538,19 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                 .mapboxgl-ctrl-attrib { display: none !important; }
                 .mapboxgl-ctrl-geolocate { display: none !important; }
                 .mapboxgl-popup { z-index: 999 !important; }
+
+                .custom-react-popup .mapboxgl-popup-content {
+                    padding: 0 !important;
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                }
+                .custom-react-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+                    border-top-color: ${isDarkMode ? "#1e293b" : "#ffffff"} !important;
+                }
+                .custom-react-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+                    border-bottom-color: ${isDarkMode ? "#1e293b" : "#ffffff"} !important;
+                }
             `}</style>
 
             <div style={{ display: "none" }}>
@@ -733,101 +755,126 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                     onClose={() => setSelectedReport(null)}
                     closeOnClick={false}
                     closeButton={false}
-                    className="!z-[999]"
-                    maxWidth="320px"
+                    className="!z-[999] custom-react-popup"
+                    maxWidth="350px"
                 >
-                    <div className="flex flex-col w-[240px] gap-0 rounded-2xl overflow-hidden shadow-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
-                        <div className="relative h-32 w-full bg-slate-200">
+                    <div
+                        className={`w-80 font-sans flex flex-col p-4 rounded-3xl overflow-hidden shadow-2xl border ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100"}`}
+                    >
+                        {/* Header: Foto & Status */}
+                        <div
+                            className={`h-40 w-full mb-3 rounded-2xl overflow-hidden relative border ${isDarkMode ? "border-slate-700 bg-slate-700" : "border-slate-200 bg-slate-200"}`}
+                        >
                             <img
                                 src={`/storage/${selectedReport.photo_path}`}
                                 alt="Foto Sampah"
                                 className="w-full h-full object-cover"
                             />
+
+                            {/* Tombol Close Melayang (X) */}
                             <button
                                 onClick={() => setSelectedReport(null)}
-                                className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-black/40 hover:bg-black/70 text-white rounded-full backdrop-blur-md transition-colors z-10"
+                                className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-black/45 hover:bg-red-500 text-white rounded-full backdrop-blur-md transition-all hover:scale-110 hover:rotate-90 z-10 border border-white/30"
                             >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={3}
-                                    stroke="currentColor"
-                                    className="w-3 h-3"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
+                                <X className="w-4 h-4" strokeWidth={2.5} />
                             </button>
-                            <span
-                                className={`absolute bottom-2 left-2 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md shadow-sm backdrop-blur-md ${selectedReport.status === "menunggu" ? "bg-red-500/90 text-white" : selectedReport.status === "proses" ? "bg-blue-500/90 text-white" : "bg-[#a7e94a]/90 text-slate-900"}`}
+
+                            {/* Badge Status */}
+                            <div
+                                className={`absolute bottom-2.5 left-2.5 px-3 py-1 text-[9px] font-extrabold uppercase tracking-widest rounded-lg shadow-lg backdrop-blur-md border border-white/20 ${selectedReport.status === "menunggu" ? "bg-red-500/90 text-white" : selectedReport.status === "proses" ? "bg-blue-500/90 text-white" : "bg-[#a7e94a]/90 text-slate-900"}`}
                             >
                                 {selectedReport.status}
-                            </span>
+                            </div>
                         </div>
-                        <div className="p-4 flex flex-col gap-2">
-                            <h3 className="text-slate-800 dark:text-slate-100 text-xs font-bold leading-snug line-clamp-2">
+
+                        {/* Informasi Pelapor & Tanggal */}
+                        <div
+                            className={`flex flex-col mb-3 pb-3 px-1 border-b ${isDarkMode ? "border-slate-700" : "border-slate-100"}`}
+                        >
+                            <div className="flex items-center justify-between mb-2.5">
+                                <span
+                                    className={`text-xs font-black flex items-center tracking-tight truncate ${isDarkMode ? "text-slate-100" : "text-slate-800"}`}
+                                >
+                                    {selectedReport.user?.name}
+                                </span>
+
+                                {/* Ikon Likes & Comments */}
+                                <div className="flex items-center gap-2 text-slate-400 shrink-0">
+                                    <span className="text-[10px] font-bold flex items-center gap-1">
+                                        <Like className="w-3.5 h-3.5" />
+                                        {selectedReport.likes_count}
+                                    </span>
+                                    <span className="text-[10px] font-bold flex items-center gap-1">
+                                        <MessageDots className="w-3.5 h-3.5" />
+                                        {selectedReport.comments_count}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Grid Tanggal dan Waktu menggunakan ICON */}
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-md border ${isDarkMode ? "bg-slate-700/50 text-slate-400 border-slate-600/50" : "bg-slate-50 text-slate-500 border-slate-100"}`}
+                                >
+                                    <Calendar className="w-3.5 h-3.5 shrink-0" />
+                                    {new Date(
+                                        selectedReport.created_at,
+                                    ).toLocaleDateString(
+                                        lang === "id" ? "id-ID" : "en-US",
+                                        {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric",
+                                        },
+                                    )}
+                                </span>
+                                <span
+                                    className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-md border ${isDarkMode ? "bg-slate-700/50 text-slate-400 border-slate-600/50" : "bg-slate-50 text-slate-500 border-slate-100"}`}
+                                >
+                                    <Clock4 className="w-3.5 h-3.5 shrink-0" />
+                                    {new Date(
+                                        selectedReport.created_at,
+                                    ).toLocaleTimeString(
+                                        lang === "id" ? "id-ID" : "en-US",
+                                        { hour: "2-digit", minute: "2-digit" },
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Deskripsi & Lokasi (Pin) */}
+                        <div className="flex flex-col gap-1.5 px-1 mb-5">
+                            <h3
+                                className={`text-xs font-semibold leading-snug line-clamp-3 ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}
+                            >
                                 {selectedReport.description || t.noReports}
                             </h3>
                             {selectedReport.address && (
-                                <p className="text-[10px] text-slate-400 dark:text-slate-500 line-clamp-1">
-                                    📍 {selectedReport.address}
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 line-clamp-1 flex items-center gap-1 mt-1">
+                                    <MapPinHouseInside className="w-3 h-3 shrink-0" />{" "}
+                                    {selectedReport.address}
                                 </p>
                             )}
-                            <div className="flex flex-col gap-3 pt-2 border-t border-slate-100 dark:border-slate-700">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <img
-                                            src={
-                                                selectedReport.user?.avatar ||
-                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedReport.user?.name || "U")}&background=e2e8f0&color=64748b&size=32`
-                                            }
-                                            className="w-5 h-5 rounded-full object-cover"
-                                            alt=""
-                                        />
-                                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold truncate">
-                                            {selectedReport.user?.name}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-slate-400">
-                                        <span className="text-[10px] font-bold flex items-center gap-0.5">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="currentColor"
-                                                viewBox="0 0 24 24"
-                                                className="w-3 h-3"
-                                            >
-                                                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z" />
-                                            </svg>
-                                            {selectedReport.likes_count}
-                                        </span>
-                                    </div>
-                                </div>
-                                {onSelectReport ? (
-                                    <button
-                                        onClick={() =>
-                                            onSelectReport(selectedReport.id)
-                                        }
-                                        className="w-full py-2 bg-slate-900 dark:bg-[#a7e94a] text-white dark:text-slate-900 text-[10px] font-black rounded-xl text-center hover:bg-slate-800 dark:hover:bg-[#96d142] transition-colors uppercase tracking-wider"
-                                    >
-                                        {t.viewDetail}
-                                    </button>
-                                ) : (
-                                    <Link
-                                        href={route(
-                                            "report.show",
-                                            selectedReport.id,
-                                        )}
-                                        className="w-full py-2 bg-slate-900 dark:bg-[#a7e94a] text-white dark:text-slate-900 text-[10px] font-black rounded-xl text-center hover:bg-slate-800 dark:hover:bg-[#96d142] transition-colors uppercase tracking-wider"
-                                    >
-                                        {t.viewDetail}
-                                    </Link>
-                                )}
-                            </div>
                         </div>
+
+                        {/* Tombol Lihat Detail */}
+                        {onSelectReport ? (
+                            <button
+                                onClick={() =>
+                                    onSelectReport(selectedReport.id)
+                                }
+                                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-black shadow-md shadow-[#a7e94a]/20 transition-all hover:scale-[1.02] active:scale-95 tracking-widest border border-[#a7e94a] bg-[#a7e94a] text-white hover:bg-[#96d242]"
+                            >
+                                {t.viewDetail}
+                            </button>
+                        ) : (
+                            <Link
+                                href={route("report.show", selectedReport.id)}
+                                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-black shadow-md shadow-[#a7e94a]/20 transition-all hover:scale-[1.02] active:scale-95 tracking-widest border border-[#a7e94a] bg-[#a7e94a] text-white hover:bg-[#96d242]"
+                            >
+                                {t.viewDetail}
+                            </Link>
+                        )}
                     </div>
                 </Popup>
             )}
