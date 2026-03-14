@@ -531,7 +531,7 @@ export default function Welcome({
                 { element: isDesktop ? '#search-input-desktop' : '#search-input-mobile', popover: { title: lang === 'id' ? '🔍 Cari Lokasi' : '🔍 Search Location', description: lang === 'id' ? 'Cari alamat atau lokasi spesifik di mana tumpukan sampah berada.' : 'Search for specific addresses or locations of waste piles.' } },
                 { element: isDesktop ? '#btn-geolocate-desktop' : '#btn-geolocate', popover: { title: lang === 'id' ? '📍 Lokasi Saya' : '📍 My Location', description: lang === 'id' ? 'Gunakan tombol ini untuk mencocokkan peta dengan posisi Anda saat ini.' : 'Use this button to center the map on your current position.' } },
                 {
-                    element: isDesktop ? '#btn-lapor-desktop' : '#btn-lapor-mobile',
+                    element: '.btn-lapor-tour-target',
                     popover: {
                         title: lang === 'id' ? '📢 Tombol Lapor' : '📢 Report Button',
                         description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!',
@@ -540,14 +540,16 @@ export default function Welcome({
                     },
                     onHighlightStarted: (element) => {
                         // Force desktop dock to remain visible during this step
-                        if (isDesktop) {
-                            window.dispatchEvent(new CustomEvent('force-dock', { detail: { visible: true } }));
-                            // Give a small delay for the dock to animate/render before driver.js calculates position
-                            setTimeout(() => {
-                                // Trigger a refresh of the highlight position if possible, 
-                                // though driver.js usually handles this if the element moves.
-                            }, 100);
-                        }
+                        window.dispatchEvent(new CustomEvent('force-dock', { detail: { visible: true } }));
+
+                        // Wait for any animations to finish and refresh the highlight position
+                        setTimeout(() => {
+                            // @ts-ignore - driverObj is available in the scope
+                            if (window.driverObj) {
+                                // @ts-ignore
+                                window.driverObj.refresh();
+                            }
+                        }, 400); // 400ms to be safe (longer than transition-300)
                     },
                     onDeselected: () => {
                         // Allow dock to hide again after the step
@@ -559,6 +561,8 @@ export default function Welcome({
             ]
         });
 
+        // @ts-ignore
+        window.driverObj = driverObj;
         driverObj.drive();
     };
 
