@@ -759,11 +759,11 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
                     maxWidth="350px"
                 >
                     <div
-                        className={`w-80 font-sans flex flex-col p-4 rounded-3xl overflow-hidden shadow-2xl border ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100"}`}
+                        className={`w-[280px] sm:w-80 font-sans flex flex-col p-4 rounded-3xl overflow-hidden shadow-2xl border ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100"}`}
                     >
                         {/* Header: Foto & Status */}
                         <div
-                            className={`h-40 w-full mb-3 rounded-2xl overflow-hidden relative border ${isDarkMode ? "border-slate-700 bg-slate-700" : "border-slate-200 bg-slate-200"}`}
+                            className={`h-36 sm:h-40 w-full mb-4 rounded-2xl overflow-hidden relative border ${isDarkMode ? "border-slate-700 bg-slate-700" : "border-slate-200 bg-slate-200"}`}
                         >
                             <img
                                 src={`/storage/${selectedReport.photo_path}`}
@@ -781,7 +781,7 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
 
                             {/* Badge Status */}
                             <div
-                                className={`absolute bottom-2.5 left-2.5 px-3 py-1 text-[9px] font-extrabold uppercase tracking-widest rounded-lg shadow-lg backdrop-blur-md border border-white/20 ${selectedReport.status === "menunggu" ? "bg-red-500/90 text-white" : selectedReport.status === "proses" ? "bg-blue-500/90 text-white" : "bg-[#a7e94a]/90 text-slate-900"}`}
+                                className={`absolute bottom-2.5 left-2.5 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-widest rounded-lg shadow-lg backdrop-blur-md border border-white/20 ${selectedReport.status === "menunggu" ? "bg-red-500/90 text-white" : selectedReport.status === "proses" ? "bg-blue-500/90 text-white" : "bg-[#a7e94a]/90 text-slate-900"}`}
                             >
                                 {selectedReport.status}
                             </div>
