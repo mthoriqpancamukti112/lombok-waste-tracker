@@ -173,7 +173,7 @@ export default function ChatbotWidget({
                 // Sesuai dengan ChatRequest di app.py
                 body: JSON.stringify({
                     message: currentInput,
-                    user_id: userId || 0,
+                    user_id: String(userId || 0),
                 }),
             });
 
@@ -205,6 +205,24 @@ export default function ChatbotWidget({
             setIsLoading(false);
         }
     };
+
+    const handleSuggestion = (text: string) => {
+        setInputText(text);
+        // Trigger send after a short delay to allow state update
+        setTimeout(() => {
+            const simulatedEvent = {
+                preventDefault: () => { }
+            } as React.FormEvent;
+            handleSendMessage(simulatedEvent);
+        }, 100);
+    };
+
+    const suggestions = [
+        { label: "💰 Poin Saya", text: "Bagaimana cara dapat poin?" },
+        { label: "♻️ Tips Pilah", text: "Tips memilah sampah" },
+        { label: "📊 Statistik", text: "statistik laporan" },
+        { label: "📞 Kontak", text: "kontak darurat" },
+    ];
 
     // Styling theme
     const bgCard = isDark
@@ -257,11 +275,10 @@ export default function ChatbotWidget({
                                 className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
                             >
                                 <div
-                                    className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
-                                        msg.sender === "user"
-                                            ? `${bgUserBubble} rounded-br-sm shadow-sm`
-                                            : `${bgBotBubble} rounded-bl-sm border ${isDark ? "border-slate-700" : "border-slate-200"}`
-                                    }`}
+                                    className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${msg.sender === "user"
+                                        ? `${bgUserBubble} rounded-br-sm shadow-sm`
+                                        : `${bgBotBubble} rounded-bl-sm border ${isDark ? "border-slate-700" : "border-slate-200"}`
+                                        }`}
                                 >
                                     {formatMessage(
                                         msg.text,
@@ -299,6 +316,19 @@ export default function ChatbotWidget({
                     <div
                         className={`p-3 border-t ${isDark ? "border-slate-800 bg-slate-900" : "border-slate-100 bg-white"}`}
                     >
+                        {/* Suggestions row */}
+                        <div className="flex gap-2 mb-3 overflow-x-auto pb-1 custom-scrollbar scrollbar-hide no-scrollbar">
+                            {suggestions.map((s, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleSuggestion(s.text)}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all active:scale-95 flex-shrink-0 ${isDark ? "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700" : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-[#a7e94a]/10 hover:border-[#a7e94a] hover:text-[#5a8a1a]"}`}
+                                >
+                                    {s.label}
+                                </button>
+                            ))}
+                        </div>
+
                         <form
                             onSubmit={handleSendMessage}
                             className="flex items-end gap-2 relative"
