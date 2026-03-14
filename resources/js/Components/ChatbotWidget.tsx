@@ -262,8 +262,8 @@ export default function ChatbotWidget({
         : "bg-slate-100 text-slate-700";
 
     return (
-        // z-[100] dan mb-20 untuk memastikan tidak tertutup BottomBar di versi mobile
-        <div className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-[100] flex flex-col items-end">
+        // z-[60] supaya di belakang AuthModal (z-[100])
+        <div className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-[60] flex flex-col items-end">
             {/* --- CHAT WINDOW --- */}
             {isOpen && (
                 <div
