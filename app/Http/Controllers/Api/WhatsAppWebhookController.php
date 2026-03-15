@@ -26,9 +26,36 @@ class WhatsAppWebhookController extends Controller
         Log::info("Incoming Twilio WhatsApp from $sender: $body");
 
         // 1. Identify User
+        $cleanSender = str_replace('+', '', $sender);
+        
+        // Try User table first
         $user = User::where('phone_number', $sender)
-            ->orWhere('phone_number', str_replace('+', '', $sender))
+            ->orWhere('phone_number', $cleanSender)
             ->first();
+
+        if (!$user) {
+            // Try Petugas
+            $petugas = \App\Models\Petugas::where('no_telp', $sender)
+                ->orWhere('no_telp', $cleanSender)
+                ->first();
+            if ($petugas) $user = $petugas->user;
+        }
+
+        if (!$user) {
+            // Try Kaling
+            $kaling = \App\Models\Kaling::where('no_telp', $sender)
+                ->orWhere('no_telp', $cleanSender)
+                ->first();
+            if ($kaling) $user = $kaling->user;
+        }
+
+        if (!$user) {
+            // Try Warga
+            $warga = \App\Models\Warga::where('no_telp', $sender)
+                ->orWhere('no_telp', $cleanSender)
+                ->first();
+            if ($warga) $user = $warga->user;
+        }
 
         if (!$user) {
             return $this->generateTwilioResponse("Maaf, nomor Anda belum terdaftar di sistem.");

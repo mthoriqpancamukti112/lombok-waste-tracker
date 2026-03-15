@@ -162,7 +162,8 @@ class ReportController extends Controller
         // --- NOTIFIKASI WHATSAPP KE KALING ---
         if ($report->kaling_id) {
             $kaling = \App\Models\Kaling::with('user')->find($report->kaling_id);
-            if ($kaling && $kaling->user && $kaling->user->phone_number) {
+            $phone = $kaling ? ($kaling->no_telp ?? ($kaling->user->phone_number ?? null)) : null;
+            if ($phone) {
                 (new \App\Services\WhatsAppService())->notifyKaling($kaling, $report);
             }
         }

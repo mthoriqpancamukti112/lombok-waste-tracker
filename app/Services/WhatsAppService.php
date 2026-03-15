@@ -91,7 +91,8 @@ class WhatsAppService
      */
     public function notifyKaling($kaling, $report)
     {
-        if (!$kaling || !$kaling->user || !$kaling->user->phone_number)
+        $phone = $kaling->no_telp ?? $kaling->user->phone_number ?? null;
+        if (!$phone)
             return;
 
         $contentSid = config('services.twilio.kaling_content_sid');
@@ -107,13 +108,13 @@ class WhatsAppService
 
         if ($contentSid) {
             // Variables: {{1}} = ID, {{2}} = Address, {{3}} = Type/Severity
-            $this->sendTemplate($kaling->user->phone_number, $contentSid, [
+            $this->sendTemplate($phone, $contentSid, [
                 '1' => (string) $report->id,
                 '2' => $report->address,
                 '3' => "{$report->waste_type} ({$report->severity_level})"
             ]);
         } else {
-            $this->sendMessage($kaling->user->phone_number, $msg);
+            $this->sendMessage($phone, $msg);
         }
     }
 
@@ -138,20 +139,21 @@ class WhatsAppService
             "Ketik: *KERJAKAN {$report->id}* untuk mengambil tugas ini.";
 
         foreach ($activePetugas as $petugas) {
-            if (!$petugas->user || !$petugas->user->phone_number)
+            $phone = $petugas->no_telp ?? $petugas->user->phone_number ?? null;
+            if (!$phone)
                 continue;
 
             if ($contentSid) {
                 // Using Content API (Buttons)
                 // Template should have variables like: {{1}} = ID, {{2}} = Address, {{3}} = Maps URL
-                $this->sendTemplate($petugas->user->phone_number, $contentSid, [
+                $this->sendTemplate($phone, $contentSid, [
                     '1' => (string) $report->id,
                     '2' => $report->address,
                     '3' => $mapsUrl
                 ]);
             } else {
                 // Fallback to plain text
-                $this->sendMessage($petugas->user->phone_number, $msg);
+                $this->sendMessage($phone, $msg);
             }
         }
     }
