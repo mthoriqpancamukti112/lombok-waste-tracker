@@ -219,9 +219,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                     {t.profile}
                 </h2>
                 <button
-                    onClick={(e) => {
-                        e.preventDefault();
-
+                    onClick={() => {
                         router.post(
                             route("logout"),
                             {},
@@ -279,7 +277,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                     {user.email}
                                 </p>
                                 {user.role && (
-                                    <span className="inline-block mt-1 px-3 py-0.5 rounded-full bg-[#a7e94a]/15 text-[#5a8a1a] text-[10px] font-extrabold uppercase tracking-wide">
+                                    <span className="w-fit mt-1 px-3 py-0.5 rounded-full bg-[#a7e94a]/15 text-[#5a8a1a] text-[10px] font-extrabold uppercase tracking-wide">
                                         {user.role}
                                     </span>
                                 )}
@@ -687,7 +685,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                         {user.email}
                                     </p>
                                     {user.role && (
-                                        <span className="inline-block mt-1 px-3 py-0.5 rounded-full bg-[#a7e94a]/15 text-[#5a8a1a] text-[10px] font-extrabold uppercase">
+                                        <span className="w-fit mt-1 px-3 py-0.5 rounded-full bg-[#a7e94a]/15 text-[#5a8a1a] text-[10px] font-extrabold uppercase">
                                             {user.role}
                                         </span>
                                     )}
