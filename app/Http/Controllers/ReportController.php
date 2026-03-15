@@ -163,18 +163,7 @@ class ReportController extends Controller
         if ($report->kaling_id) {
             $kaling = \App\Models\Kaling::with('user')->find($report->kaling_id);
             if ($kaling && $kaling->user && $kaling->user->phone_number) {
-                // Pastikan class WhatsAppService sudah di-import di atas (use App\Services\WhatsAppService;)
-                $wa = new \App\Services\WhatsAppService();
-                $msg = "📢 *Laporan Sampah Baru!*\n\n" .
-                    "ID: #{$report->id}\n" .
-                    "Lokasi: {$report->address}\n" .
-                    "Jenis: {$report->waste_type}\n" .
-                    "Tingkat: {$report->severity_level}\n\n" .
-                    "Silakan balas pesan ini dengan:\n" .
-                    "✅ *ACC {$report->id}* (untuk Validasi)\n" .
-                    "❌ *TOLAK {$report->id} [Alasan]* (untuk Menolak)";
-
-                $wa->sendMessage($kaling->user->phone_number, $msg);
+                (new \App\Services\WhatsAppService())->notifyKaling($kaling, $report);
             }
         }
 
@@ -320,6 +309,12 @@ class ReportController extends Controller
             }
 
             $report->update($dataToUpdate);
+
+            // --- TRIGGER WA NOTIFIKASI KE PETUGAS JIKA DIVALIDASI ---
+            if ($oldStatus === 'menunggu' && $newStatus === 'divalidasi') {
+                (new WhatsAppService())->notifyAllPetugas($report);
+            }
+
             return back()->with('success', 'Status laporan berhasil diperbarui.');
         }
     }

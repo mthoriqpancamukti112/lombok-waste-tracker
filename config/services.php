@@ -45,4 +45,12 @@ return [
         'token' => env('FONNTE_API_TOKEN'),
     ],
 
+    'twilio' => [
+        'sid' => env('TWILIO_SID'),
+        'token' => env('TWILIO_AUTH_TOKEN'),
+        'from' => env('TWILIO_WHATSAPP_FROM'),
+        'notify_content_sid' => env('TWILIO_NOTIFY_CONTENT_SID'),
+        'kaling_content_sid' => env('TWILIO_KALING_CONTENT_SID'),
+    ],
+
 ];
