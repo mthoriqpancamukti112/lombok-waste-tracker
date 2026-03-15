@@ -219,7 +219,9 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                     {t.profile}
                 </h2>
                 <button
-                    onClick={() => {
+                    onClick={(e) => {
+                        e.preventDefault();
+
                         router.post(
                             route("logout"),
                             {},
