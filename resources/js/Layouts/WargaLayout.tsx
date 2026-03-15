@@ -60,7 +60,7 @@ export default function WargaLayout({
         }
     };
 
-    const notifications = auth.user?.notifications || [];
+    const notifications = auth.user?.notifications || auth.notifications || [];
     const unreadCount = notifications.length;
 
     const markAllAsRead = () => {
@@ -104,8 +104,8 @@ export default function WargaLayout({
             {/* Sidebar (Emerald) */}
             <aside
                 className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-emerald-900 text-white flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen
-                        ? "translate-x-0"
-                        : "-translate-x-full lg:translate-x-0"
+                    ? "translate-x-0"
+                    : "-translate-x-full lg:translate-x-0"
                     }`}
             >
                 {/* Logo */}
@@ -140,8 +140,8 @@ export default function WargaLayout({
                             key={index}
                             href={menu.href}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${menu.active
-                                    ? "bg-emerald-400 text-emerald-950 shadow-md"
-                                    : "text-emerald-300 hover:bg-emerald-800 hover:text-white"
+                                ? "bg-emerald-400 text-emerald-950 shadow-md"
+                                : "text-emerald-300 hover:bg-emerald-800 hover:text-white"
                                 }`}
                         >
                             <div className="flex items-center justify-center w-5 h-5 [&>svg]:w-full [&>svg]:h-full transition-transform group-hover:scale-110">
