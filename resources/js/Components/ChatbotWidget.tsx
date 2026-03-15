@@ -180,7 +180,7 @@ export default function ChatbotWidget({
             // Memanggil API Python FastAPI
             const apiUrl =
                 import.meta.env.VITE_CHATBOT_API_URL ||
-                "http://127.0.0.1:8001/api/chat";
+                "http://127.0.0.1:8002/api/chat";
             const response = await fetch(apiUrl, {
                 method: "POST",
                 headers: {
@@ -237,17 +237,29 @@ export default function ChatbotWidget({
         // Trigger send after a short delay to allow state update
         setTimeout(() => {
             const simulatedEvent = {
-                preventDefault: () => { }
+                preventDefault: () => {},
             } as React.FormEvent;
             handleSendMessage(simulatedEvent);
         }, 100);
     };
 
     const suggestions = [
-        { label: lang === "id" ? "📋 Cara Lapor" : "📋 How to Report", text: "cara lapor" },
-        { label: lang === "id" ? "📞 Kontak" : "📞 Contact", text: "kontak petugas" },
-        { label: lang === "id" ? "💰 Poin Saya" : "💰 My Points", text: "Bagaimana cara dapat poin?" },
-        { label: lang === "id" ? "📊 Statistik" : "📊 Statistics", text: "statistik laporan" },
+        {
+            label: lang === "id" ? "📋 Cara Lapor" : "📋 How to Report",
+            text: "cara lapor",
+        },
+        {
+            label: lang === "id" ? "📞 Kontak" : "📞 Contact",
+            text: "kontak petugas",
+        },
+        {
+            label: lang === "id" ? "💰 Poin Saya" : "💰 My Points",
+            text: "Bagaimana cara dapat poin?",
+        },
+        {
+            label: lang === "id" ? "📊 Statistik" : "📊 Statistics",
+            text: "statistik laporan",
+        },
     ];
 
     // Styling theme
@@ -263,11 +275,12 @@ export default function ChatbotWidget({
 
     return (
         // z-[60] supaya di belakang AuthModal (z-[100])
-        <div className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-[60] flex flex-col items-end">
+        <div className="fixed bottom-[120px] right-4 xl:bottom-6 xl:right-6 z-[99] flex flex-col items-end pointer-events-none">
             {/* --- CHAT WINDOW --- */}
             {isOpen && (
                 <div
-                    className={`mb-4 w-[calc(100vw-2rem)] sm:w-80 md:w-96 h-[450px] max-h-[70vh] flex flex-col shadow-2xl rounded-2xl border overflow-hidden origin-bottom-right animate-in zoom-in-95 fade-in duration-300 ${bgCard}`}
+                    // pointer-events-auto dihidupkan lagi untuk bagian window dan tombolnya
+                    className={`pointer-events-auto mb-4 w-[calc(100vw-2rem)] sm:w-80 md:w-96 h-[450px] max-h-[70vh] flex flex-col shadow-2xl rounded-2xl border overflow-hidden origin-bottom-right animate-in zoom-in-95 fade-in duration-300 ${bgCard}`}
                 >
                     {/* Header */}
                     <div className="bg-slate-900 px-4 py-3 flex items-center justify-between shadow-md z-10">
@@ -286,10 +299,14 @@ export default function ChatbotWidget({
                             </div>
                         </div>
                         <button
-                            onClick={() => setIsOpen(false)}
-                            className="text-slate-400 hover:text-white transition-colors p-1"
+                            onClick={() => setIsOpen(!isOpen)}
+                            className={`pointer-events-auto w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 ${isOpen ? "bg-slate-800 text-white" : "bg-[#a7e94a] text-slate-900 shadow-[#a7e94a]/30"}`}
                         >
-                            <X className="w-5 h-5" />
+                            {isOpen ? (
+                                <X className="w-6 h-6 text-white" />
+                            ) : (
+                                <ChatDots className="w-7 h-7 text-white" />
+                            )}
                         </button>
                     </div>
 
@@ -301,10 +318,11 @@ export default function ChatbotWidget({
                                 className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
                             >
                                 <div
-                                    className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${msg.sender === "user"
-                                        ? `${bgUserBubble} rounded-br-sm shadow-sm`
-                                        : `${bgBotBubble} rounded-bl-sm border ${isDark ? "border-slate-700" : "border-slate-200"}`
-                                        }`}
+                                    className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
+                                        msg.sender === "user"
+                                            ? `${bgUserBubble} rounded-br-sm shadow-sm`
+                                            : `${bgBotBubble} rounded-bl-sm border ${isDark ? "border-slate-700" : "border-slate-200"}`
+                                    }`}
                                 >
                                     {formatMessage(
                                         msg.text,
@@ -392,7 +410,7 @@ export default function ChatbotWidget({
             {/* --- TRIGGER BUTTON (FAB) --- */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 ${isOpen ? "bg-slate-800 text-white" : "bg-[#a7e94a] text-slate-900 shadow-[#a7e94a]/30"}`}
+                className={`pointer-events-auto w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 ${isOpen ? "bg-slate-800 text-white" : "bg-[#a7e94a] text-slate-900 shadow-[#a7e94a]/30"}`}
             >
                 {isOpen ? (
                     <X className="w-6 h-6 text-white" />
