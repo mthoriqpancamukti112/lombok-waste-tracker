@@ -39,7 +39,7 @@ class AuthenticatedSessionController extends Controller
             'dlh' => redirect()->intended(route('dashboard.dlh', absolute: false)),
             'kaling' => redirect()->intended(route('dashboard.kaling', absolute: false)),
             'petugas' => redirect()->intended(route('dashboard.petugas', absolute: false)),
-            default => redirect()->intended('/'),
+            default => redirect('/'),
         };
     }
 

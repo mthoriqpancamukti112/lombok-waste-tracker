@@ -30,36 +30,7 @@ use Illuminate\Http\Request;
 // ──────────────────────────────────────────
 // Public: Welcome / Map
 // ──────────────────────────────────────────
-Route::get('/', function (Request $request) {
-    $user = $request->user();
-
-    // For logged in users, we pull more reports so their "Riwayat Diskusi" is more likely to be populated
-    // without having to do a very complex union query for the initial page load.
-    $limit = $user ? 200 : 100;
-
-    $reports = Report::with(['user:id,name,avatar', 'comments:id,report_id,user_id'])
-        ->withCount(['likes', 'comments'])
-        ->whereIn('status', ['menunggu', 'divalidasi', 'proses', 'selesai'])
-        ->latest()
-        ->take($limit)
-        ->get();
-
-    $dangerZones = DangerZone::active()
-        ->select('id', 'name', 'description', 'type', 'severity', 'coordinates', 'center_lat', 'center_lng', 'radius_meters')
-        ->get();
-
-    $wasteDensityZones = WasteDensityZone::active()
-        ->select('id', 'name', 'coordinates', 'density_level', 'kelurahan', 'kecamatan', 'report_count')
-        ->get();
-
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'reports' => $reports,
-        'dangerZones' => $dangerZones,
-        'wasteDensityZones' => $wasteDensityZones,
-    ]);
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // ──────────────────────────────────────────
 // Google OAuth
@@ -114,7 +85,7 @@ Route::middleware('auth')->group(function () {
             'dlh' => redirect()->route('dashboard.dlh'),
             'kaling' => redirect()->route('dashboard.kaling'),
             'petugas' => redirect()->route('dashboard.petugas'),
-            default => redirect()->route('dashboard.warga'),
+            // default => redirect()->route('dashboard.warga'),
         };
     })->middleware('verified')->name('dashboard');
 
