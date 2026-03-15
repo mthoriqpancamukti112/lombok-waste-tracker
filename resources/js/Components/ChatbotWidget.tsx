@@ -11,8 +11,13 @@ interface Message {
 interface ChatbotWidgetProps {
     isDark?: boolean;
     userId?: number;
+    lang?: "id" | "en";
     onFocusReport?: (id: number) => void;
     onOpenReportModal?: () => void;
+    onStartTour?: () => void;
+    // Controlled open state (optional – parent can override)
+    isOpen?: boolean;
+    onClose?: () => void;
 }
 
 // Batas maksimal gelembung chat yang dirender agar browser tidak lag
@@ -114,10 +119,21 @@ const formatMessage = (
 export default function ChatbotWidget({
     isDark = false,
     userId,
+    lang = "id",
     onFocusReport,
     onOpenReportModal,
+    onStartTour,
+    isOpen: isOpenProp,
+    onClose,
 }: ChatbotWidgetProps) {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpenLocal, setIsOpenLocal] = useState(false);
+
+    // Support both controlled (parent) and uncontrolled mode
+    const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenLocal;
+    const setIsOpen = (value: boolean) => {
+        setIsOpenLocal(value);
+        if (!value && onClose) onClose();
+    };
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "1",
@@ -173,7 +189,7 @@ export default function ChatbotWidget({
                 // Sesuai dengan ChatRequest di app.py
                 body: JSON.stringify({
                     message: currentInput,
-                    user_id: userId || 0,
+                    user_id: String(userId || 0),
                 }),
             });
 
@@ -191,6 +207,16 @@ export default function ChatbotWidget({
 
             // Simpan balasan bot, dan batasi array history
             setMessages((prev) => [...prev, botMessage].slice(-MAX_HISTORY));
+
+            // Check for tour trigger – close chatbot first, then start tour
+            if (data.response.includes("#start-tour") && onStartTour) {
+                setTimeout(() => {
+                    setIsOpen(false); // tutup chatbot dulu
+                    setTimeout(() => {
+                        onStartTour();
+                    }, 350); // beri animasi close selesai
+                }, 800);
+            }
         } catch (error) {
             console.error("Error connecting to Python API:", error);
             const errorMessage: Message = {
@@ -206,6 +232,24 @@ export default function ChatbotWidget({
         }
     };
 
+    const handleSuggestion = (text: string) => {
+        setInputText(text);
+        // Trigger send after a short delay to allow state update
+        setTimeout(() => {
+            const simulatedEvent = {
+                preventDefault: () => { }
+            } as React.FormEvent;
+            handleSendMessage(simulatedEvent);
+        }, 100);
+    };
+
+    const suggestions = [
+        { label: lang === "id" ? "📋 Cara Lapor" : "📋 How to Report", text: "cara lapor" },
+        { label: lang === "id" ? "📞 Kontak" : "📞 Contact", text: "kontak petugas" },
+        { label: lang === "id" ? "💰 Poin Saya" : "💰 My Points", text: "Bagaimana cara dapat poin?" },
+        { label: lang === "id" ? "📊 Statistik" : "📊 Statistics", text: "statistik laporan" },
+    ];
+
     // Styling theme
     const bgCard = isDark
         ? "bg-slate-900 border-slate-700"
@@ -218,8 +262,8 @@ export default function ChatbotWidget({
         : "bg-slate-100 text-slate-700";
 
     return (
-        // z-[100] dan mb-20 untuk memastikan tidak tertutup BottomBar di versi mobile
-        <div className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-[100] flex flex-col items-end">
+        // z-[60] supaya di belakang AuthModal (z-[100])
+        <div className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-[60] flex flex-col items-end">
             {/* --- CHAT WINDOW --- */}
             {isOpen && (
                 <div
@@ -233,7 +277,7 @@ export default function ChatbotWidget({
                             </div>
                             <div>
                                 <h3 className="text-sm font-bold text-white leading-tight">
-                                    AI Assistant
+                                    Si Citra (Chatbot Pintar)
                                 </h3>
                                 <p className="text-[10px] text-[#a7e94a] font-medium flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#a7e94a] animate-pulse"></span>
@@ -257,11 +301,10 @@ export default function ChatbotWidget({
                                 className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
                             >
                                 <div
-                                    className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
-                                        msg.sender === "user"
-                                            ? `${bgUserBubble} rounded-br-sm shadow-sm`
-                                            : `${bgBotBubble} rounded-bl-sm border ${isDark ? "border-slate-700" : "border-slate-200"}`
-                                    }`}
+                                    className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${msg.sender === "user"
+                                        ? `${bgUserBubble} rounded-br-sm shadow-sm`
+                                        : `${bgBotBubble} rounded-bl-sm border ${isDark ? "border-slate-700" : "border-slate-200"}`
+                                        }`}
                                 >
                                     {formatMessage(
                                         msg.text,
@@ -299,6 +342,19 @@ export default function ChatbotWidget({
                     <div
                         className={`p-3 border-t ${isDark ? "border-slate-800 bg-slate-900" : "border-slate-100 bg-white"}`}
                     >
+                        {/* Suggestions row */}
+                        <div className="flex gap-2 mb-3 overflow-x-auto pb-1 custom-scrollbar scrollbar-hide no-scrollbar">
+                            {suggestions.map((s, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleSuggestion(s.text)}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all active:scale-95 flex-shrink-0 ${isDark ? "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700" : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-[#a7e94a]/10 hover:border-[#a7e94a] hover:text-[#5a8a1a]"}`}
+                                >
+                                    {s.label}
+                                </button>
+                            ))}
+                        </div>
+
                         <form
                             onSubmit={handleSendMessage}
                             className="flex items-end gap-2 relative"

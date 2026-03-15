@@ -81,11 +81,16 @@ class ReportController extends Controller
         if ($addressLower) {
             // Ekstrak nama kota/kabupaten jika ada di dalam alamat
             if (!$city) {
-                if (str_contains($addressLower, 'mataram')) $city = 'Mataram';
-                elseif (str_contains($addressLower, 'lombok barat')) $city = 'Lombok Barat';
-                elseif (str_contains($addressLower, 'lombok tengah')) $city = 'Lombok Tengah';
-                elseif (str_contains($addressLower, 'lombok timur')) $city = 'Lombok Timur';
-                elseif (str_contains($addressLower, 'lombok utara')) $city = 'Lombok Utara';
+                if (str_contains($addressLower, 'mataram'))
+                    $city = 'Mataram';
+                elseif (str_contains($addressLower, 'lombok barat'))
+                    $city = 'Lombok Barat';
+                elseif (str_contains($addressLower, 'lombok tengah'))
+                    $city = 'Lombok Tengah';
+                elseif (str_contains($addressLower, 'lombok timur'))
+                    $city = 'Lombok Timur';
+                elseif (str_contains($addressLower, 'lombok utara'))
+                    $city = 'Lombok Utara';
             }
 
             $kalings = Kaling::all();
@@ -178,8 +183,14 @@ class ReportController extends Controller
 
     public function show($id)
     {
-        $report = Report::with(['user:id,name', 'comments.user:id,name'])
-            ->findOrFail($id);
+        $report = Report::with([
+            'user:id,name',
+            'comments' => function ($query) {
+                $query->whereNull('parent_id')
+                    ->with(['user:id,name', 'replies.user:id,name'])
+                    ->latest();
+            }
+        ])->findOrFail($id);
 
         $comments = $report->comments;
         $isLiked = Auth::check() ? $report->likes()->where('user_id', Auth::id())->exists() : false;

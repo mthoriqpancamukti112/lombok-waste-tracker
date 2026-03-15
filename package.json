@@ -37,6 +37,7 @@
         "@types/mapbox-gl": "^3.4.1",
         "aos": "^2.3.4",
         "browser-image-compression": "^2.0.2",
+        "driver.js": "^1.4.0",
         "framer-motion": "^12.34.3",
         "leaflet": "^1.9.4",
         "lucide-react": "^0.575.0",

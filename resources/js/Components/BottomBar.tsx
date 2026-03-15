@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import {
     FilePlusSolid,
@@ -13,6 +13,43 @@ interface User {
     name: string;
     avatar?: string | null;
 }
+
+const Fab = ({
+    size = "lg",
+    id,
+    isLoggedIn,
+    onAuthClick,
+    onCreateClick,
+    className = "",
+}: {
+    size?: "lg" | "sm";
+    id?: string;
+    isLoggedIn: boolean;
+    onAuthClick: () => void;
+    onCreateClick?: () => void;
+    className?: string;
+}) => {
+    const dim = size === "lg" ? "w-[72px] h-[72px]" : "w-[64px] h-[64px]";
+    const icon = size === "lg" ? "w-9 h-9" : "w-8 h-8";
+    return (
+        <Link
+            id={id || "btn-lapor"}
+            href={isLoggedIn ? route("report.create") : "#"}
+            className={`${dim} bg-[#a7e94a] rounded-[22px] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#a7e94a]/30 ${className}`}
+            onClick={(e) => {
+                if (!isLoggedIn) {
+                    e.preventDefault();
+                    onAuthClick();
+                } else if (onCreateClick) {
+                    e.preventDefault();
+                    onCreateClick();
+                }
+            }}
+        >
+            <FilePlusSolid className={`${icon} text-white`} />
+        </Link>
+    );
+};
 
 interface BottomBarProps {
     activeTab: "reports" | "profile" | "none";
@@ -30,14 +67,25 @@ const BottomBar: React.FC<BottomBarProps> = ({
     onAuthClick,
     onCreateClick,
     user,
+    lang = "id",
     isDark = false,
-    lang = "id", // Default ke id
 }) => {
-    // Inisialisasi kamus
+    const isLoggedIn = !!user;
+    const [dockVisible, setDockVisible] = useState(false);
     const t = landingDict[lang];
 
-    const [dockVisible, setDockVisible] = useState(false);
-    const isLoggedIn = !!user;
+    useEffect(() => {
+        // Allow external scripts (like driver.js tour) to force open the dock
+        const handleForceDock = (e: any) => {
+            if (e.detail && typeof e.detail.visible === "boolean") {
+                setDockVisible(e.detail.visible);
+            }
+        };
+        window.addEventListener("force-dock", handleForceDock);
+        return () => window.removeEventListener("force-dock", handleForceDock);
+    }, []);
+
+    const isActive = (tab: string) => activeTab === tab;
 
     const avatarSrc = useMemo(
         () =>
@@ -184,27 +232,6 @@ const BottomBar: React.FC<BottomBarProps> = ({
         );
     };
 
-    const Fab = ({ size = "lg" }: { size?: "lg" | "sm" }) => {
-        const dim = size === "lg" ? "w-[72px] h-[72px]" : "w-[64px] h-[64px]";
-        const icon = size === "lg" ? "w-9 h-9" : "w-8 h-8";
-        return (
-            <Link
-                href={isLoggedIn ? route("report.create") : "#"}
-                className={`${dim} bg-[#a7e94a] rounded-[22px] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#a7e94a]/30`}
-                onClick={(e) => {
-                    if (!isLoggedIn) {
-                        e.preventDefault();
-                        onAuthClick();
-                    } else if (onCreateClick) {
-                        e.preventDefault();
-                        onCreateClick();
-                    }
-                }}
-            >
-                <FilePlusSolid className={`${icon} text-white`} />
-            </Link>
-        );
-    };
 
     return (
         <>
@@ -212,7 +239,14 @@ const BottomBar: React.FC<BottomBarProps> = ({
             <div className="fixed bottom-0 inset-x-0 z-[100] xl:hidden">
                 <div className="relative">
                     <div className="absolute left-1/2 -translate-x-1/2 -top-5 z-10">
-                        <Fab size="lg" />
+                        <Fab
+                            size="lg"
+                            id="btn-lapor-mobile"
+                            className="btn-lapor-tour-target"
+                            isLoggedIn={isLoggedIn}
+                            onAuthClick={onAuthClick}
+                            onCreateClick={onCreateClick}
+                        />
                     </div>
                     <div className={`${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"} border-t shadow-[0_-4px_24px_rgba(0,0,0,0.07)] flex items-center justify-between px-10 pt-5 pb-7`}>
                         <ReportsItem />
@@ -234,7 +268,14 @@ const BottomBar: React.FC<BottomBarProps> = ({
                 >
                     <div className="relative mb-2">
                         <div className="absolute left-1/2 -translate-x-1/2 -top-9 z-10">
-                            <Fab size="sm" />
+                            <Fab
+                                size="sm"
+                                id="btn-lapor-desktop"
+                                className="btn-lapor-tour-target"
+                                isLoggedIn={isLoggedIn}
+                                onAuthClick={onAuthClick}
+                                onCreateClick={onCreateClick}
+                            />
                         </div>
                         <div className={`${isDark ? "bg-slate-900/95 border-slate-800" : "bg-white/95 border-slate-100"} backdrop-blur-xl border rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.10)] flex items-center justify-between px-12 pt-5 pb-5`}>
                             <ReportsItemDesktop />
