@@ -26,6 +26,8 @@ class PetugasManagementController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', Password::defaults()],
+            'nama_petugas' => 'nullable|string|max:255',
+            'no_telp' => 'nullable|string|max:20',
             'jenis_kendaraan' => 'required|in:truk_besar,pickup,motor_gerobak',
             'plat_nomor' => 'nullable|string|max:20',
             'kapasitas_kg' => 'required|numeric|min:0',
@@ -40,6 +42,8 @@ class PetugasManagementController extends Controller
 
         Petugas::create([
             'user_id' => $user->id,
+            'nama' => $request->nama_petugas,
+            'no_telp' => $request->no_telp,
             'jenis_kendaraan' => $request->jenis_kendaraan,
             'plat_nomor' => $request->plat_nomor,
             'kapasitas_kg' => $request->kapasitas_kg,
@@ -58,6 +62,8 @@ class PetugasManagementController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => ['nullable', Password::defaults()],
+            'nama_petugas' => 'nullable|string|max:255',
+            'no_telp' => 'nullable|string|max:20',
             'jenis_kendaraan' => 'required|in:truk_besar,pickup,motor_gerobak',
             'plat_nomor' => 'nullable|string|max:20',
             'kapasitas_kg' => 'required|numeric|min:0',
@@ -72,6 +78,8 @@ class PetugasManagementController extends Controller
         $user->save();
 
         $petugas->update([
+            'nama' => $request->nama_petugas,
+            'no_telp' => $request->no_telp,
             'jenis_kendaraan' => $request->jenis_kendaraan,
             'plat_nomor' => $request->plat_nomor,
             'kapasitas_kg' => $request->kapasitas_kg,
