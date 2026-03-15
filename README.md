@@ -1,66 +1,190 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🌴 Lombok Waste Tracker & AI Ecosystem
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-4.x-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
+[![AI](https://img.shields.io/badge/AI-YOLOv11%20%7C%20IndoBERT-lightgrey?style=for-the-badge&logo=openai)](https://github.com/ultralytics/ultralytics)
 
-## About Laravel
+**Lombok Waste Tracker** is a modern, community-driven platform designed to tackle waste management issues in Lombok. By leveraging AI-powered validation, interactive mapping, and a gamified experience, we empower citizens to report waste concerns effectively while providing authorities with clear, actionable data.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Key Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🚀 Smart Waste Reporting
 
-## Learning Laravel
+- **AI Validation (YOLOv11)**: Every photo uploaded is instantly scanned by our custom-trained YOLOv11 model to detect and count waste objects, ensuring data validity.
+- **Location Precision**: Automatic geolocation and Mapbox-powered location picking for accurate reporting.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 🤖 "Si Citra" AI Chatbot
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **IndoBERT Powered**: A smart assistant that understands natural language queries about waste management, reporting guides, and service contacts.
+- **Dynamic Actions**: Can trigger portal tours and focus on specific report locations on the map.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 🗺️ Interactive Visualization
 
-## Laravel Sponsors
+- **Heatmaps & Clusters**: Visualize waste density across Lombok using high-performance Mapbox GL layers.
+- **Real-time Updates**: Experience seamless data synchronisation between the community and the dashboard.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 📈 Gamification & Community
 
-### Premium Partners
+- **Waste Points**: Earn points for every validated report and positive interaction.
+- **Leaderboard**: Compete to become a "Waste Warrior" and help make Lombok cleaner.
+- **Discussion History**: Track your contributions and staff feedback directly from your profile.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+---
 
-## Contributing
+## 🛠️ Tech Stack
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Frontend
 
-## Code of Conduct
+- **Framework**: React 18 with Inertia.js (Modern Monolith Approach)
+- **Styling**: Tailwind CSS & Framer Motion for smooth animations
+- **Maps**: Mapbox GL JS & React Map GL
+- **Icons**: Mynaui Icons
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Backend
 
-## Security Vulnerabilities
+- **Framework**: Laravel 12
+- **Auth**: Laravel Breeze & Socialite (Google Login)
+- **Database**: MySQL
+- **Communication**: WhatsApp Integration (Fonnte API)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### AI Ecosystem
 
-## License
+- **Detection**: YOLOv11 running on a Python/FastAPI microservice.
+- **NLP**: IndoBERT model for regional context understanding in the chatbot.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 📁 Project Structure
+
+```text
+lombok-waste-tracker/
+├── app/                  # Laravel backend logic
+├── resources/js/         # React frontend components
+│   ├── Components/       # Reusable UI parts (Chatbot, Map, Modals)
+│   ├── Pages/            # Inertia page views
+│   └── Layouts/          # Main application shells
+├── public/               # Static assets
+└── routes/               # Web & API route definitions
+
+AI Microservices (Located on Server):
+├── /projects/yolo       # YOLOv11 Waste Detection API (FastAPI)
+└── /projects/chatbot    # IndoBERT Chatbot API (FastAPI)
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **PHP** >= 8.2
+- **Node.js** >= 18.x
+- **Composer**
+- **MySQL**
+
+### Installation
+
+1.  **Clone the repository**:
+
+    ```bash
+    git clone https://github.com/your-username/lombok-waste-tracker.git
+    cd lombok-waste-tracker
+    ```
+
+2.  **Install dependencies**:
+
+    ```bash
+    composer install
+    npm install
+    ```
+
+3.  **Configure environment**:
+
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
+
+    _Update your `.env` with your DB credentials, Mapbox token, and AI API URLs._
+
+4.  **Database setup**:
+
+    ```bash
+    php artisan migrate --seed
+    ```
+
+5.  **Run the development server**:
+    ```bash
+    # Run everything concurrently (Laravel + Vite + Queues)
+    composer dev
+    ```
+
+---
+
+## 🔌 API Documentation & Integrations
+
+The system architecture is divided into the main Laravel application and specialized AI microservices.
+
+### Main Application Endpoints
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/map/reports` | Get all waste report pins for the map | Public |
+| `GET` | `/api/map/waste-density` | Get heatmap data for waste accumulation | Public |
+| `GET` | `/api/statistik-sampah` | Get overall waste analytics and charts | Public |
+| `POST` | `/report` | Submit a new waste report with image | Auth |
+| `POST` | `/report/{id}/comments` | Submit a comment to a report | Auth |
+| `PATCH` | `/report/{id}/status` | Update report status (Staff only) | DLH/Staff |
+| `GET` | `/api/user/{id}/poin` | Get current waste points for a specific user | Auth |
+
+### Webhooks & Integration Endpoints
+*   **WhatsApp Webhook**: `POST /api/webhooks/whatsapp` - Handles incoming response from the Fonnte gateway.
+*   **Google Maps Proxy**: `GET /api/map/places` - Securely queries Google Places API for location searching.
+
+### AI Microservices (FastAPI)
+These services are specialized APIs running independently to handle compute-intensive tasks.
+
+#### 🎯 YOLOv11 Waste Detection
+*   **Endpoint**: `POST https://yolo.juhanda.com/deteksi/`
+*   **Purpose**: Validates if an image contains waste and classifies the type.
+*   **Payload**: `multipart/form-data` (file)
+*   **Response**: 
+    ```json
+    {
+      "jumlah_deteksi": 5,
+      "gambar_base64": "...(annotated image)..."
+    }
+    ```
+
+#### 💬 "Si Citra" NLP Chatbot
+*   **Endpoint**: `POST https://chatbot.juhanda.com/api/chat`
+*   **Purpose**: Handles natural language queries using IndoBERT.
+*   **Payload**: `{ "message": "cara lapor", "user_id": "12" }`
+*   **Response**: `{ "response": "Untuk melapor, silakan klik tombol..." }`
+
+### Third-Party Integrations
+*   **Mapbox API**: Vector tiles, geocoding, and interactive map layers.
+*   **Google OAuth**: Integrated via Laravel Socialite for seamless citizen login.
+*   **Fonnte API**: WhatsApp gateway for sending real-time alerts to residents.
+
+---
+
+## 📚 References & Resources
+
+*   **Object Detection**: [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) - State-of-the-art real-time detection.
+*   **Natural Language**: [IndoBERT (IndoBenchmark)](https://github.com/indobenchmark/indonlu) - Pre-trained language models for Indonesian.
+*   **Mapping**: [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) - Interactive vector maps.
+*   **Frontend Components**: [Mynaui Icons](https://mynaui.com/icons) & [Inertia.js](https://inertiajs.com/).
+*   **Messaging**: [Fonnte WhatsApp API](https://fonnte.com/).
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please check our issues page for tasks or feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is open-sourced software licensed under the **MIT license**.
