@@ -70,7 +70,7 @@ const ReportCard = ({ report, auth }: { report: Report; auth: any }) => {
     });
 
     // Cek apakah user saat ini sudah me-like laporan ini
-    const isLiked = report.likes.some((like) => like.user_id === auth.user.id);
+    const isLiked = report.likes.some((like) => like.user_id === auth.user?.id);
 
     // Fungsi Toggle Like
     const handleLike = () => {

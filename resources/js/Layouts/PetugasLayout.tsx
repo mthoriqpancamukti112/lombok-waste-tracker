@@ -208,8 +208,8 @@ export default function PetugasLayout({
                                 <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black text-sm border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden relative flex-shrink-0">
                                     {auth.user?.avatar ? (
                                         <img
-                                            src={auth.user.avatar}
-                                            alt={auth.user.name}
+                                            src={auth.user?.avatar}
+                                            alt={auth.user?.name}
                                             referrerPolicy="no-referrer"
                                             className="absolute inset-0 w-full h-full object-cover"
                                         />
@@ -277,7 +277,7 @@ export default function PetugasLayout({
                                                 <p className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 w-fit px-2 py-0.5 rounded-md">
                                                     <Truck className="w-3 h-3" />
                                                     {
-                                                        auth.user.petugas
+                                                        auth.user?.petugas
                                                             .plat_nomor
                                                     }
                                                 </p>

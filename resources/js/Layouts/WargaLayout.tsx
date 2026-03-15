@@ -60,7 +60,7 @@ export default function WargaLayout({
         }
     };
 
-    const notifications = auth.notifications || [];
+    const notifications = auth.user?.notifications || auth.notifications || [];
     const unreadCount = notifications.length;
 
     const markAllAsRead = () => {
@@ -103,11 +103,10 @@ export default function WargaLayout({
 
             {/* Sidebar (Emerald) */}
             <aside
-                className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-emerald-900 text-white flex flex-col transition-transform duration-300 ease-in-out ${
-                    isSidebarOpen
-                        ? "translate-x-0"
-                        : "-translate-x-full lg:translate-x-0"
-                }`}
+                className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-emerald-900 text-white flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen
+                    ? "translate-x-0"
+                    : "-translate-x-full lg:translate-x-0"
+                    }`}
             >
                 {/* Logo */}
                 <div className="h-20 flex flex-shrink-0 items-center px-6 border-b border-emerald-800 justify-between lg:justify-start">
@@ -140,11 +139,10 @@ export default function WargaLayout({
                         <Link
                             key={index}
                             href={menu.href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                                menu.active
-                                    ? "bg-emerald-400 text-emerald-950 shadow-md"
-                                    : "text-emerald-300 hover:bg-emerald-800 hover:text-white"
-                            }`}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${menu.active
+                                ? "bg-emerald-400 text-emerald-950 shadow-md"
+                                : "text-emerald-300 hover:bg-emerald-800 hover:text-white"
+                                }`}
                         >
                             <div className="flex items-center justify-center w-5 h-5 [&>svg]:w-full [&>svg]:h-full transition-transform group-hover:scale-110">
                                 {menu.icon}
@@ -288,15 +286,15 @@ export default function WargaLayout({
                                 <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-emerald-500/30">
                                     <img
                                         src={
-                                            auth.user.avatar ||
-                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user.name)}&background=10b981&color=fff`
+                                            auth.user?.avatar ||
+                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || "User")}&background=10b981&color=fff`
                                         }
                                         className="w-full h-full object-cover"
-                                        alt={auth.user.name}
+                                        alt={auth.user?.name || "User"}
                                     />
                                 </div>
                                 <span className="hidden sm:inline text-sm font-bold">
-                                    {auth.user.name.split(" ")[0]}
+                                    {auth.user?.name?.split(" ")[0] || "User"}
                                 </span>
                                 <ChevronDown
                                     className={`w-4 h-4 text-slate-400 transition-transform ${isProfileMenuOpen ? "rotate-180" : ""}`}
@@ -316,7 +314,7 @@ export default function WargaLayout({
                                     >
                                         <div className="px-3 py-3 mb-2 border-b border-slate-50 dark:border-slate-800 sm:hidden">
                                             <p className="font-bold text-sm truncate">
-                                                {auth.user.name}
+                                                {auth.user?.name || "User"}
                                             </p>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase">
                                                 Warga
@@ -325,7 +323,7 @@ export default function WargaLayout({
                                         {/* <Link
                                             href={route(
                                                 "warga.profile",
-                                                auth.user.id,
+                                                auth.user?.id,
                                             )}
                                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors group`}
                                         >
@@ -377,8 +375,8 @@ export default function WargaLayout({
                             ? "reports"
                             : route().current("dashboard.warga") ||
                                 route().current("warga.profile")
-                              ? "profile"
-                              : "none"
+                                ? "profile"
+                                : "none"
                     }
                     onTabClick={(tab) => {
                         if (tab === "reports")
@@ -386,7 +384,7 @@ export default function WargaLayout({
                         if (tab === "profile")
                             router.visit(route("dashboard.warga"));
                     }}
-                    onAuthClick={() => {}}
+                    onAuthClick={() => { }}
                     user={auth.user}
                     isDark={isDark}
                 />

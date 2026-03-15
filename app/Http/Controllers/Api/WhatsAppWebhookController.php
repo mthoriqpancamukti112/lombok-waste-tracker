@@ -76,18 +76,36 @@ class WhatsAppWebhookController extends Controller
         }
 
         $oldStatus = $report->status;
+        $pelapor = $report->user;
 
         if ($command === 'ACC') {
             $report->update(['status' => 'divalidasi']);
             $this->logStatus($report->id, $user->id, $oldStatus, 'divalidasi', $notes ?: 'Disetujui via WhatsApp');
+
+            // --- POIN WARGA ---
+            $this->updateWargaPoin($pelapor, $oldStatus, 'divalidasi');
+
+            // --- APP NOTIFICATION ---
+            $this->createAppNotification($report, $oldStatus, 'divalidasi', 'Laporan anda telah divalidasi kaling anda mendapatkan 5 poin');
 
             // --- NOTIFY PETUGAS ---
             $this->notifyAllPetugas($report);
 
             return $this->generateTwilioResponse("✅ Laporan #{$report->id} BERHASIL DIVALIDASI. Notifikasi telah dikirim ke semua petugas lapangan.");
         } elseif ($command === 'TOLAK') {
-            $report->update(['status' => 'ditolak']);
+            // --- POIN WARGA ---
+            $this->updateWargaPoin($pelapor, $oldStatus, 'ditolak');
+
+            // --- APP NOTIFICATION ---
+            $this->createAppNotification($report, $oldStatus, 'ditolak', 'Maaf, laporan anda ditolak.');
+
             $this->logStatus($report->id, $user->id, $oldStatus, 'ditolak', $notes ?: 'Ditolak via WhatsApp');
+
+            // Delete report photo if exists
+            if ($report->photo_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($report->photo_path);
+            }
+            $report->delete();
 
             return $this->generateTwilioResponse("❌ Laporan #{$report->id} TELAH DITOLAK.");
         }
@@ -101,6 +119,7 @@ class WhatsAppWebhookController extends Controller
     private function handlePetugasCommand($user, Report $report, $command, $notes)
     {
         $oldStatus = $report->status;
+        $pelapor = $report->user;
 
         if ($command === 'KERJAKAN') {
             if ($oldStatus !== 'divalidasi') {
@@ -113,6 +132,9 @@ class WhatsAppWebhookController extends Controller
             ]);
 
             $this->logStatus($report->id, $user->id, $oldStatus, 'proses', 'Diambil alih petugas via WhatsApp');
+
+            // --- APP NOTIFICATION ---
+            $this->createAppNotification($report, $oldStatus, 'proses', 'Laporan anda di proses oleh petugas');
 
             return $this->generateTwilioResponse("🚚 Laporan #{$report->id} berhasil Anda ambil! Segera menuju lokasi.");
         } elseif ($command === 'SELESAI') {
@@ -127,24 +149,59 @@ class WhatsAppWebhookController extends Controller
             $report->update(['status' => 'selesai']);
             $this->logStatus($report->id, $user->id, $oldStatus, 'selesai', $notes ?: 'Diselesaikan via WhatsApp');
 
-            // --- NOTIFY CITIZEN ON WEB ---
-            AppNotification::create([
-                'user_id' => $report->user_id,
-                'type' => 'report_status_updated',
-                'notifiable_type' => Report::class,
-                'notifiable_id' => $report->id,
-                'data' => [
-                    'report_id' => $report->id,
-                    'title' => 'Laporan Selesai!',
-                    'message' => 'Laporan sampah Anda telah dibersihkan oleh petugas. Terima kasih!',
-                    'icon' => 'check-circle'
-                ],
-            ]);
+            // --- POIN WARGA ---
+            $this->updateWargaPoin($pelapor, $oldStatus, 'selesai');
+
+            // --- APP NOTIFICATION ---
+            $this->createAppNotification($report, $oldStatus, 'selesai', 'Laporan anda selesai di bersihkan oleh petugas dinas lingkungan hidup anda mendapatkan 10 poin');
 
             return $this->generateTwilioResponse("✨ Luar biasa! Laporan #{$report->id} telah ditandai SELESAI. Poin sudah masuk ke pelapor.");
         }
 
         return $this->generateTwilioResponse("⚠️ Perintah Petugas hanya: KERJAKAN atau SELESAI.");
+    }
+
+    private function updateWargaPoin($pelapor, $oldStatus, $newStatus)
+    {
+        if ($pelapor && $pelapor->role === 'warga') {
+            $warga = $pelapor->warga()->firstOrCreate(
+                ['user_id' => $pelapor->id],
+                ['poin_kepercayaan' => 0, 'is_terverifikasi' => false]
+            );
+
+            if ($oldStatus === 'menunggu' && $newStatus === 'divalidasi') {
+                $warga->poin_kepercayaan += 5;
+            } elseif ($newStatus === 'ditolak') {
+                $warga->poin_kepercayaan -= 5;
+                if ($warga->poin_kepercayaan < 0) {
+                    $warga->poin_kepercayaan = 0;
+                }
+            } elseif ($oldStatus === 'proses' && $newStatus === 'selesai') {
+                $warga->poin_kepercayaan += 10;
+            }
+
+            $warga->is_terverifikasi = $warga->poin_kepercayaan >= 50;
+            $warga->save();
+        }
+    }
+
+    private function createAppNotification($report, $oldStatus, $newStatus, $msg)
+    {
+        AppNotification::create([
+            'user_id' => $report->user_id,
+            'type' => 'report_status_updated',
+            'notifiable_type' => Report::class,
+            'notifiable_id' => $report->id,
+            'data' => [
+                'report_id' => $report->id,
+                'translation_key' => 'notif_status_updated',
+                'icon' => 'status',
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'title' => 'Update Laporan',
+                'message' => $msg,
+            ],
+        ]);
     }
 
     private function notifyAllPetugas(Report $report)

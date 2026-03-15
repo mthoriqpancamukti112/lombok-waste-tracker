@@ -2,7 +2,7 @@ import { FormEvent, useState, useEffect } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import DLHLayout from "@/Layouts/DLHLayout";
-import { Plus, Trash, Edit, Truck, X } from "@mynaui/icons-react";
+import { Plus, Trash, Edit, Truck, X, Telephone } from "@mynaui/icons-react";
 import Swal from "sweetalert2";
 import { landingDict } from "@/Lang/Landing";
 
@@ -12,6 +12,8 @@ interface Petugas {
     plat_nomor: string | null;
     kapasitas_kg: number;
     is_aktif: boolean;
+    nama: string | null;
+    no_telp: string | null;
     user: {
         name: string;
         email: string;
@@ -35,11 +37,13 @@ export default function Index({
         if (savedLang) setLang(savedLang);
     }, []);
 
-    const { data, setData, post, put, processing, errors, reset, clearErrors } =
+        const { data, setData, post, put, processing, errors, reset, clearErrors } =
         useForm({
             name: "",
             email: "",
             password: "",
+            nama_petugas: "",
+            no_telp: "",
             jenis_kendaraan: "pickup",
             plat_nomor: "",
             kapasitas_kg: 0,
@@ -73,6 +77,8 @@ export default function Index({
             name: petugas.user.name,
             email: petugas.user.email,
             password: "",
+            nama_petugas: petugas.nama || "",
+            no_telp: petugas.no_telp || "",
             jenis_kendaraan: petugas.jenis_kendaraan,
             plat_nomor: petugas.plat_nomor || "",
             kapasitas_kg: petugas.kapasitas_kg,
@@ -221,8 +227,14 @@ export default function Index({
                                     >
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-slate-800 dark:text-slate-200 transition-colors">
-                                                {p.user.name}
+                                                {p.nama || p.user.name}
                                             </div>
+                                            {p.no_telp && (
+                                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1 transition-colors">
+                                                    <Telephone className="w-3 h-3 text-[#86bf36]" />
+                                                    {p.no_telp}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-[#86bf36]">
@@ -312,7 +324,7 @@ export default function Index({
                                 onSubmit={submit}
                                 className="space-y-6"
                             >
-                                {/* Akun */}
+                                {/* Info Akun */}
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 transition-colors">
                                         {t.pmAccountInfo}
@@ -331,10 +343,10 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                                 placeholder={
                                                     t.pmFullNamePlaceholder
                                                 }
-                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                             />
                                             {errors.name && (
                                                 <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
@@ -355,10 +367,10 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                                 placeholder={
                                                     t.pmEmailPlaceholder
                                                 }
-                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                             />
                                             {errors.email && (
                                                 <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
@@ -366,7 +378,7 @@ export default function Index({
                                                 </p>
                                             )}
                                         </div>
-                                        <div className="sm:col-span-2">
+                                        <div>
                                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
                                                 {editingId
                                                     ? t.pmPasswordNew
@@ -381,18 +393,65 @@ export default function Index({
                                                         e.target.value,
                                                     )
                                                 }
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                                 placeholder={
                                                     editingId
                                                         ? t.pmPasswordPlaceholderEdit
                                                         : t.pmPasswordPlaceholderAdd
                                                 }
-                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
                                             />
                                             {errors.password && (
                                                 <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
                                                     {errors.password}
                                                 </p>
                                             )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Detail Petugas */}
+                                <div className="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700 transition-colors">
+                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 mt-2 transition-colors">
+                                        Data Petugas Resmi
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
+                                                {t.pmPetugasNameLabel}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.nama_petugas}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "nama_petugas",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder={
+                                                    t.pmPetugasNamePlaceholder
+                                                }
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
+                                                {t.pmPhoneLabel}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.no_telp}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "no_telp",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder={
+                                                    t.pmPhonePlaceholder
+                                                }
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
+                                            />
                                         </div>
                                     </div>
                                 </div>
