@@ -274,7 +274,7 @@ export default function KalingDashboard({ auth, reports, namaWilayah }: Props) {
                                     {/* Tombol Cek Map */}
                                     {report.latitude && report.longitude && (
                                         <a
-                                            href={`https://www.google.com/maps/dir/?api=1&destination=$${report.latitude},${report.longitude}`}
+                                            href={`https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="absolute bottom-3 left-3 bg-slate-900/70 hover:bg-indigo-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 backdrop-blur-md border border-white/20 transition-all shadow-lg hover:scale-105"
