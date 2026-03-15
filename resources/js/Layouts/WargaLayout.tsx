@@ -323,7 +323,7 @@ export default function WargaLayout({
                                         {/* <Link
                                             href={route(
                                                 "warga.profile",
-                                                auth.user.id,
+                                                auth.user?.id,
                                             )}
                                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors group`}
                                         >

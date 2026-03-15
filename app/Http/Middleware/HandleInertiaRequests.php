@@ -39,7 +39,8 @@ class HandleInertiaRequests extends Middleware
         if ($user) {
             $user->load('warga'); // Load relasi warga
 
-            // Suntikkan (attach) notifikasi langsung ke dalam object user
+            // Suntikkan (attach) notifikasi langsung ke dalam object user agar mudah diakses frontend
+            // Kita batasi hanya 15 notifikasi terbaru untuk performa
             $user->setAttribute(
                 'notifications',
                 AppNotification::where('user_id', $user->id)
@@ -52,9 +53,10 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $user,
+                'user' => $user, // Jika null, frontend akan menerima null
             ],
-            'unassignedCount' => $isDlh ? Report::whereNull('kaling_id')->count() : 0,
+            // Hitungan laporan yang belum ditugaskan (hanya untuk role dlh)
+            'unassignedCount' => ($isDlh && $user) ? Report::whereNull('kaling_id')->count() : 0,
         ];
     }
 }

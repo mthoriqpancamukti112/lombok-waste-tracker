@@ -209,8 +209,8 @@ export default function KalingLayout({
                                 <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 flex items-center justify-center font-black text-sm border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden relative flex-shrink-0">
                                     {auth.user?.avatar ? (
                                         <img
-                                            src={auth.user.avatar}
-                                            alt={auth.user.name}
+                                            src={auth.user?.avatar}
+                                            alt={auth.user?.name}
                                             referrerPolicy="no-referrer"
                                             className="absolute inset-0 w-full h-full object-cover"
                                         />
@@ -264,7 +264,7 @@ export default function KalingLayout({
                                                 <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mt-1.5 flex items-center gap-1 bg-indigo-50 dark:bg-indigo-900/30 w-fit px-2 py-0.5 rounded-md">
                                                     <MapPin className="w-3 h-3" />
                                                     {
-                                                        auth.user.kaling
+                                                        auth.user?.kaling
                                                             .nama_wilayah
                                                     }
                                                 </p>

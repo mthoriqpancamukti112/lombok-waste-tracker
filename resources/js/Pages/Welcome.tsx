@@ -911,8 +911,8 @@ export default function Welcome({
                                             </div>
 
                                             <div className="max-h-[60vh] overflow-y-auto custom-scrollbar flex flex-col">
-                                                {!auth.user.notifications ||
-                                                auth.user.notifications
+                                                {!auth.user?.notifications ||
+                                                auth.user?.notifications
                                                     .length === 0 ? (
                                                     <div className="p-8 text-center flex flex-col items-center justify-center">
                                                         <CheckCircleSolid
@@ -931,7 +931,7 @@ export default function Welcome({
                                                     </div>
                                                 ) : (
                                                     <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
-                                                        {auth.user.notifications.map(
+                                                        {auth.user?.notifications?.map(
                                                             (notif: any) => (
                                                                 <button
                                                                     key={
@@ -1230,8 +1230,8 @@ export default function Welcome({
                                             </div>
 
                                             <div className="max-h-96 overflow-y-auto custom-scrollbar flex flex-col">
-                                                {!auth.user.notifications ||
-                                                auth.user.notifications
+                                                {!auth.user?.notifications ||
+                                                auth.user?.notifications
                                                     .length === 0 ? (
                                                     <div className="p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
                                                         <div
@@ -1254,7 +1254,7 @@ export default function Welcome({
                                                     </div>
                                                 ) : (
                                                     <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
-                                                        {auth.user.notifications.map(
+                                                        {auth.user?.notifications?.map(
                                                             (notif: any) => (
                                                                 <button
                                                                     key={

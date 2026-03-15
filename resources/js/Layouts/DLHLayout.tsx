@@ -256,8 +256,8 @@ export default function DLHLayout({
                                 <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-black text-sm border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden relative flex-shrink-0 transition-colors">
                                     {auth.user?.avatar ? (
                                         <img
-                                            src={auth.user.avatar}
-                                            alt={auth.user.name}
+                                            src={auth.user?.avatar}
+                                            alt={auth.user?.name}
                                             referrerPolicy="no-referrer"
                                             className="absolute inset-0 w-full h-full object-cover"
                                         />
@@ -311,7 +311,7 @@ export default function DLHLayout({
                                             {auth.user?.dlh?.jabatan && (
                                                 <p className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1.5 flex items-center gap-1 bg-slate-100 dark:bg-slate-700/50 w-fit px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600 transition-colors">
                                                     <Briefcase className="w-3 h-3" />
-                                                    {auth.user.dlh.jabatan}
+                                                    {auth.user?.dlh.jabatan}
                                                 </p>
                                             )}
                                         </div>
