@@ -51,6 +51,7 @@ return [
         'from' => env('TWILIO_WHATSAPP_FROM'),
         'notify_content_sid' => env('TWILIO_NOTIFY_CONTENT_SID'),
         'kaling_content_sid' => env('TWILIO_KALING_CONTENT_SID'),
+        'finish_content_sid' => env('TWILIO_FINISH_CONTENT_SID'),
     ],
 
 ];

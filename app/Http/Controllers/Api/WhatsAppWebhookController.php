@@ -66,6 +66,12 @@ class WhatsAppWebhookController extends Controller
             return $this->generateTwilioResponse("Maaf, nomor Anda ($sender) belum terdaftar di sistem.");
         }
 
+        // --- NEW: Handle Media (Photos) from Petugas ---
+        $numMedia = (int) $request->input('NumMedia', 0);
+        if ($numMedia > 0 && $user->role === 'petugas') {
+            return $this->handlePetugasMedia($user, $request);
+        }
+
         // 2. Parse Command
         // Pattern: [COMMAND] [ID] [NOTES...]
         if (!preg_match('/^([A-Z]+)\s+(\d+)(.*)$/i', $body, $matches)) {
@@ -168,7 +174,7 @@ class WhatsAppWebhookController extends Controller
             // --- APP NOTIFICATION ---
             $this->createAppNotification($report, $oldStatus, 'proses', 'Laporan anda di proses oleh petugas');
 
-            return $this->generateTwilioResponse("🚚 Laporan #{$report->id} berhasil Anda ambil! Segera menuju lokasi.");
+            return $this->generateTwilioResponse("🚚 Laporan #{$report->id} berhasil Anda ambil!\n\nSilakan bersihkan lokasi, lalu *kirimkan foto bukti hasil kerja* ke nomor ini untuk menyelesaikan tugas.");
         } elseif ($command === 'SELESAI') {
             if ($oldStatus !== 'proses') {
                 return $this->generateTwilioResponse("⚠️ Anda hanya bisa menyelesaikan laporan yang sedang dalam 'proses'.");
@@ -176,6 +182,11 @@ class WhatsAppWebhookController extends Controller
 
             if ($report->petugas_id != $user->petugas?->id) {
                 return $this->generateTwilioResponse("⛔ Laporan ini sedang dikerjakan oleh petugas lain.");
+            }
+
+            // --- VALIDASI FOTO BUKTI ---
+            if (!$report->resolved_photo_path) {
+                return $this->generateTwilioResponse("⚠️ Anda belum mengirim foto bukti. Silakan *kirim foto hasil pembersihan* terlebih dahulu sebelum menandai SELESAI.");
             }
 
             $report->update(['status' => 'selesai']);
@@ -257,6 +268,55 @@ class WhatsAppWebhookController extends Controller
             'new_status' => $new,
             'notes' => $notes,
         ]);
+    }
+
+    /**
+     * Handle incoming media from Petugas (Proof of Work).
+     */
+    private function handlePetugasMedia($user, Request $request)
+    {
+        $petugas = $user->petugas;
+        if (!$petugas) return $this->generateTwilioResponse("⛔ Akun petugas tidak ditemukan.");
+
+        // Find active task (proses)
+        $report = Report::where('petugas_id', $petugas->id)
+            ->where('status', 'proses')
+            ->latest()
+            ->first();
+
+        if (!$report) {
+            return $this->generateTwilioResponse("⚠️ Anda tidak memiliki tugas aktif yang siap diselesaikan. Ketik KERJAKAN [ID] dulu.");
+        }
+
+        $mediaUrl = $request->input('MediaUrl0');
+        $contentType = $request->input('MediaContentType0');
+
+        try {
+            // Use Guzzle/Http to download
+            $response = \Illuminate\Support\Facades\Http::get($mediaUrl);
+            if (!$response->successful()) {
+                throw new \Exception("Gagal mendownload media dari Twilio.");
+            }
+
+            $extension = str_replace('image/', '', $contentType);
+            if ($extension === 'jpeg') $extension = 'jpg';
+            
+            $filename = 'resolved_' . $report->id . '_' . time() . '.' . $extension;
+            $path = 'reports/resolved/' . $filename;
+
+            \Illuminate\Support\Facades\Storage::disk('public')->put($path, $response->body());
+
+            $report->update(['resolved_photo_path' => $path]);
+
+            // --- USE INTERACTIVE BUTTON TEMPLATE ---
+            (new WhatsAppService())->notifyPetugasFinishButton($sender, $report);
+
+            return response('<Response></Response>')->header('Content-Type', 'text/xml');
+
+        } catch (\Exception $e) {
+            Log::error("Media download error: " . $e->getMessage());
+            return $this->generateTwilioResponse("❌ Terjadi kesalahan saat menyimpan foto bukti. Silakan coba lagi.");
+        }
     }
 
     /**

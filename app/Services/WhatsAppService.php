@@ -161,6 +161,24 @@ class WhatsAppService
     }
 
     /**
+     * Send interactive button to Petugas to finish the task after photo proof is received.
+     */
+    public function notifyPetugasFinishButton($phone, $report)
+    {
+        $contentSid = config('services.twilio.finish_content_sid');
+
+        if ($contentSid) {
+            // Variables: {{1}} = ID
+            return $this->sendTemplate($phone, $contentSid, [
+                '1' => (string) $report->id
+            ]);
+        }
+
+        // Fallback to plain text if SID is not set
+        return $this->sendMessage($phone, "✅ Foto bukti berhasil disimpan!\n\nSilakan konfirmasi penyelesaian dengan mengetik:\n✨ *SELESAI {$report->id}*");
+    }
+
+    /**
      * Format a phone number to E.164 standard (e.g., +62...).
      * 
      * @param string $number
