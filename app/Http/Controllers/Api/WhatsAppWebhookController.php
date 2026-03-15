@@ -27,16 +27,19 @@ class WhatsAppWebhookController extends Controller
 
         // 1. Identify User
         $cleanSender = str_replace('+', '', $sender);
+        $normalizedSender = $this->normalizeForLookup($sender);
         
         // Try User table first
         $user = User::where('phone_number', $sender)
             ->orWhere('phone_number', $cleanSender)
+            ->orWhere('phone_number', $normalizedSender)
             ->first();
 
         if (!$user) {
             // Try Petugas
             $petugas = \App\Models\Petugas::where('no_telp', $sender)
                 ->orWhere('no_telp', $cleanSender)
+                ->orWhere('no_telp', $normalizedSender)
                 ->first();
             if ($petugas) $user = $petugas->user;
         }
@@ -45,6 +48,7 @@ class WhatsAppWebhookController extends Controller
             // Try Kaling
             $kaling = \App\Models\Kaling::where('no_telp', $sender)
                 ->orWhere('no_telp', $cleanSender)
+                ->orWhere('no_telp', $normalizedSender)
                 ->first();
             if ($kaling) $user = $kaling->user;
         }
@@ -53,12 +57,13 @@ class WhatsAppWebhookController extends Controller
             // Try Warga
             $warga = \App\Models\Warga::where('no_telp', $sender)
                 ->orWhere('no_telp', $cleanSender)
+                ->orWhere('no_telp', $normalizedSender)
                 ->first();
             if ($warga) $user = $warga->user;
         }
 
         if (!$user) {
-            return $this->generateTwilioResponse("Maaf, nomor Anda belum terdaftar di sistem.");
+            return $this->generateTwilioResponse("Maaf, nomor Anda ($sender) belum terdaftar di sistem.");
         }
 
         // 2. Parse Command
@@ -252,5 +257,20 @@ class WhatsAppWebhookController extends Controller
             'new_status' => $new,
             'notes' => $notes,
         ]);
+    }
+
+    /**
+     * Normalize phone number to match database format (usually 08...).
+     */
+    private function normalizeForLookup($number)
+    {
+        $clean = preg_replace('/[^0-9]/', '', $number);
+
+        // if 628... -> 08...
+        if (str_starts_with($clean, '62') && strlen($clean) > 10) {
+            return '0' . substr($clean, 2);
+        }
+
+        return $clean;
     }
 }
