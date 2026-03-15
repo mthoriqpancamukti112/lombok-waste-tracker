@@ -324,10 +324,96 @@ export default function Index({
                                 onSubmit={submit}
                                 className="space-y-6"
                             >
+                                {/* Info Akun */}
+                                <div>
+                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 transition-colors">
+                                        {t.pmAccountInfo}
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
+                                                {t.pmFullNameLabel}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.name}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "name",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
+                                                placeholder={
+                                                    t.pmFullNamePlaceholder
+                                                }
+                                            />
+                                            {errors.name && (
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
+                                                    {errors.name}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
+                                                {t.pmEmailLabel}
+                                            </label>
+                                            <input
+                                                type="email"
+                                                value={data.email}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "email",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
+                                                placeholder={
+                                                    t.pmEmailPlaceholder
+                                                }
+                                            />
+                                            {errors.email && (
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
+                                                    {errors.email}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
+                                                {editingId
+                                                    ? t.pmPasswordNew
+                                                    : t.pmPasswordTemp}
+                                            </label>
+                                            <input
+                                                type="password"
+                                                value={data.password}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "password",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="w-full rounded-xl border-slate-200 dark:border-slate-600 focus:border-[#a7e94a] focus:ring-[#a7e94a] sm:text-sm bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-2.5 transition-colors"
+                                                placeholder={
+                                                    editingId
+                                                        ? t.pmPasswordPlaceholderEdit
+                                                        : t.pmPasswordPlaceholderAdd
+                                                }
+                                            />
+                                            {errors.password && (
+                                                <p className="text-xs text-red-600 dark:text-red-400 mt-1 transition-colors">
+                                                    {errors.password}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                
+
                                 {/* Detail Petugas */}
                                 <div className="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700 transition-colors">
+                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 mt-2 transition-colors">
+                                        Data Petugas Resmi
+                                    </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 transition-colors">
