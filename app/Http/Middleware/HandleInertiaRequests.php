@@ -31,19 +31,20 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-
         $isDlh = $request->user() && $request->user()->role === 'dlh';
         $user = $request->user();
 
-        $notifications = [];
+        // Kita siapkan data user mentahnya
+        $userData = null;
 
-        // Jika user sedang login, kita siapkan data profil dan notifikasinya
         if ($user) {
             $user->load('warga'); // Load relasi warga
 
-            // Suntikkan (attach) notifikasi langsung ke dalam object user
-            $notifications =
-                AppNotification::where('user_id', $user->id)
+            // Ubah user menjadi bentuk array standar
+            $userData = $user->toArray();
+
+            // SUNTIKKAN NOTIFIKASI KE DALAM ARRAY USER
+            $userData['notifications'] = AppNotification::where('user_id', $user->id)
                 ->latest()
                 ->take(15)
                 ->get();
@@ -52,8 +53,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $user,
-                'notifications' => $notifications,
+                'user' => $userData,
             ],
             'unassignedCount' => $isDlh ? Report::whereNull('kaling_id')->count() : 0,
         ];

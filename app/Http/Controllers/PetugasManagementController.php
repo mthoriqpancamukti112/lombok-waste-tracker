@@ -24,6 +24,7 @@ class PetugasManagementController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'phone_number' => 'required',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', Password::defaults()],
             'jenis_kendaraan' => 'required|in:truk_besar,pickup,motor_gerobak',
@@ -34,6 +35,7 @@ class PetugasManagementController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
             'role' => 'petugas',
         ]);
