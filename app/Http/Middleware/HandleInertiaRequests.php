@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\AppNotification;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -31,14 +32,27 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
 
-        // CEK APAKAH USER ADALAH DLH
         $isDlh = $request->user() && $request->user()->role === 'dlh';
+        $user = $request->user();
+
+        // Jika user sedang login, kita siapkan data profil dan notifikasinya
+        if ($user) {
+            $user->load('warga'); // Load relasi warga
+
+            // Suntikkan (attach) notifikasi langsung ke dalam object user
+            $user->setAttribute(
+                'notifications',
+                AppNotification::where('user_id', $user->id)
+                    ->latest()
+                    ->take(15)
+                    ->get()
+            );
+        }
 
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user() ? $request->user()->load('warga') : null,
-                'notifications' => $request->user() ? $request->user()->appNotifications()->latest()->take(20)->get() : [],
+                'user' => $user,
             ],
             'unassignedCount' => $isDlh ? Report::whereNull('kaling_id')->count() : 0,
         ];

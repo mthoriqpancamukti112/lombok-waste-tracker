@@ -29,6 +29,8 @@ import {
     Bell,
     BellSolid,
     CheckCircleSolid,
+    Like,
+    MessageDots,
 } from "@mynaui/icons-react";
 
 interface User {
@@ -391,49 +393,80 @@ export default function Welcome({
     const unreadNotifications =
         auth.user?.notifications?.filter((n: any) => !n.read_at) || [];
 
-    const handleMarkAsRead = async (id: string) => {
-        try {
-            await fetch(`/notifications/${id}/read`, {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN":
-                        (
-                            document.querySelector(
-                                'meta[name="csrf-token"]',
-                            ) as HTMLMetaElement
-                        )?.content || "",
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
+    const handleMarkAsRead = (id: string) => {
+        router.post(
+            `/notifications/${id}/read`,
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                only: ["auth"],
+            },
+        );
+    };
+
+    const handleMarkAllAsRead = () => {
+        router.post(
+            "/notifications/read-all",
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                only: ["auth"],
+                onSuccess: () => {
+                    setShowNotifications(false);
+                    toast.success(
+                        lang === "id"
+                            ? "Semua notifikasi dibaca"
+                            : "All notifications read",
+                    );
                 },
-            });
-            router.reload({ only: ["auth"] });
-        } catch (error) {
-            console.error(error);
+            },
+        );
+    };
+
+    const renderNotificationIcon = (iconName?: string) => {
+        switch (iconName) {
+            case "like":
+                return <Like className="w-4 h-4" />;
+            case "comment":
+                return <MessageDots className="w-4 h-4" />;
+            case "status":
+                return <CheckCircleSolid className="w-4 h-4" />;
+            default:
+                return <Bell className="w-4 h-4" />;
         }
     };
 
-    const handleMarkAllAsRead = async () => {
-        try {
-            await fetch("/notifications/read-all", {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN":
-                        (
-                            document.querySelector(
-                                'meta[name="csrf-token"]',
-                            ) as HTMLMetaElement
-                        )?.content || "",
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-            });
-            router.reload({
-                only: ["auth"],
-            });
-            setShowNotifications(false);
-        } catch (error) {
-            console.error(error);
+    const renderNotificationMessage = (notif: any) => {
+        const key = notif.data.translation_key;
+
+        // Notifikasi Interaksi Sosial
+        if (key === "notif_liked") {
+            return t.notifLiked.replace("{name}", notif.data.actor_name);
+        } else if (key === "notif_commented") {
+            return t.notifCommented
+                .replace("{name}", notif.data.actor_name)
+                .replace("{snippet}", notif.data.snippet || "");
         }
+        // Notifikasi Pembuatan Laporan
+        else if (key === "notif_report_submitted") {
+            return t.notifReportSubmitted;
+        }
+        // Notifikasi Perubahan Status
+        else if (key === "notif_status_updated") {
+            const status = notif.data.new_status;
+            if (status === "divalidasi") return t.notifStatusValidated;
+            if (status === "proses") return t.notifStatusProcess;
+            if (status === "selesai") return t.notifStatusCompleted;
+            if (status === "ditolak") return t.notifStatusRejected;
+
+            // Jika ada status aneh/lain
+            return t.notifStatusGeneric.replace("{status}", status);
+        }
+
+        // Fallback untuk notifikasi LAMA yang belum punya translation_key
+        return notif.data.message;
     };
 
     return (
@@ -655,16 +688,20 @@ export default function Welcome({
                                                                             false,
                                                                         );
                                                                     }}
-                                                                    className={`w-full text-left p-3 transition-all flex gap-3 ${!notif.read_at ? "bg-slate-50 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+                                                                    className={`w-full text-left p-3 transition-all flex gap-3.5 ${!notif.read_at ? "bg-slate-50 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
                                                                 >
                                                                     <div
-                                                                        className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm ${!notif.read_at ? "bg-[#a7e94a]/20 text-[#a7e94a]" : "bg-slate-100 dark:bg-slate-700 text-slate-400"}`}
+                                                                        className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm ${!notif.read_at ? "bg-[#a7e94a]/20 text-[#5a8a1a] dark:text-[#a7e94a]" : "bg-slate-100 dark:bg-slate-700 text-slate-400"}`}
                                                                     >
-                                                                        <Bell className="w-4 h-4" />
+                                                                        {renderNotificationIcon(
+                                                                            notif
+                                                                                .data
+                                                                                .icon,
+                                                                        )}
                                                                     </div>
                                                                     <div className="flex-1">
                                                                         <p
-                                                                            className={`text-xs leading-snug ${!notif.read_at ? "font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-600 dark:text-slate-400"}`}
+                                                                            className={`text-xs leading-snug ${!notif.read_at ? "font-semibold text-slate-800 dark:text-slate-200" : "font-normal text-slate-600 dark:text-slate-400"}`}
                                                                         >
                                                                             {
                                                                                 notif
@@ -672,17 +709,19 @@ export default function Welcome({
                                                                                     .message
                                                                             }
                                                                         </p>
-                                                                        <p className="text-[9px] text-slate-400 mt-1 font-semibold">
+
+                                                                        <p className="text-[10px] text-slate-400 mt-1 font-medium">
                                                                             {new Date(
                                                                                 notif.created_at,
-                                                                            ).toLocaleDateString(
+                                                                            ).toLocaleString(
                                                                                 lang ===
                                                                                     "id"
                                                                                     ? "id-ID"
                                                                                     : "en-US",
                                                                                 {
                                                                                     day: "numeric",
-                                                                                    month: "short",
+                                                                                    month: "long",
+                                                                                    year: "numeric",
                                                                                     hour: "2-digit",
                                                                                     minute: "2-digit",
                                                                                 },
@@ -969,24 +1008,26 @@ export default function Welcome({
                                                                             false,
                                                                         );
                                                                     }}
-                                                                    className={`w-full text-left p-4 transition-all flex gap-3.5 ${!notif.read_at ? "bg-slate-50 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+                                                                    className={`w-full text-left p-3 transition-all flex gap-3.5 ${!notif.read_at ? "bg-slate-50 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
                                                                 >
                                                                     <div
-                                                                        className={`w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm ${!notif.read_at ? "bg-[#a7e94a]/20 text-[#a7e94a]" : "bg-slate-100 dark:bg-slate-700 text-slate-400"}`}
+                                                                        className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm ${!notif.read_at ? "bg-[#a7e94a]/20 text-[#5a8a1a] dark:text-[#a7e94a]" : "bg-slate-100 dark:bg-slate-700 text-slate-400"}`}
                                                                     >
-                                                                        <Bell className="w-4 h-4" />
+                                                                        {renderNotificationIcon(
+                                                                            notif
+                                                                                .data
+                                                                                .icon,
+                                                                        )}
                                                                     </div>
                                                                     <div className="flex-1">
                                                                         <p
-                                                                            className={`text-sm leading-snug ${!notif.read_at ? "font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-600 dark:text-slate-400"}`}
+                                                                            className={`text-[13px] leading-snug ${!notif.read_at ? "font-semibold text-slate-800 dark:text-slate-200" : "font-normal text-slate-600 dark:text-slate-400"}`}
                                                                         >
-                                                                            {
-                                                                                notif
-                                                                                    .data
-                                                                                    .message
-                                                                            }
+                                                                            {renderNotificationMessage(
+                                                                                notif,
+                                                                            )}
                                                                         </p>
-                                                                        <p className="text-[10px] text-slate-400 mt-1.5 font-semibold">
+                                                                        <p className="text-[10px] text-slate-400 mt-1 font-medium">
                                                                             {new Date(
                                                                                 notif.created_at,
                                                                             ).toLocaleDateString(
@@ -996,7 +1037,8 @@ export default function Welcome({
                                                                                     : "en-US",
                                                                                 {
                                                                                     day: "numeric",
-                                                                                    month: "short",
+                                                                                    month: "long",
+                                                                                    year: "numeric",
                                                                                     hour: "2-digit",
                                                                                     minute: "2-digit",
                                                                                 },

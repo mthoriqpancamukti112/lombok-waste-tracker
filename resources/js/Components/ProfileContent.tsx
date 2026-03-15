@@ -1,6 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { Link, router } from "@inertiajs/react";
-import { X, MapPin, Like, MessageDots } from "@mynaui/icons-react";
+import {
+    X,
+    MapPin,
+    Like,
+    MessageDots,
+    Bell,
+    CheckCircleSolid,
+} from "@mynaui/icons-react";
 import { toast } from "react-hot-toast";
 import { landingDict } from "@/Lang/Landing";
 
@@ -27,6 +34,7 @@ interface User {
         is_terverifikasi: boolean;
         poin_kepercayaan: number;
     } | null;
+    notifications?: Notification[];
 }
 
 interface Notification {
@@ -36,6 +44,11 @@ interface Notification {
         message?: string;
         title?: string;
         report_id?: number;
+        icon?: string;
+        translation_key?: string;
+        actor_name?: string;
+        snippet?: string;
+        new_status?: string;
     };
     read_at: string | null;
     created_at: string;
@@ -59,12 +72,16 @@ const statusCls: Record<string, string> = {
 const ProfileContent: React.FC<ProfileContentProps> = ({
     user,
     reports,
-    notifications = [],
+    notifications: propNotifications,
     onClose,
     isDark = false,
     lang = "id",
 }) => {
     if (!user) return null;
+    const notifications =
+        propNotifications && propNotifications.length > 0
+            ? propNotifications
+            : user.notifications || [];
     const t = landingDict[lang];
     const [activeTab, setActiveTab] = useState("all");
 
@@ -141,6 +158,46 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
         ? "bg-slate-700 border-slate-600"
         : "bg-white border-slate-100";
     const subtle = isDark ? "text-slate-400" : "text-slate-400";
+
+    const renderNotificationIcon = (
+        iconName?: string,
+        className: string = "w-5 h-5",
+    ) => {
+        switch (iconName) {
+            case "like":
+                return <Like className={className} />;
+            case "comment":
+                return <MessageDots className={className} />;
+            case "status":
+                return <CheckCircleSolid className={className} />;
+            default:
+                return <Bell className={className} />;
+        }
+    };
+
+    const renderNotificationMessage = (notif: any) => {
+        const key = notif.data.translation_key;
+        if (key === "notif_liked") {
+            return t.notifLiked?.replace("{name}", notif.data.actor_name);
+        } else if (key === "notif_commented") {
+            return t.notifCommented
+                ?.replace("{name}", notif.data.actor_name)
+                .replace("{snippet}", notif.data.snippet || "");
+        } else if (key === "notif_report_submitted") {
+            return t.notifReportSubmitted;
+        } else if (key === "notif_status_updated") {
+            const status = notif.data.new_status;
+            if (status === "divalidasi") return t.notifStatusValidated;
+            if (status === "proses") return t.notifStatusProcess;
+            if (status === "selesai") return t.notifStatusCompleted;
+            if (status === "ditolak") return t.notifStatusRejected;
+            return (
+                t.notifStatusGeneric?.replace("{status}", status) ||
+                notif.data.message
+            );
+        }
+        return notif.data.message;
+    };
 
     return (
         <div className={`flex flex-col ${bg}`}>
@@ -427,22 +484,12 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             className={`p-4 rounded-2xl border flex gap-3 items-start cursor-pointer transition-all hover:scale-[1.01] ${n.read_at ? inBg : isDark ? "bg-[#a7e94a]/10 border-[#a7e94a]/20" : "bg-[#a7e94a]/5 border-[#a7e94a]/10"}`}
                                         >
                                             <div
-                                                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.read_at ? (isDark ? "bg-slate-800" : "bg-slate-100") : "bg-[#a7e94a] text-white"}`}
+                                                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.read_at ? (isDark ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-400") : "bg-[#a7e94a]/20 text-[#5a8a1a] dark:text-[#a7e94a]"}`}
                                             >
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    strokeWidth={2}
-                                                    stroke="currentColor"
-                                                    className="w-5 h-5"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
-                                                    />
-                                                </svg>
+                                                {renderNotificationIcon(
+                                                    n.data.icon,
+                                                    "w-5 h-5",
+                                                )}
                                             </div>
                                             <div className="flex-1">
                                                 <p className="text-xs font-bold leading-tight">
@@ -452,22 +499,25 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                             : "Notification")}
                                                 </p>
                                                 <p
-                                                    className={`text-[11px] mt-1 leading-snug ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                                                    className={`text-[11px] mt-1 leading-snug ${!n.read_at ? (isDark ? "font-semibold text-slate-200" : "font-semibold text-slate-800") : isDark ? "text-slate-400" : "text-slate-500"}`}
                                                 >
-                                                    {n.data.message}
+                                                    {renderNotificationMessage(
+                                                        n,
+                                                    )}
                                                 </p>
                                                 <p
                                                     className={`text-[9px] mt-2 font-medium ${subtle}`}
                                                 >
                                                     {new Date(
                                                         n.created_at,
-                                                    ).toLocaleDateString(
+                                                    ).toLocaleString(
                                                         lang === "id"
                                                             ? "id-ID"
                                                             : "en-US",
                                                         {
                                                             day: "numeric",
-                                                            month: "short",
+                                                            month: "long",
+                                                            year: "numeric",
                                                             hour: "2-digit",
                                                             minute: "2-digit",
                                                         },
@@ -475,7 +525,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 </p>
                                             </div>
                                             {!n.read_at && (
-                                                <div className="w-2 h-2 rounded-full bg-[#a7e94a] mt-1.5" />
+                                                <div className="w-2 h-2 rounded-full bg-[#a7e94a] mt-1.5 shrink-0" />
                                             )}
                                         </div>
                                     ))
@@ -769,22 +819,12 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                             className={`p-5 rounded-[28px] border flex gap-4 items-start cursor-pointer transition-all hover:scale-[1.01] ${n.read_at ? inBg : isDark ? "bg-[#a7e94a]/10 border-[#a7e94a]/20" : "bg-[#a7e94a]/5 border-[#a7e94a]/10"}`}
                                         >
                                             <div
-                                                className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${n.read_at ? (isDark ? "bg-slate-800" : "bg-white") : "bg-[#a7e94a] text-white"}`}
+                                                className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${n.read_at ? (isDark ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-400") : "bg-[#a7e94a]/20 text-[#5a8a1a] dark:text-[#a7e94a]"}`}
                                             >
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    strokeWidth={2}
-                                                    stroke="currentColor"
-                                                    className="w-6 h-6"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
-                                                    />
-                                                </svg>
+                                                {renderNotificationIcon(
+                                                    n.data.icon,
+                                                    "w-6 h-6",
+                                                )}
                                             </div>
                                             <div className="flex-1">
                                                 <p className="text-sm font-black leading-tight">
@@ -794,16 +834,18 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                             : "Notification")}
                                                 </p>
                                                 <p
-                                                    className={`text-xs mt-1.5 leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                                                    className={`text-xs mt-1.5 leading-relaxed ${!n.read_at ? (isDark ? "font-semibold text-slate-200" : "font-semibold text-slate-800") : isDark ? "text-slate-400" : "text-slate-500"}`}
                                                 >
-                                                    {n.data.message}
+                                                    {renderNotificationMessage(
+                                                        n,
+                                                    )}
                                                 </p>
                                                 <p
-                                                    className={`text-[10px] mt-3 font-bold ${subtle}`}
+                                                    className={`text-[10px] mt-3 font-medium ${subtle}`}
                                                 >
                                                     {new Date(
                                                         n.created_at,
-                                                    ).toLocaleDateString(
+                                                    ).toLocaleString(
                                                         lang === "id"
                                                             ? "id-ID"
                                                             : "en-US",
@@ -818,7 +860,7 @@ const ProfileContent: React.FC<ProfileContentProps> = ({
                                                 </p>
                                             </div>
                                             {!n.read_at && (
-                                                <div className="w-2.5 h-2.5 rounded-full bg-[#a7e94a] mt-2" />
+                                                <div className="w-2.5 h-2.5 rounded-full bg-[#a7e94a] mt-2 shrink-0" />
                                             )}
                                         </div>
                                     ))

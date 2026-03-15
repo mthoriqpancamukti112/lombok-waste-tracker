@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\ReportComment;
 use App\Models\ReportLike;
-use App\Models\AppNotification; // <--- TAMBAHAN PENTING
+use App\Models\AppNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
@@ -44,7 +44,10 @@ class PublicReportController extends Controller
                         'notifiable_id' => $report->id,
                         'data' => [
                             'report_id' => $report->id,
-                            'message' => "❤️ {$user->name} menyukai laporan tumpukan sampah Anda."
+                            'translation_key' => 'notif_liked',
+                            'actor_name' => $user->name,
+                            'message' => "{$user->name} menyukai laporan tumpukan sampah Anda.",
+                            'icon' => 'like'
                         ],
                     ]);
                 }

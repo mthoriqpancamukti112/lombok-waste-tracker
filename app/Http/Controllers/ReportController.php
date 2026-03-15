@@ -147,6 +147,8 @@ class ReportController extends Controller
             'notifiable_id' => $report->id,
             'data' => [
                 'report_id' => $report->id,
+                'translation_key' => 'notif_report_submitted',
+                'icon' => 'status',
                 'title' => 'Laporan Terkirim',
                 'message' => 'Anda mengajukan laporan. Laporan anda sedang menunggu validasi Kaling.',
             ],
@@ -280,6 +282,8 @@ class ReportController extends Controller
                 'notifiable_id' => $report->id,
                 'data' => [
                     'report_id' => $report->id,
+                    'translation_key' => 'notif_status_updated',
+                    'icon' => 'status',
                     'old_status' => $oldStatus,
                     'new_status' => $newStatus,
                     'title' => 'Update Laporan',

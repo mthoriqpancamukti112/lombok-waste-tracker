@@ -555,6 +555,22 @@ export const landingDict = {
         dlhUnassignedSearchEmpty: "Pencarian tidak ditemukan",
         dlhUnassignedSuccess: "Laporan berhasil diteruskan ke Kaling!",
         dlhUnassignedError: "Gagal meneruskan laporan.",
+
+        notifLiked: "{name} menyukai laporan tumpukan sampah Anda.",
+        notifCommented: '{name} berkomentar: "{snippet}"',
+
+        // --- TAMBAHAN UNTUK STATUS LAPORAN ---
+        notifReportSubmitted:
+            "Anda mengajukan laporan. Laporan Anda sedang menunggu validasi Kaling.",
+        notifStatusValidated:
+            "Laporan Anda telah divalidasi Kaling, Anda mendapatkan 5 poin.",
+        notifStatusProcess:
+            "Laporan Anda sedang diproses oleh petugas lapangan.",
+        notifStatusCompleted:
+            "Laporan Anda selesai dibersihkan oleh petugas DLH, Anda mendapatkan 10 poin.",
+        notifStatusRejected: "Maaf, laporan Anda ditolak karena tidak valid.",
+        notifStatusGeneric:
+            "Status laporan Anda telah diperbarui menjadi: {status}",
     },
 
     en: {
@@ -1116,5 +1132,20 @@ export const landingDict = {
         dlhUnassignedSearchEmpty: "Search not found",
         dlhUnassignedSuccess: "Report successfully forwarded to the Leader!",
         dlhUnassignedError: "Failed to forward the report.",
+
+        notifLiked: "{name} liked your waste report.",
+        notifCommented: '{name} commented: "{snippet}"',
+
+        // --- TAMBAHAN UNTUK STATUS LAPORAN ---
+        notifReportSubmitted:
+            "You submitted a report. It is waiting for Kaling's validation.",
+        notifStatusValidated:
+            "Your report has been validated by Kaling, you earned 5 points.",
+        notifStatusProcess:
+            "Your report is currently being processed by the field officer.",
+        notifStatusCompleted:
+            "Your report has been cleaned by DLH officers, you earned 10 points.",
+        notifStatusRejected: "Sorry, your report was rejected as invalid.",
+        notifStatusGeneric: "Your report status has been updated to: {status}",
     },
 };

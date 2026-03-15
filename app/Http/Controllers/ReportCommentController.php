@@ -45,7 +45,11 @@ class ReportCommentController extends Controller
                     'notifiable_id' => $report->id,
                     'data' => [
                         'report_id' => $report->id,
-                        'message' => "💬 {$user->name} berkomentar: \"{$snippet}\""
+                        'translation_key' => 'notif_commented',
+                        'actor_name' => $user->name,
+                        'snippet' => $snippet,
+                        'message' => "{$user->name} berkomentar: \"{$snippet}\"",
+                        'icon' => 'comment'
                     ],
                 ]);
             }
