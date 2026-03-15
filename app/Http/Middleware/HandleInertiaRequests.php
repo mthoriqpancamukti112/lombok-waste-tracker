@@ -35,25 +35,24 @@ class HandleInertiaRequests extends Middleware
         $isDlh = $request->user() && $request->user()->role === 'dlh';
         $user = $request->user();
 
-        $notifications = [];
-
         // Jika user sedang login, kita siapkan data profil dan notifikasinya
         if ($user) {
             $user->load('warga'); // Load relasi warga
 
             // Suntikkan (attach) notifikasi langsung ke dalam object user
-            $notifications =
+            $user->setAttribute(
+                'notifications',
                 AppNotification::where('user_id', $user->id)
-                ->latest()
-                ->take(15)
-                ->get();
+                    ->latest()
+                    ->take(15)
+                    ->get()
+            );
         }
 
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $user,
-                'notifications' => $notifications,
             ],
             'unassignedCount' => $isDlh ? Report::whereNull('kaling_id')->count() : 0,
         ];
