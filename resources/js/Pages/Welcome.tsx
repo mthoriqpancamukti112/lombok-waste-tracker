@@ -14,6 +14,7 @@ import ReportDetailContent from "@/Components/ReportDetailContent";
 import ChatbotWidget from "@/Components/ChatbotWidget";
 import { Toaster, toast } from "react-hot-toast";
 import { driver } from "driver.js";
+import { renderToString } from "react-dom/server";
 import "driver.js/dist/driver.css";
 import {
     Globe,
@@ -33,6 +34,9 @@ import {
     CheckCircleSolid,
     Like,
     MessageDots,
+    MapSolid,
+    Search,
+    FilePlusSolid,
 } from "@mynaui/icons-react";
 
 interface User {
@@ -224,27 +228,20 @@ export default function Welcome({
         }
     }, [auth.user]);
 
-    // Auto-open Report Modal jika ada query ?action=lapor di URL (misal dari Chatbot)
+    // Auto-open Report Modal jika ada query ?action=lapor di URL
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get("action");
 
         if (action === "lapor") {
-            // Cek apakah user sudah login
             if (!auth.user) {
-                // Jika belum, arahkan ke login dan simpan niatnya
                 sessionStorage.setItem("pendingAction", "lapor");
                 openAuthModal("login");
             } else {
-                // Jika sudah login, langsung buka modal laporan
                 setIsReportModalOpen(true);
             }
-
-            // Opsional: Bersihkan URL agar tidak terus-terusan terbuka saat refresh
-            // window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        // Pengecekan setelah login sukses
         if (auth.user) {
             const pendingAction = sessionStorage.getItem("pendingAction");
             if (pendingAction === "lapor") {
@@ -265,7 +262,6 @@ export default function Welcome({
     };
 
     const handleTabClick = (tab: "reports" | "profile") => {
-        // If user clicks profile and is not logged in, that's handled in BottomBar (link to login)
         setActivePanel((prev) => (prev === tab ? "none" : tab));
     };
 
@@ -278,7 +274,7 @@ export default function Welcome({
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearchQuery(searchQuery);
-        }, 600); // Wait 600ms before triggering search
+        }, 600);
         return () => clearTimeout(handler);
     }, [searchQuery]);
 
@@ -293,13 +289,11 @@ export default function Welcome({
 
             setIsSearching(true);
             try {
-                // Use OpenStreetMap Nominatim for free searches without API keys/billing
                 const response = await fetch(
                     `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(debouncedSearchQuery)}&format=json&addressdetails=1&limit=5&countrycodes=id`,
                 );
                 const data = await response.json();
 
-                // Map Nominatim results to existing structure
                 const formattedResults = data.map((place: any) => {
                     return {
                         id: place.place_id || Math.random().toString(),
@@ -325,7 +319,7 @@ export default function Welcome({
         if (query.length > 0 && query.length < 3) {
             setIsSearching(false);
         } else if (query.length >= 3) {
-            setIsSearching(true); // Show spinner immediately while user types
+            setIsSearching(true);
         }
     };
 
@@ -361,21 +355,14 @@ export default function Welcome({
         }
     };
 
-    // ======================================================================
-    // MENGATUR MAP FOCUS & BUKA POPUP DARI LINK CHATBOT (INSTAN / SPA)
-    // ======================================================================
     const handleFocusReportFromChatbot = (reportId: number) => {
         if (reports && reports.length > 0) {
             const targetReport = reports.find((r) => r.id === reportId);
-
             if (targetReport && mapRef.current) {
-                // 1. Terbang ke titik koordinat
                 mapRef.current.flyTo(
                     Number(targetReport.latitude),
                     Number(targetReport.longitude),
                 );
-
-                // 2. Munculkan popup kecil 0.5 detik kemudian
                 setTimeout(() => {
                     mapRef.current?.openPopup(targetReport);
                 }, 500);
@@ -384,9 +371,10 @@ export default function Welcome({
     };
 
     const mobileBtnBase =
-        "w-10 h-10 shadow-[0_4px_14px_rgba(0,0,0,0.07)] border border-slate-100 rounded-xl flex items-center justify-center transition-all active:scale-90";
+        "shrink-0 w-10 h-10 shadow-[0_4px_14px_rgba(0,0,0,0.07)] border border-slate-100 rounded-xl flex items-center justify-center transition-all active:scale-90";
+
     const desktopBtn =
-        "w-12 h-12 bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center transition-all hover:shadow-lg hover:scale-105 active:scale-95";
+        "shrink-0 w-12 h-12 bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center transition-all hover:shadow-lg hover:scale-105 active:scale-95";
 
     const openAuthModal = (tab: "login" | "register" = "login") => {
         setAuthModalTab(tab);
@@ -443,155 +431,305 @@ export default function Welcome({
 
     const renderNotificationMessage = (notif: any) => {
         const key = notif.data.translation_key;
-
-        // Notifikasi Interaksi Sosial
         if (key === "notif_liked") {
             return t.notifLiked.replace("{name}", notif.data.actor_name);
         } else if (key === "notif_commented") {
             return t.notifCommented
                 .replace("{name}", notif.data.actor_name)
                 .replace("{snippet}", notif.data.snippet || "");
-        }
-        // Notifikasi Pembuatan Laporan
-        else if (key === "notif_report_submitted") {
+        } else if (key === "notif_report_submitted") {
             return t.notifReportSubmitted;
-        }
-        // Notifikasi Perubahan Status
-        else if (key === "notif_status_updated") {
+        } else if (key === "notif_status_updated") {
             const status = notif.data.new_status;
             if (status === "divalidasi") return t.notifStatusValidated;
             if (status === "proses") return t.notifStatusProcess;
             if (status === "selesai") return t.notifStatusCompleted;
             if (status === "ditolak") return t.notifStatusRejected;
-
-            // Jika ada status aneh/lain
             return t.notifStatusGeneric.replace("{status}", status);
         }
-
-        // Fallback untuk notifikasi LAMA yang belum punya translation_key
         return notif.data.message;
     };
 
+    // ────────────────────────────────────────────────────────────────────────
+    // TOUR (DRIVER.JS) SETUP DENGAN IKON SVG CLEAN & TARGET YANG TEPAT
+    // ────────────────────────────────────────────────────────────────────────
+    const getTourTitle = (iconSvg: string, text: string) => {
+        return `<div style="display:flex; align-items:center; gap:8px;">
+                    <div style="color:#a7e94a; display:flex;">${iconSvg}</div>
+                    <span style="font-weight:800; letter-spacing:-0.02em;">${text}</span>
+                </div>`;
+    };
+
+    const tourIcons = {
+        map: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>`,
+        search: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>`,
+        location: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m0 14v1m8-8h-1M5 12H4" /></svg>`,
+        report: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>`,
+    };
+
+    // ────────────────────────────────────────────────────────────────────────
+    // TOUR (DRIVER.JS) SETUP - VERSI PREMIUM UI (TANPA PANAH)
+    // ────────────────────────────────────────────────────────────────────────
     const startReportingTour = () => {
-        // ── Inject theme-aware styles for driver.js popover ─────────────────
-        const styleId = 'driver-tour-theme';
-        let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
+        const getTourTitle = (
+            iconElement: React.ReactElement,
+            text: string,
+        ) => {
+            const iconString = renderToString(iconElement);
+            return `<div style="display: flex; align-items: center; gap: 14px; margin-bottom: 6px;">
+                        <div style="flex-shrink: 0 !important; width: 36px !important; height: 36px !important; min-width: 36px !important; min-height: 36px !important; display: flex !important; align-items: center !important; justify-content: center !important; border-radius: 50% !important; background-color: rgba(167, 233, 74, 0.1) !important; color: #a7e94a !important; overflow: hidden !important;">
+                            ${iconString}
+                        </div>
+                        <span style="font-weight: 700; font-size: 15px; letter-spacing: -0.02em; line-height: 1.25; margin: 0;">${text}</span>
+                    </div>`;
+        };
+
+        // Inject CSS dengan gaya ala Tailwind
+        const styleId = "driver-tour-theme";
+        let styleEl = document.getElementById(
+            styleId,
+        ) as HTMLStyleElement | null;
         if (!styleEl) {
-            styleEl = document.createElement('style');
+            styleEl = document.createElement("style");
             styleEl.id = styleId;
             document.head.appendChild(styleEl);
         }
 
+        // Tampilan UI Premium + Sembunyikan Panah
         if (isDarkMode) {
             styleEl.textContent = `
+                @import url("https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap");
+
+                .driver-tour-themed, .driver-tour-themed * {
+                    font-family: "Google Sans", sans-serif !important;
+                }
+
                 .driver-tour-themed {
                     background-color: #1e293b !important;
-                    color: #f1f5f9 !important;
+                    color: #f8fafc !important;
                     border: 1px solid #334155 !important;
-                    border-radius: 16px !important;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
+                    border-radius: 24px !important;
+                    padding: 20px 24px !important;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
                 }
-                .driver-tour-themed .driver-popover-title { color: #f1f5f9 !important; }
-                .driver-tour-themed .driver-popover-description { color: #cbd5e1 !important; }
-                .driver-tour-themed .driver-popover-progress-text { color: #64748b !important; }
-                .driver-tour-themed .driver-popover-close-btn { color: #64748b !important; }
-                .driver-tour-themed .driver-popover-close-btn:hover { color: #f1f5f9 !important; }
-                .driver-tour-themed .driver-popover-footer button {
-                    background-color: #334155 !important;
-                    color: #cbd5e1 !important;
-                    border-color: #475569 !important;
-                    border-radius: 8px !important;
+
+                .driver-popover-description {
+                    color: #94a3b8 !important;
+                    font-size: 13px !important;
+                    line-height: 1.6 !important;
+                    margin-top: 8px !important;
                 }
-                .driver-tour-themed .driver-popover-footer button:hover {
-                    background-color: #475569 !important;
+
+                .driver-popover-footer { margin-top: 24px !important; }
+                .driver-popover-progress-text {
+                    color: #64748b !important;
+                    font-weight: 600 !important;
+                    font-size: 12px !important;
                 }
-                .driver-tour-themed .driver-popover-navigation-btns button:last-child {
-                    background-color: #a7e94a !important;
-                    color: #0f172a !important;
-                    border-color: #a7e94a !important;
+
+                .driver-popover-close-btn {
+                    top: 16px !important;
+                    right: 16px !important;
+                    width: 28px !important;
+                    height: 28px !important;
+                    border-radius: 50% !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    color: #64748b !important;
+                    background-color: transparent !important;
+                    transition: all 0.2s ease-in-out !important;
+                }
+                .driver-popover-close-btn:hover {
+                    color: #f8fafc !important;
+                    background-color: rgba(255, 255, 255, 0.1) !important;
+                    transform: scale(1.05) !important;
+                }
+
+                .driver-popover-navigation-btns button {
+                    border-radius: 12px !important;
+                    padding: 8px 16px !important;
+                    font-size: 12px !important;
                     font-weight: 700 !important;
+                    transition: all 0.2s !important;
+                    text-shadow: none !important;
                 }
-                .driver-tour-themed .driver-popover-navigation-btns button:last-child:hover {
-                    background-color: #b5f260 !important;
-                }
-                .driver-tour-themed .driver-popover-arrow { border-color: #1e293b !important; }
+                .driver-popover-prev-btn { background-color: #334155 !important; color: #cbd5e1 !important; border: none !important; }
+                .driver-popover-prev-btn:hover { background-color: #475569 !important; }
+                .driver-popover-next-btn { background-color: #a7e94a !important; color: #0f172a !important; border: none !important; }
+                .driver-popover-next-btn:hover { background-color: #95d43e !important; transform: translateY(-1px) !important; }
+
+                /* SEMBUNYIKAN PANAH */
+                .driver-popover-arrow { display: none !important; }
             `;
         } else {
             styleEl.textContent = `
+                @import url("https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap");
+
+                .driver-tour-themed, .driver-tour-themed * {
+                    font-family: "Google Sans", sans-serif !important;
+                }
+
                 .driver-tour-themed {
                     background-color: #ffffff !important;
-                    color: #1e293b !important;
-                    border: 1px solid #e2e8f0 !important;
-                    border-radius: 16px !important;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.12) !important;
-                }
-                .driver-tour-themed .driver-popover-title { color: #0f172a !important; }
-                .driver-tour-themed .driver-popover-description { color: #475569 !important; }
-                .driver-tour-themed .driver-popover-progress-text { color: #94a3b8 !important; }
-                .driver-tour-themed .driver-popover-close-btn { color: #cbd5e1 !important; }
-                .driver-tour-themed .driver-popover-close-btn:hover { color: #64748b !important; }
-                .driver-tour-themed .driver-popover-footer button {
-                    background-color: #f8fafc !important;
-                    color: #475569 !important;
-                    border-color: #e2e8f0 !important;
-                    border-radius: 8px !important;
-                }
-                .driver-tour-themed .driver-popover-footer button:hover {
-                    background-color: #f1f5f9 !important;
-                }
-                .driver-tour-themed .driver-popover-navigation-btns button:last-child {
-                    background-color: #a7e94a !important;
                     color: #0f172a !important;
-                    border-color: #a7e94a !important;
+                    border: 1px solid #f1f5f9 !important;
+                    border-radius: 24px !important;
+                    padding: 20px 24px !important;
+                    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), 0 0 20px rgba(167, 233, 74, 0.1) !important;
+                }
+
+                .driver-popover-description {
+                    color: #64748b !important;
+                    font-size: 13px !important;
+                    line-height: 1.6 !important;
+                    margin-top: 8px !important;
+                }
+
+                .driver-popover-footer { margin-top: 24px !important; }
+                .driver-popover-progress-text {
+                    color: #94a3b8 !important;
+                    font-weight: 600 !important;
+                    font-size: 12px !important;
+                }
+
+                .driver-popover-close-btn {
+                    top: 16px !important;
+                    right: 16px !important;
+                    width: 28px !important;
+                    height: 28px !important;
+                    border-radius: 50% !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    color: #94a3b8 !important;
+                    background-color: transparent !important;
+                    transition: all 0.2s ease-in-out !important;
+                }
+                .driver-popover-close-btn:hover {
+                    color: #0f172a !important;
+                    background-color: rgba(0, 0, 0, 0.05) !important;
+                    transform: scale(1.05) !important;
+                }
+
+                .driver-popover-navigation-btns button {
+                    border-radius: 12px !important;
+                    padding: 8px 16px !important;
+                    font-size: 12px !important;
                     font-weight: 700 !important;
+                    transition: all 0.2s !important;
+                    text-shadow: none !important;
                 }
-                .driver-tour-themed .driver-popover-navigation-btns button:last-child:hover {
-                    background-color: #8fd63a !important;
-                }
-                .driver-tour-themed .driver-popover-arrow { border-color: #ffffff !important; }
+                .driver-popover-prev-btn { background-color: #f1f5f9 !important; color: #475569 !important; border: none !important; }
+                .driver-popover-prev-btn:hover { background-color: #e2e8f0 !important; }
+                .driver-popover-next-btn { background-color: #a7e94a !important; color: #0f172a !important; border: none !important; box-shadow: 0 4px 10px rgba(167, 233, 74, 0.3) !important;}
+                .driver-popover-next-btn:hover { background-color: #95d43e !important; transform: translateY(-1px) !important; }
+
+                /* SEMBUNYIKAN PANAH */
+                .driver-popover-arrow { display: none !important; }
             `;
         }
-        // ────────────────────────────────────────────────────────────────────
 
         const driverObj = driver({
             showProgress: true,
-            popoverClass: 'driver-tour-themed',
-            nextBtnText: lang === 'id' ? 'Lanjut →' : 'Next →',
-            prevBtnText: lang === 'id' ? '← Kembali' : '← Previous',
-            doneBtnText: lang === 'id' ? '✓ Selesai' : '✓ Done',
+            popoverClass: "driver-tour-themed",
+            nextBtnText: lang === "id" ? "Lanjut" : "Next",
+            prevBtnText: lang === "id" ? "Kembali" : "Back",
+            doneBtnText: lang === "id" ? "Mengerti" : "Got it",
             steps: [
-                { element: '#map-container', popover: { title: lang === 'id' ? '🗺️ Peta Interaktif' : '🗺️ Interactive Map', description: lang === 'id' ? 'Di sini Anda bisa melihat semua titik tumpukan sampah yang dilaporkan warga.' : 'Here you can see all waste reports from citizens.', side: "left", align: 'start' } },
-                { element: isDesktop ? '#search-input-desktop' : '#search-input-mobile', popover: { title: lang === 'id' ? '🔍 Cari Lokasi' : '🔍 Search Location', description: lang === 'id' ? 'Cari alamat atau lokasi spesifik di mana tumpukan sampah berada.' : 'Search for specific addresses or locations of waste piles.' } },
-                { element: isDesktop ? '#btn-geolocate-desktop' : '#btn-geolocate', popover: { title: lang === 'id' ? '📍 Lokasi Saya' : '📍 My Location', description: lang === 'id' ? 'Gunakan tombol ini untuk mencocokkan peta dengan posisi Anda saat ini.' : 'Use this button to center the map on your current position.' } },
+                // LANGKAH 1
                 {
-                    element: '.btn-lapor-tour-target',
                     popover: {
-                        title: lang === 'id' ? '📢 Tombol Lapor' : '📢 Report Button',
-                        description: lang === 'id' ? 'Klik di sini untuk mengirimkan laporan baru. Anda perlu login terlebih dahulu ya!' : 'Click here to submit a new report. You need to login first!',
+                        title: getTourTitle(
+                            <MapSolid className="w-5 h-5" />,
+                            lang === "id"
+                                ? "Selamat Datang di TRACEA"
+                                : "Welcome to TRACEA",
+                        ),
+                        description:
+                            lang === "id"
+                                ? "Ini adalah peta pemantauan interaktif. Anda dapat melihat lokasi tumpukan sampah yang dilaporkan secara <i>real-time</i> di sini."
+                                : "This is an interactive monitoring map. You can view reported waste piles in real-time here.",
+                    },
+                },
+                // LANGKAH 2
+                {
+                    element: isDesktop
+                        ? "#search-wrapper-desktop"
+                        : "#search-wrapper-mobile",
+                    popover: {
+                        title: getTourTitle(
+                            <Search className="w-5 h-5" />,
+                            lang === "id"
+                                ? "Pencarian Lokasi"
+                                : "Search Location",
+                        ),
+                        description:
+                            lang === "id"
+                                ? "Ketikkan nama jalan atau daerah spesifik untuk mengecek kondisi kebersihan dan laporan di area tersebut."
+                                : "Type a specific street or area name to check the cleanliness reports in that location.",
+                        side: "bottom",
+                        align: "start",
+                    },
+                },
+                // LANGKAH 3
+                {
+                    element: isDesktop
+                        ? "#btn-geolocate-desktop"
+                        : "#btn-geolocate",
+                    popover: {
+                        title: getTourTitle(
+                            <CrosshairSolid className="w-5 h-5" />,
+                            lang === "id" ? "Pusatkan Peta" : "Center Map",
+                        ),
+                        description:
+                            lang === "id"
+                                ? "Gunakan tombol ini untuk menarik peta agar fokus pada posisi Anda saat ini."
+                                : "Use this button to pull the map focus to your current position.",
+                        side: "bottom",
+                        align: "end",
+                    },
+                },
+                // LANGKAH 4
+                {
+                    element: isDesktop
+                        ? "#btn-lapor-desktop"
+                        : "#btn-lapor-mobile",
+                    popover: {
+                        // Tidak ada lagi custom class step-lapor-center di sini
+                        title: getTourTitle(
+                            <FilePlusSolid className="w-5 h-5" />,
+                            lang === "id" ? "Buat Laporan" : "Create Report",
+                        ),
+                        description:
+                            lang === "id"
+                                ? "Menemukan tumpukan sampah? Klik tombol ini untuk melaporkannya ke petugas. Pastikan Anda sudah login ya!"
+                                : "Found a pile of waste? Click this button to report it to the officers. Ensure you are logged in!",
                         side: "top",
                         align: "center",
                     },
-                    onHighlightStarted: (element) => {
-                        // Force desktop dock to remain visible during this step
-                        window.dispatchEvent(new CustomEvent('force-dock', { detail: { visible: true } }));
-
-                        // Wait for any animations to finish and refresh the highlight position
+                    onHighlightStarted: () => {
+                        window.dispatchEvent(
+                            new CustomEvent("force-dock", {
+                                detail: { visible: true },
+                            }),
+                        );
                         setTimeout(() => {
-                            // @ts-ignore - driverObj is available in the scope
-                            if (window.driverObj) {
-                                // @ts-ignore
-                                window.driverObj.refresh();
-                            }
-                        }, 400); // 400ms to be safe (longer than transition-300)
+                            // @ts-ignore
+                            if (window.driverObj) window.driverObj.refresh();
+                        }, 400);
                     },
                     onDeselected: () => {
-                        // Allow dock to hide again after the step
                         if (isDesktop) {
-                            window.dispatchEvent(new CustomEvent('force-dock', { detail: { visible: false } }));
+                            window.dispatchEvent(
+                                new CustomEvent("force-dock", {
+                                    detail: { visible: false },
+                                }),
+                            );
                         }
-                    }
+                    },
                 },
-            ]
+            ],
         });
 
         // @ts-ignore
@@ -649,6 +787,7 @@ export default function Welcome({
                 <div className="xl:hidden absolute top-0 inset-x-0 z-50 px-4 pt-5 flex flex-col gap-2.5">
                     <div className="relative">
                         <div
+                            id="search-wrapper-mobile"
                             className={`bg-white dark:bg-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center px-4 py-1`}
                         >
                             <input
@@ -762,19 +901,19 @@ export default function Welcome({
                                                 </h3>
                                                 {unreadNotifications.length >
                                                     0 && (
-                                                        <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
-                                                            {
-                                                                unreadNotifications.length
-                                                            }{" "}
-                                                            {t.notifNew}
-                                                        </span>
-                                                    )}
+                                                    <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
+                                                        {
+                                                            unreadNotifications.length
+                                                        }{" "}
+                                                        {t.notifNew}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <div className="max-h-[60vh] overflow-y-auto custom-scrollbar flex flex-col">
                                                 {!auth.user.notifications ||
-                                                    auth.user.notifications
-                                                        .length === 0 ? (
+                                                auth.user.notifications
+                                                    .length === 0 ? (
                                                     <div className="p-8 text-center flex flex-col items-center justify-center">
                                                         <CheckCircleSolid
                                                             className={`w-10 h-10 mb-3 transition-opacity ${isDarkMode ? "text-slate-600 opacity-50" : "text-slate-300 opacity-70"}`}
@@ -834,11 +973,9 @@ export default function Welcome({
                                                                         <p
                                                                             className={`text-xs leading-snug ${!notif.read_at ? "font-semibold text-slate-800 dark:text-slate-200" : "font-normal text-slate-600 dark:text-slate-400"}`}
                                                                         >
-                                                                            {
-                                                                                notif
-                                                                                    .data
-                                                                                    .message
-                                                                            }
+                                                                            {renderNotificationMessage(
+                                                                                notif,
+                                                                            )}
                                                                         </p>
 
                                                                         <p className="text-[10px] text-slate-400 mt-1 font-medium">
@@ -965,7 +1102,10 @@ export default function Welcome({
                     ══════════════════════════════════════════ */}
                 <div className="hidden xl:flex absolute top-6 inset-x-6 z-50 items-center gap-4">
                     <div className="flex-[7] relative">
-                        <div className="bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center px-6 py-1.5 focus-within:ring-4 focus-within:ring-[#a7e94a]/15 transition-all">
+                        <div
+                            id="search-wrapper-desktop"
+                            className="bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 rounded-2xl flex items-center px-6 py-1.5 focus-within:ring-4 focus-within:ring-[#a7e94a]/15 transition-all"
+                        >
                             <input
                                 id="search-input-desktop"
                                 type="text"
@@ -1080,19 +1220,19 @@ export default function Welcome({
                                                 </h3>
                                                 {unreadNotifications.length >
                                                     0 && (
-                                                        <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
-                                                            {
-                                                                unreadNotifications.length
-                                                            }{" "}
-                                                            {t.notifNew}
-                                                        </span>
-                                                    )}
+                                                    <span className="text-[10px] font-black uppercase tracking-wider text-[#a7e94a] bg-[#a7e94a]/10 dark:bg-[#a7e94a]/20 px-2 py-0.5 rounded-full">
+                                                        {
+                                                            unreadNotifications.length
+                                                        }{" "}
+                                                        {t.notifNew}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <div className="max-h-96 overflow-y-auto custom-scrollbar flex flex-col">
                                                 {!auth.user.notifications ||
-                                                    auth.user.notifications
-                                                        .length === 0 ? (
+                                                auth.user.notifications
+                                                    .length === 0 ? (
                                                     <div className="p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
                                                         <div
                                                             className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${isDarkMode ? "bg-slate-700/50" : "bg-slate-100"}`}
@@ -1160,10 +1300,11 @@ export default function Welcome({
                                                                                 notif,
                                                                             )}
                                                                         </p>
+
                                                                         <p className="text-[10px] text-slate-400 mt-1 font-medium">
                                                                             {new Date(
                                                                                 notif.created_at,
-                                                                            ).toLocaleDateString(
+                                                                            ).toLocaleString(
                                                                                 lang ===
                                                                                     "id"
                                                                                     ? "id-ID"
@@ -1191,7 +1332,7 @@ export default function Welcome({
                                                         onClick={
                                                             handleMarkAllAsRead
                                                         }
-                                                        className="w-full py-3 text-xs font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-[#a7e94a] dark:hover:text-[#a7e94a] hover:bg-[#a7e94a]/10 dark:hover:bg-slate-800"
+                                                        className="w-full py-2.5 text-xs font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-[#a7e94a] dark:hover:text-[#a7e94a] hover:bg-[#a7e94a]/10 dark:hover:bg-slate-800"
                                                     >
                                                         <CheckCircleSolid className="w-4 h-4" />
                                                         {t.notifMarkAllRead}
@@ -1219,7 +1360,7 @@ export default function Welcome({
                         <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
 
                         {/* Map Settings Controls */}
-                        <div className="flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                        <div className="shrink-0 flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner">
                             <button
                                 onClick={() => toggleSetting("showMarkers")}
                                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${mapSettings.showMarkers ? "bg-[#a7e94a] text-white shadow-md shadow-[#a7e94a]/20" : "text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-200"}`}
@@ -1260,23 +1401,6 @@ export default function Welcome({
                         >
                             <CrosshairSolid className="w-5 h-5" />
                         </button>
-
-                        {/* Profile Avatar (desktop top bar) - Only show when logged in */}
-                        {/* {auth.user && (
-                            <button
-                                onClick={() => handleTabClick('profile')}
-                                className="flex items-center gap-2.5 bg-white border border-slate-100 rounded-2xl pl-2 pr-4 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all"
-                            >
-                                <img
-                                    src={auth.user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user.name)}&background=a7e94a&color=fff&size=64`}
-                                    alt={auth.user.name}
-                                    className="w-8 h-8 rounded-xl object-cover"
-                                />
-                                <span className="text-sm font-bold text-slate-700 max-w-[100px] truncate">
-                                    {auth.user.name.split(' ')[0]}
-                                </span>
-                            </button>
-                        )} */}
                     </div>
                 </div>
 
@@ -1348,7 +1472,9 @@ export default function Welcome({
                                 lang={lang}
                                 formatDate={formatDate}
                                 onClose={() => setActivePanel("none")}
-                                onCommentAdded={() => router.reload({ only: ["reports"] })}
+                                onCommentAdded={() =>
+                                    router.reload({ only: ["reports"] })
+                                }
                             />
                         ) : (
                             <div className="py-12 text-center text-slate-400 text-sm">
@@ -1380,7 +1506,6 @@ export default function Welcome({
                     initialTab={authModalTab}
                     lang={lang}
                     isDark={isDarkMode}
-                    // TAMBAHKAN PROP INI (Lihat Langkah 3)
                     onOpenForgot={() => {
                         setIsAuthModalOpen(false); // Tutup login
                         setIsForgotModalOpen(true); // Buka Lupa Password
