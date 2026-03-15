@@ -66,6 +66,11 @@ class ProfileController extends Controller
                 ['user_id' => $user->id],
                 ['no_telp' => $request->no_telp]
             );
+        } elseif ($user->role === 'petugas') {
+            $user->petugas()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['no_telp' => $request->no_telp]
+            );
         }
 
         return Redirect::back()->with('status', 'profile-updated');

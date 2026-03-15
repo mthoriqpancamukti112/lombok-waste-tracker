@@ -37,7 +37,8 @@ class WhatsAppService
             return false;
         }
 
-        // Format number to whatsapp: format if not already
+        // Format number to E.164 and then to whatsapp: format
+        $to = $this->formatE164($to);
         $to = str_starts_with($to, 'whatsapp:') ? $to : "whatsapp:$to";
 
         try {
@@ -68,6 +69,7 @@ class WhatsAppService
             return false;
         }
 
+        $to = $this->formatE164($to);
         $to = str_starts_with($to, 'whatsapp:') ? $to : "whatsapp:$to";
 
         try {
@@ -91,7 +93,8 @@ class WhatsAppService
      */
     public function notifyKaling($kaling, $report)
     {
-        if (!$kaling || !$kaling->user || !$kaling->user->phone_number)
+        $phone = $kaling->no_telp ?? $kaling->user->phone_number ?? null;
+        if (!$phone)
             return;
 
         $contentSid = config('services.twilio.kaling_content_sid');
@@ -107,13 +110,13 @@ class WhatsAppService
 
         if ($contentSid) {
             // Variables: {{1}} = ID, {{2}} = Address, {{3}} = Type/Severity
-            $this->sendTemplate($kaling->user->phone_number, $contentSid, [
+            $this->sendTemplate($phone, $contentSid, [
                 '1' => (string) $report->id,
                 '2' => $report->address,
                 '3' => "{$report->waste_type} ({$report->severity_level})"
             ]);
         } else {
-            $this->sendMessage($kaling->user->phone_number, $msg);
+            $this->sendMessage($phone, $msg);
         }
     }
 
@@ -138,21 +141,55 @@ class WhatsAppService
             "Ketik: *KERJAKAN {$report->id}* untuk mengambil tugas ini.";
 
         foreach ($activePetugas as $petugas) {
-            if (!$petugas->user || !$petugas->user->phone_number)
+            $phone = $petugas->no_telp ?? $petugas->user->phone_number ?? null;
+            if (!$phone)
                 continue;
 
             if ($contentSid) {
                 // Using Content API (Buttons)
                 // Template should have variables like: {{1}} = ID, {{2}} = Address, {{3}} = Maps URL
-                $this->sendTemplate($petugas->user->phone_number, $contentSid, [
+                $this->sendTemplate($phone, $contentSid, [
                     '1' => (string) $report->id,
                     '2' => $report->address,
                     '3' => $mapsUrl
                 ]);
             } else {
                 // Fallback to plain text
-                $this->sendMessage($petugas->user->phone_number, $msg);
+                $this->sendMessage($phone, $msg);
             }
         }
+    }
+
+    /**
+     * Format a phone number to E.164 standard (e.g., +62...).
+     * 
+     * @param string $number
+     * @return string
+     */
+    private function formatE164($number)
+    {
+        // Remove "whatsapp:" prefix if present to format the number itself
+        $isWhatsapp = str_starts_with($number, 'whatsapp:');
+        $cleanNumber = $isWhatsapp ? str_replace('whatsapp:', '', $number) : $number;
+
+        // Remove non-numeric characters except +
+        $cleanNumber = preg_replace('/[^0-9+]/', '', $cleanNumber);
+
+        // Handle local Indonesian format 08... -> +628...
+        if (str_starts_with($cleanNumber, '0')) {
+            $cleanNumber = '+62' . substr($cleanNumber, 1);
+        }
+
+        // Handle format 62... -> +62...
+        if (str_starts_with($cleanNumber, '62') && !str_starts_with($cleanNumber, '+')) {
+            $cleanNumber = '+' . $cleanNumber;
+        }
+
+        // Ensure it starts with +
+        if (!str_starts_with($cleanNumber, '+')) {
+            $cleanNumber = '+' . $cleanNumber;
+        }
+
+        return $isWhatsapp ? "whatsapp:$cleanNumber" : $cleanNumber;
     }
 }
