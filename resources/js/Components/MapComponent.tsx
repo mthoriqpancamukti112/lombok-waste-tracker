@@ -535,9 +535,12 @@ const MapComponent = forwardRef<MapHandle, MapProps>(function MapComponent(
         >
             <style>{`
                 .mapboxgl-ctrl-logo { display: none !important; }
+                .auth-modal { z-index: 1000 !important; } /* Jika Anda punya modal lain */
                 .mapboxgl-ctrl-attrib { display: none !important; }
                 .mapboxgl-ctrl-geolocate { display: none !important; }
-                .mapboxgl-popup { z-index: 999 !important; }
+
+                .mapboxgl-map { overflow: visible !important; }
+                .mapboxgl-popup { z-index: 99 !important; }
 
                 .custom-react-popup .mapboxgl-popup-content {
                     padding: 0 !important;
