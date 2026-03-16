@@ -48,7 +48,6 @@
 - **Framework**: Laravel 12
 - **Auth**: Laravel Breeze & Socialite (Login Google)
 - **Database**: MySQL
-- **Komunikasi**: Integrasi WhatsApp (API Fonnte)
 
 ### Ekosistem AI
 
@@ -101,7 +100,7 @@ Layanan ini adalah API khusus yang berjalan secara independen untuk menangani tu
 
 - **API Mapbox**: Vector tiles, geocoding, dan lapisan peta interaktif.
 - **Google OAuth**: Terintegrasi melalui Laravel Socialite untuk login warga yang mulus.
-- **API Fonnte**: Gateway WhatsApp untuk mengirim peringatan real-time kepada warga.
+- **Twilio**: Gateway WhatsApp untuk mengirim peringatan real-time kepada warga.
 
 ---
 
@@ -111,7 +110,6 @@ Layanan ini adalah API khusus yang berjalan secara independen untuk menangani tu
 - **Bahasa Alami**: [IndoBERT (IndoBenchmark)](https://github.com/indobenchmark/indonlu) - Model bahasa pra-latih untuk konteks Indonesia.
 - **Pemetaan**: [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) - Peta vektor interaktif.
 - **Komponen Frontend**: [Mynaui Icons](https://mynaui.com/icons) & [Inertia.js](https://inertiajs.com/).
-- **Komunikasi**: [Fonnte WhatsApp API](https://fonnte.com/).
 
 ---
 
