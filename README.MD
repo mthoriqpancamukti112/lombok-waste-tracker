@@ -100,7 +100,7 @@ Layanan ini adalah API khusus yang berjalan secara independen untuk menangani tu
 
 - **API Mapbox**: Vector tiles, geocoding, dan lapisan peta interaktif.
 - **Google OAuth**: Terintegrasi melalui Laravel Socialite untuk login warga yang mulus.
-- **Twilio**: Gateway WhatsApp untuk mengirim peringatan real-time kepada warga.
+- **Twilio**: Gateway WhatsApp untuk mengirim peringatan real-time kepada Warga, Petugas dan Kaling.
 
 ---
 
